@@ -148,11 +148,13 @@ We split validation into **5 folds** with a matched target (RT) distribution, ex
 
 ## 🧪 Practical tips
 
-- **Seeds & restarts.** Fix seeds for comparability; do several runs to hit peak scores.  
-- **Batch size & workers.** Increase gradually until near GPU RAM limit; set `num_workers` to CPU cores.  
-- **Suppress benign logs.** We locally silence verbose data notices and out-of-range annotations (see notebook cells).  
-- **CUDA mismatches.** If you see “no kernel image available” or `.so` load errors, install PyTorch matching your CUDA or use a CPU build.  
-- **Checkpoints.** Best weights are auto-saved; restarts reload best and halve LR on plateaus.
+- **SGD + big batches.** Stochastic Gradient Descent with the **largest feasible batch size** tends to perform best on average. Temporarily switching to a **smaller batch** can help escape local minima.
+- **Aux losses as escape hatches.** **Focal**, **entropy**, **Wasserstein**, **KL**, and **hazard** losses typically don’t speed up convergence, but can **shake the model out of bad minima** when added for a few epochs.
+- **Target smoothing schedule.** It’s good practice to **decrease `sigma`** (for the soft target) over time; start larger, then anneal.
+- **Learning rate.** Reduce LR when training saturates; for segmentation with SGD, a **relatively large LR (~0.01)** often works well (with momentum/WD).
+- **Augmentations ↔ temperature.** Aug params—especially **mixup**—are **model-dependent** and change the optimal **temperature (τ)** at inference (more mixup → less confidence → higher entropy). Tune **mixup + τ** together.
+- **Key knobs to tune:** **learning rate**, **sigma**, and **temperature (τ)**. The effect of **τ** varies **strongly by architecture**.
+
 
 ---
 
