@@ -166,12 +166,11 @@ We split validation into **5 folds** with a matched target (RT) distribution, ex
 │   │   ├── boosting_model.py
 │   │   ├── feature_extractor_new.py
 │   │   ├── feature_extractor.py
-│   │   └── median_bootstrap_ridge.py
+│   │   ├── median_bootstrap_ridge.py
+│   │   ├── knn.py
+│   │   ├── random_forest.py
+│   │   └── ridge_model.py
 │   ├── models
-│   │   ├── externalizing
-│   │   │   ├── knn.py
-│   │   │   ├── random_forest.py
-│   │   │   └── ridge_model.py
 │   │   ├── regression
 │   │   │   ├── deep_eeg_net.py
 │   │   │   ├── reccurent_eegrt.py
