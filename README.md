@@ -205,6 +205,28 @@ We split validation into **5 folds** with a matched target (RT) distribution, ex
 ├── requirements.txt
 ```
 
+## Best Models Overview
+
+| Model                          | NRMSE (default) | NRMSE (calibrated) | Best temperature |
+| ------------------------------ | --------------: | -----------------: | ---------------: |
+| unet_deeper_widen4_v1          |        0.902532 |           0.902324 |            1.076 |
+| unet_deeper_v4                 |        0.898899 |           0.898757 |            1.076 |
+| unet_v4                        |        0.903785 |           0.903785 |            1.000 |
+| attention_unet_v2              |        0.901512 |           0.901511 |            1.028 |
+| inception_v0                   |        0.917441 |           0.916910 |            1.124 |
+| factorization_unet_v1_finetune |        0.910517 |           0.909281 |            1.221 |
+
+## Ensembling Overview
+
+| Method                     |  Valid NRMSE | Leaderboard NRMSE |
+| -------------------------- | -----------: | ----------------: |
+| Best Calibrated Model      |     0.898757 |           0.92334 |
+| Manual Blending            |     0.899979 |           0.91840 |
+| Ridge stacking             |     0.890430 |           0.91539 |
+| Gradient Boosting stacking | **0.883365** |       **0.91394** |
+
+
+## 
 ---
 
 ## 📜 Citation
