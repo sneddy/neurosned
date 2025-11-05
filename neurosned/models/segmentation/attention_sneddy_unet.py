@@ -1,5 +1,4 @@
 # attention_sneddy_unet.py - point event detection as 1D segmentation
-import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -23,7 +22,7 @@ class DropPath(nn.Module):
 
 
 class StdPerSample(nn.Module):
-    """Пер-семпловая нормализация по времени."""
+    """Per-sample normalization along time axis."""
     def __init__(self, eps=1e-5):
         super().__init__()
         self.eps = eps
@@ -46,7 +45,7 @@ class DSConv1d(nn.Module):
 
 
 class ResBlock(nn.Module):
-    """Лёгкий residual-блок: DSConv → GN → GELU → Dropout → DSConv → GN + DropPath + skip."""
+    """Lightweight residual block: DSConv → GN → GELU → Dropout → DSConv → GN + DropPath + skip."""
     def __init__(self, ch, k=7, dropout=0.0, dilation=1, drop_path: float = 0.0):
         super().__init__()
         self.conv1 = DSConv1d(ch, k=k, dilation=dilation)
@@ -69,7 +68,7 @@ class ResBlock(nn.Module):
 
 
 class ChannelSqueeze(nn.Module):
-    """Сужение по электродам: 1x1 C_in→C_out."""
+    """Electrode/channel squeeze: 1x1 C_in→C_out."""
     def __init__(self, c_in, c_out):
         super().__init__()
         self.proj = nn.Conv1d(c_in, c_out, kernel_size=1, bias=False)
@@ -79,7 +78,7 @@ class ChannelSqueeze(nn.Module):
 
 
 class TimeDown(nn.Module):
-    """Антиалиас depthwise + AvgPool(stride=2)."""
+    """Anti-aliasing depthwise + AvgPool(stride=2)."""
     def __init__(self, ch, k=5):
         super().__init__()
         pad = (k - 1) // 2
@@ -98,8 +97,8 @@ class TimeDown(nn.Module):
 
 class MHSABlock(nn.Module):
     """
-    MHSA по времени на бутылочном уровне + позиционная depthwise-конволька.
-    Формат: (B, C, T) → (B, C, T)
+    Temporal MHSA at the bottleneck level + positional depthwise convolution.
+    Format: (B, C, T) → (B, C, T)
     """
     def __init__(
         self,
@@ -137,7 +136,7 @@ class MHSABlock(nn.Module):
 # ------------------------- encoder / decoder -------------------------
 
 class Encoder1D(nn.Module):
-    """Sneddy-style encoder с параметризуемым числом стадий."""
+    """Sneddy-style encoder with configurable number of stages."""
     def __init__(
         self,
         num_stages: int = 3,
@@ -149,8 +148,8 @@ class Encoder1D(nn.Module):
         drop_path: float = 0.0,
     ):
         super().__init__()
-        assert 3 <= num_stages <= 5, "num_stages должен быть в диапазоне [3,5]"
-        # каналы геометрической прогрессией, совместимо с 32,64,128 при widen=2
+        assert 3 <= num_stages <= 5, "num_stages should be in the range [3,5]"
+        # channels grow geometrically, compatible with 32,64,128 for widen=2
         self.chs = [int(round(c0 * (widen ** i))) for i in range(num_stages)]
         if isinstance(depth_per_stage, int):
             dps = [depth_per_stage] * num_stages
@@ -160,11 +159,11 @@ class Encoder1D(nn.Module):
 
         enc, downs = [], []
         in_c = self.chs[0]
-        # первый уровень предполагает вход уже сжатый до c0 извне (ChannelSqueeze)
+        # first level assumes input already squeezed to c0 externally (ChannelSqueeze)
         for stage_idx, out_c in enumerate(self.chs):
             stage = []
             if stage_idx == 0:
-                # in_c == out_c == c0, без проекции
+                # in_c == out_c == c0, no projection
                 pass
             else:
                 stage += [nn.Conv1d(in_c, out_c, 1, bias=False), nn.GroupNorm(1, out_c), nn.GELU()]
@@ -184,7 +183,7 @@ class Encoder1D(nn.Module):
             h = enc(h)
             skips.append(h)
             h = down(h)
-        return h, skips  # h на самом низком масштабе, skips от мелкого к глубокому (r0..r{S-1})
+        return h, skips  # h at the lowest scale; skips from shallow to deep (r0..r{S-1})
 
 
 class UpBlock(nn.Module):
@@ -211,7 +210,7 @@ class UpBlock(nn.Module):
 
 
 class Decoder1D(nn.Module):
-    """U-Net-like decoder с произвольным числом уровней."""
+    """U-Net-like decoder with an arbitrary number of levels."""
     def __init__(
         self,
         chs: List[int],
@@ -223,13 +222,13 @@ class Decoder1D(nn.Module):
         super().__init__()
         # chs: [c0, c1, ..., cS-1]
         steps = []
-        # идём сверху вниз: r{S-1}->r{S-2}->...->r0
+        # go from top to bottom: r{S-1}->r{S-2}->...->r0
         for i in range(len(chs) - 1, -1, -1):
-            in_ch   = chs[i] if i == len(chs) - 1 else steps[-1][2]  # предыдущий out_ch
+            in_ch   = chs[i] if i == len(chs) - 1 else steps[-1][2]  # previous out_ch
             skip_ch = chs[i]
             out_ch  = chs[i - 1] if i - 1 >= 0 else chs[0]
             steps.append((in_ch, skip_ch, out_ch))
-        # первый шаг в списке соответствует глубочайшему апсемплу
+        # the first step in the list corresponds to the deepest upsample
         self.upblocks = nn.ModuleList([
             UpBlock(in_ch, skip_ch, out_ch, k=k, dropout=dropout, drop_path=drop_path, skip_gating=skip_gating)
             for (in_ch, skip_ch, out_ch) in steps
@@ -245,10 +244,10 @@ class Decoder1D(nn.Module):
 # ------------------------- bottlenecks -------------------------
 
 class DilatedBottleneck(nn.Module):
-    """Глубокий бутылочный блок на дилатациях: растёт поле зрения."""
+    """Deep bottleneck block with dilations: increasing receptive field."""
     def __init__(self, ch: int, depth: int = 2, k: int = 7, dropout: float = 0.1, drop_path: float = 0.0):
         super().__init__()
-        # экспоненциальная лестница дилатаций: 1,2,4,8,...
+        # exponential dilation ladder: 1,2,4,8,...
         blocks = []
         for i in range(depth):
             dil = 2 ** i
@@ -259,7 +258,7 @@ class DilatedBottleneck(nn.Module):
 
 
 class AttentionBottleneck(nn.Module):
-    """Бутылочный блок на MHSA по времени (глобальный контекст)."""
+    """Bottleneck block with temporal MHSA (global context)."""
     def __init__(
         self,
         ch: int,
@@ -283,7 +282,7 @@ class AttentionBottleneck(nn.Module):
 
 
 class HybridBottleneck(nn.Module):
-    """Чередование MHSA и дилатаций."""
+    """Alternating MHSA and dilations."""
     def __init__(
         self,
         ch: int,
@@ -313,8 +312,8 @@ class HybridBottleneck(nn.Module):
 
 class AttentionSneddyUnet(nn.Module):
     """
-    Encoder/Decoder 1D сегментация с расширяемой глубиной и настраиваемым bottleneck.
-    Совместим по интерфейсу с исходной версией.
+    Encoder/Decoder 1D segmentation with scalable depth and configurable bottleneck.
+    Interface compatible with the original version.
     """
     def __init__(
         self,
@@ -327,7 +326,7 @@ class AttentionSneddyUnet(nn.Module):
         dropout: float = 0.1,
         k: int = 7,
         out_channels: int = 1,
-        # новинки:
+        # new features:
         num_stages: int = 3,                 # 3..5
         bottleneck_type: str = "dilated",    # "dilated" | "mhsa" | "hybrid"
         bottleneck_depth: int = 2,
@@ -355,7 +354,7 @@ class AttentionSneddyUnet(nn.Module):
             depth_per_stage=depth_per_stage, k=k, dropout=dropout, drop_path=drop_path
         )
 
-        # Bottleneck (каналы == последний уровень энкодера)
+        # Bottleneck (channels == last encoder level)
         bottleneck_ch = self.encoder.chs[-1]
         if bottleneck_type == "dilated":
             self.bottleneck = DilatedBottleneck(bottleneck_ch, depth=bottleneck_depth, k=k,
@@ -396,7 +395,7 @@ class AttentionSneddyUnet(nn.Module):
         x,
         mode: str = "argmax",          # "argmax" | "softargmax"
         temperature: float = 1.0,      # used for softargmax
-        window_sec: float = 2.0,       # [0.5..2.5]s длина окна
+        window_sec: float = 2.0,       # [0.5..2.5]s window length
         return_var: bool = False
     ):
         """
@@ -434,7 +433,7 @@ class AttentionSneddyUnet(nn.Module):
 
     @torch.no_grad()
     def predict_mask(self, x, temperature: float = 1.0):
-        """Пер-временные вероятности (B, T) из логитов (softmax по времени)."""
+        """Per-time probabilities (B, T) from logits (softmax over time)."""
         logits = self.forward(x)
         if self.out_channels != 1:
             raise ValueError("predict_mask() assumes out_channels==1.")

@@ -1,10 +1,7 @@
-import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-
-# ==== базовые элементы из вашего стека ====
 
 class StdPerSample(nn.Module):
     def __init__(self, eps=1e-5):
@@ -43,24 +40,23 @@ class ResBlock(nn.Module):
         x = self.act(self.gn2(x) + r)
         return x
 
-
-# ==== Inception-подобные ветки для 1D EEG ====
+# ==== Inception-like branches for 1D EEG ====
 
 class InceptionTemporalSpatialBranch(nn.Module):
     """
-    Ветка: (темпоральный depthwise по каждому электроду) -> (пространственная 1x1 смесь каналов).
-    Идея как в EEGInceptionERP: сначала время, потом каналы. Без изменения T.
+    Branch: (temporal depthwise for each electrode) -> (spatial 1x1 channel mixing).
+    Idea as in EEGInceptionERP: time first, then channels. No change in T.
     """
     def __init__(self, n_chans, out_ch, k_time, dropout=0.1, bn_momentum=0.01, activation=nn.ELU):
         super().__init__()
         pad = (k_time - 1) // 2
-        # Temporal depthwise: по каждому электроду свой фильтр во времени; каналов столько же
+        # Temporal depthwise: per-electrode temporal filtering; channels unchanged
         self.t_dw = nn.Conv1d(n_chans, n_chans, kernel_size=k_time, padding=pad,
                               groups=n_chans, bias=False)
         self.t_bn = nn.BatchNorm1d(n_chans, momentum=bn_momentum)
         self.act  = activation()
         self.do   = nn.Dropout(dropout)
-        # Spatial 1x1 mix: обучаемая смесь электродов -> out_ch
+        # Spatial 1x1 mix: learnable mixing of electrodes -> out_ch
         self.s_pw = nn.Conv1d(n_chans, out_ch, kernel_size=1, bias=False)
         self.s_bn = nn.BatchNorm1d(out_ch, momentum=bn_momentum)
 
@@ -73,10 +69,9 @@ class InceptionTemporalSpatialBranch(nn.Module):
         x = self.do(x)
         return x             # (B, out_ch, T)
 
-
 class InceptionStage1(nn.Module):
     """
-    Первая Inception-ступень: 3 масштаба по времени + конкат по каналам.
+    First Inception stage: 3 temporal scales + channel concat.
     """
     def __init__(self, n_chans, branch_out, scales_samples, dropout=0.1, bn_momentum=0.01, activation=nn.ELU):
         super().__init__()
@@ -92,11 +87,10 @@ class InceptionStage1(nn.Module):
         x3 = self.b3(x)
         return torch.cat([x1, x2, x3], dim=1)  # (B, 3*branch_out, T)
 
-
 class InceptionStage2(nn.Module):
     """
-    Вторая Inception-ступень: работает уже на признаках (после конката веток),
-    более короткие ядра (как в оригинале).
+    Second Inception stage: operates on features (after branch concat),
+    shorter kernels (as in original).
     """
     def __init__(self, in_ch, branch_out, k_list, dropout=0.1, bn_momentum=0.01, activation=nn.ELU):
         super().__init__()
@@ -118,25 +112,23 @@ class InceptionStage2(nn.Module):
         z6 = self.c6(x)
         return torch.cat([z4, z5, z6], dim=1)  # (B, 3*branch_out, T)
 
-
-# ==== Энкодер/декодер в стиле вашего Sneddy ====
-
+# ==== Encoder/Decoder in Sneddy Unet style ====
 class InceptionEncoder1D(nn.Module):
     """
-    Encoder: Stage1 (multi-scale) -> (опц) лёгкое сжатие T -> Stage2 (короткие масштабы) -> bottleneck.
-    Даунсэмпл по времени опционален и очень мягкий, чтобы не терять точность пика.
+    Encoder: Stage1 (multi-scale) -> (optional) soft T compression -> Stage2 (shorter scales) -> bottleneck.
+    Temporal downsampling is optional and very soft to preserve peak accuracy.
     """
     def __init__(self, n_chans, sfreq, branch_out=16, scales_s=(0.5, 0.25, 0.125),
-                 pooling_sizes=(1, 1),  # (p1, p2) по времени; 1=без пуллинга
+                 pooling_sizes=(1, 1),  # (p1, p2) over time; 1=no pooling
                  dropout=0.1, bn_momentum=0.01, activation=nn.ELU):
         super().__init__()
-        # переведём секунды в сэмплы от частоты дискретизации
-        scales_samples = tuple(max(3, int(round(s * sfreq))//2*2 + 1) for s in scales_s)  # гарантируем нечётное k
+        # Convert seconds to samples given sampling frequency
+        scales_samples = tuple(max(3, int(round(s * sfreq))//2*2 + 1) for s in scales_s)  # guarantee odd k
         # Stage 1
         self.stage1 = InceptionStage1(n_chans, branch_out, scales_samples,
                                       dropout, bn_momentum, activation)
         self.pool1  = None if pooling_sizes[0] == 1 else nn.AvgPool1d(kernel_size=pooling_sizes[0], stride=pooling_sizes[0])
-        # Stage 2: ядра в 4 раза короче (как у оригинала)
+        # Stage 2: kernels are 4x shorter (as in original)
         k_list = [max(3, s//4//2*2 + 1) for s in scales_samples]
         self.stage2 = InceptionStage2(in_ch=3*branch_out, branch_out=branch_out,
                                       k_list=k_list, dropout=dropout,
@@ -152,63 +144,59 @@ class InceptionEncoder1D(nn.Module):
         h = self.stage1(x)          # (B, 3*branch_out, T)
         skips.append(h)
         if self.pool1 is not None:
-            h = self.pool1(h)       # мягкий даунсэмпл времени
-        h = self.stage2(h)          # (B, 3*branch_out, T' или T/p1)
+            h = self.pool1(h)       # soft time downsampling
+        h = self.stage2(h)          # (B, 3*branch_out, T' or T/p1)
         skips.append(h)
         if self.pool2 is not None:
             h = self.pool2(h)
         h = self.bottleneck(h)      # (B, out_ch, T'')
         return h, skips
 
-
 class InceptionDecoder1D(nn.Module):
     """
-    Decoder: линейный апсемпл до размерностей скипов + слияние + лёгкая дообработка.
+    Decoder: linear upsampling to skip dimensions + merging + light refinement.
     """
     def __init__(self, ch, dropout=0.1, k=7):
         super().__init__()
-        self.refine2 = ResBlock(ch, k=k, dropout=dropout, dilation=1)  # после слияния со skip2
-        self.refine1 = ResBlock(ch, k=k, dropout=dropout, dilation=1)  # после слияния со skip1
+        self.refine2 = ResBlock(ch, k=k, dropout=dropout, dilation=1)  # after merge with skip2
+        self.refine1 = ResBlock(ch, k=k, dropout=dropout, dilation=1)  # after merge with skip1
         self.gn = nn.GroupNorm(1, ch)
         self.act = nn.GELU()
 
     def forward(self, h, skips):
         # skips: [after stage1 (high-res), after stage2 (mid-res)]
         s1, s2 = skips[0], skips[1]
-        # вверх до s2
+        # upsample to s2
         if h.shape[-1] != s2.shape[-1]:
             h = F.interpolate(h, size=s2.shape[-1], mode='linear', align_corners=False)
         h = self.refine2(h + s2)
-        # вверх до s1
+        # upsample to s1
         if h.shape[-1] != s1.shape[-1]:
             h = F.interpolate(h, size=s1.shape[-1], mode='linear', align_corners=False)
         h = self.refine1(h + s1)
         return h  # (B, ch, T)
 
-
-# ==== Итоговая модель в «нашем» формате ====
-
 class EEGInceptionSeg1D(nn.Module):
     """
-    Inception-подобная сегментация/локализация для EEG:
-      StdPerSample -> Encoder(Inception1/2, мягкий pool опционально) -> Decoder(upsample+res) -> 1x1 head
-    Выход: логиты (B, out_channels, T) без потери разрешения (если pooling_sizes=(1,1)).
-    Совместимые методы: predict / predict_mask.
+    Inception-like segmentation/localization for EEG:
+      StdPerSample -> Encoder(Inception1/2, optional soft pooling) -> Decoder(upsample+res) -> 1x1 head
+    Output: logits (B, out_channels, T) with no loss in resolution (if pooling_sizes=(1,1)).
+    Supported methods: predict / predict_mask.
     """
     def __init__(
         self,
         n_chans: int,
         n_times: int,
         sfreq: int,
-        # ключевые «крутилки»:
-        branch_out: int = 16,                 # сколько каналов на ветку
-        scales_samples_s = (0.5, 0.25, 0.125),# временные масштабы (сек)
-        pooling_sizes = (1, 1),               # мягкий pool по времени для Stage1/2; 1=без пула
+        # Main "knobs":
+        branch_out: int = 16,                 # number of channels per branch
+        scales_samples_s = (0.5, 0.25, 0.125),# temporal scales (seconds)
+        pooling_sizes = (1, 1),               # soft time pooling for Stage1/2; 1=no pooling
         dropout: float = 0.1,
         bn_momentum: float = 0.01,
         activation: nn.Module = nn.ELU,
         out_channels: int = 1,
-        head_kernel: int = 1,                 # 1x1 по умолчанию
+        head_kernel: int = 1,                 # 1x1 by default
     ):
         super().__init__()
         self.n_chans = n_chans
