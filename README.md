@@ -282,29 +282,28 @@ Below we list the exact features we extract from these matrices and the lags use
 
 ## Robast Feature Selection and Training
 
-### Focus on Release R11
-We concentrated on **Release 11 (R11)** because, based on the public dashboard, it appeared **closest in distribution** to the hidden evaluation set. This reduced domain shift and stabilized validation.
-
 ### Building the feature pool
-1. Compute all correlation- and transition-matrix features on 2-s windows (sfreq=100 Hz; per-channel standardized).
-2. Rank features by **absolute correlation** with the externalizing score on the training subjects.
+1. Compute all correlation- and transition-matrix features on 2-s windows (sfreq = 100 Hz; per-channel standardized).
+2. Rank features by **absolute Pearson correlation** with the externalizing score on training subjects.
 3. Keep the **top-ranked features** as the initial **feature pool** for selection.
 
 ### Subject split
-We split subjects such that the **mean and std of the target** are closely matched across folds/partitions (subject-level split; no leakage across sessions/runs).
+We split subjects so that the **mean and std of the target** are closely matched across folds/partitions (subject-level split; no leakage across sessions/runs).  
+**The test partition is fixed** and never resampled.
 
 ### Bootstrap-driven feature selection
 We run a stochastic, bootstrap-validated add/drop search:
 
-1. **Initialize** with a seed feature subset.
-2. **Bootstrap training subjects** (with replacement). For each bootstrapped set, draw multiple random **crops per subject**, build a training matrix, and **predict the fixed test partition**.
-3. Collect **NRMSE** over \(B\) bootstraps; form a **confidence interval** (e.g., 2.5–97.5 percentiles) and the **median**.
-4. **Acceptance rule:** a candidate subset is **better** if it **reduces the CI length** *and* **improves the median NRMSE** on the test subjects.
-5. **Move step:** randomly **drop** one feature from the current subset *or* **add** one from the pool; repeat steps 2–4.
+1. **Initialize** with top correlated with target features.
+2. **Bootstrap training subjects** (with replacement). For each bootstrap, draw multiple random **crops per subject**, fit a Ridge model on the bootstrap set, and **predict the fixed test partition**.
+3. Collect **NRMSE** over \(B\) bootstraps; compute the **median** and estimate the **CI width**.  
+   *Goal:* **minimize CI width**; in practice we use **STD(NRMSE)** as a proxy for CI width.
+4. **Acceptance rule:** a candidate subset is **better** if it **improves the median NRMSE** *and* **reduces STD(NRMSE)** (i.e., narrows the confidence interval) on test subjects.
+5. **Move step:** randomly **drop** one feature from the current subset *or* **add** one from the pool; repeat steps 2–4 until no improvement for several iterations.
 
-This continues until convergence (no improvement for several iterations). The procedure converged to the **feature set listed above**, and we saved the **best Ridge** weights for downstream use.
+The procedure converged to the **feature set listed above**, and we saved the **best Ridge** weights for downstream use.
 
-> Outcome: the bootstrap criterion favors subsets that are **accurate** *and* **stable**, yielding a calibrated, generalizable ridge model on R11.
+> Outcome: the bootstrap criterion favors subsets that are both **accurate** and **stable**, yielding a calibrated, generalizable ridge model on R11.
 
 ## 📜 Citation
 
