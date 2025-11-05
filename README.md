@@ -326,8 +326,8 @@ If you use this code or models, please cite this repository. A `CITATION.cff` is
 @software{neurosned2025,
   title   = {NeuroSned: Stimulus-locked EEG modeling for reaction-time prediction},
   year    = {2025},
-  author  = {Your Team},
-  url     = {https://github.com/<user>/<repo>}
+  author  = {Anuar Aimoldin, Ayana Mussabayeva, Yedige Mussabayev},
+  url     = {https://github.com/sneddy/neurosned}
 }
 ```
 
