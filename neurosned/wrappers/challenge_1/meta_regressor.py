@@ -1,10 +1,8 @@
 """Minimal ridge/HGB CV-ensemble with fold-driven training and per-fold logging."""
 import numpy as np
 import pickle
-import inspect
 from abc import ABC, abstractmethod
 from typing import Optional, Dict, Any, Sequence
-from copy import deepcopy
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import Ridge

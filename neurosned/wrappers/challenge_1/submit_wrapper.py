@@ -7,7 +7,6 @@ class SubmitWrapper(nn.Module):
         self, segmentation_models=None, regression_models=None, 
         seg_weights=None, abs_seg_weights=None, reg_weights=None, use_channels=None,
         device='cuda', temperature:float=1.,
-        # per_model_taus=None, # new
     ):
         super().__init__()
         self.segmentation_models = segmentation_models
@@ -18,7 +17,6 @@ class SubmitWrapper(nn.Module):
         self.use_channels = use_channels
         self.device = device
         self.temperature = temperature
-        # self.per_model_taus = per_model_taus 
 
         self.dt = 1 / 100
         self.win_offset = 0.5
@@ -32,8 +30,6 @@ class SubmitWrapper(nn.Module):
             raise ValueError("Missing weights or models for segmentation")
         if self.regression_models is not None and len(self.reg_weights) != len(self.regression_models):
             raise ValueError("Missing weights or models for regression")
-        # if self.per_model_taus is not None and len(self.per_model_taus) != len(self.segmentation_models):
-            # raise ValueError("per_model_taus length must match segmentation_models length")
 
 
     def _get_soft_argmax(self, seg_logits: torch.tensor):
@@ -59,8 +55,6 @@ class SubmitWrapper(nn.Module):
             segmentation_prediction = torch.zeros(B, device=self.device, dtype=x.dtype)
             for idx, weight in enumerate(self.seg_weights):
                 seg_logits_by_model[idx] = self.segmentation_models[idx](x).squeeze(1) # (B,T)
-                # current_tau = self.per_model_taus[idx] if self.per_model_taus is not None else 1
-                # weighted_logits += (weight / self.seg_weights_sum) * (seg_logits_by_model[idx] / current_tau) 
                 weighted_logits += (weight / self.seg_weights_sum) * (seg_logits_by_model[idx]) 
             t_hat_rel = self._get_soft_argmax(weighted_logits) # (B,)
             t_hat_abs = t_hat_rel + self.win_offset            # (B,)

@@ -1,15 +1,13 @@
 import numpy as np
 import torch
 import torch.nn as nn
-from pkg.wrappers.meta_regressor import MetaRegressor, RidgeMetaRegressor, HgbMetaRegressor
-from pkg.wrappers.meta_features import MetaFeatureExtractor
 
 class MetaWrapper(nn.Module):
     """Torch wrapper: runs base models, extracts numpy features, applies sklearn meta-regressor."""
     def __init__(self, seg_models: list[nn.Module] | None,
                  cls_models: list[nn.Module] | None,
-                 feature_extractor: MetaFeatureExtractor,
-                 meta_regressor: MetaRegressor,
+                 feature_extractor,
+                 meta_regressor,
                  use_channels=None,
                  device="cuda"):
         super().__init__()
