@@ -106,8 +106,8 @@ $$
 **Temperature selection**
 
 $$
-\tau^\star=\arg\min_{\tau\in\mathcal{T}}\ \operatorname{RMSE}_{\mathrm{val}}
-\big(\hat t_{\mathrm{abs}}(\tau)\big).
+\tau^\star = \arg\min_{\tau\in\mathcal{T}}
+\ \mathrm{RMSE}_{\text{val}}\big(\hat t_{\mathrm{abs}}(\tau)\big).
 $$
 
 #### Target: segmentation label with \(\sigma\)
