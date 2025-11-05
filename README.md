@@ -1,6 +1,8 @@
 # NeuroSned – EEG Reaction-Time Modeling (Competition Track)
 
 This repository contains the code and notebooks we used to build a winning-level solution for the **EEG Foundation Model** competition task on **reaction-time prediction**.
+![Workflow diagram](assets/tasks_workflow.png)
+
 
 ## 🔑 Core ideas
 
@@ -70,6 +72,10 @@ Chronologically, we started with direct RT regression: the model predicts the re
 ---
 
 ### 3. `3_segmentation.ipynb` — turning RT into a segmentation problem
+
+<p align="center">
+  <img src="assets/segmentation_predict.png" alt="Segmentation Model Predict Output" width="600"/>
+</p>
 
 To address detection explicitly, we introduced an **artificial segmentation target** over time and reframed RT prediction as **temporal segmentation** (the model outputs a distribution over time; we then take its expectation).
 
