@@ -231,6 +231,81 @@ We split validation into **5 folds** with a matched target (RT) distribution, ex
 ## 
 ---
 
+# Challenge 2: Predicting the externalizing factor from EEG
+
+The externalizing factor is a widely recognized construct in mental health research, representing a common underlying dimension of psychopathology across various disorders.
+Currently, the externalizing factor is often assessed using self-report questionnaires or clinician ratings, which can be subjective, prone to bias, and time-consuming.
+**The Challenge 2** consists of developing a model to predict the externalizing factor from EEG recordings.
+
+The challenge encourages learning physiologically meaningful signal representations and discovery of reproducible biomarkers.
+Models of any size should emphasize robust, interpretable features that generalize across subjects,
+sessions, and acquisition sites.
+
+Unlike a standard in-distribution classification task, this regression problem stresses out-of-distribution robustness
+and extrapolation. The goal is not only to minimize error on seen subjects, but also to transfer effectively to unseen data.
+
+## Approach: feature engineering from lagged correlation and transition matrices
+
+We frame Challenge 2 as **structured feature extraction** from short (2 s) EEG windows sampled at 100 Hz with per-channel standardization.  
+For each window and a set of lags, we build two derived objects:
+
+1) **Lagged cross-correlation matrix** \( \mathrm{corr}(X_t,\;X_{t+\text{lag}}) \)  
+   — captures **how stable a channel is over time** (diagonal, auto-correlation) and **how channels co-fluctuate** (off-diagonals) at specific timescales.
+
+2) **Ridge transition matrix** \( A \) in \( X_{t+\text{lag}} \approx A\,X_t \)  
+   — a linear, regularized estimate of **directed influences** between channels (self-persistence on the diagonal, cross-channel effects off-diagonal).  
+   We also analyze **asymmetry** \(A - A^\top\) (directionality/feedback imbalance), **norm/energy** \(\|A\|_F\), and **sparsity**.
+
+### Why these representations are informative for externalizing
+Externalizing traits are linked to differences in **temporal stability**, **inter-regional integration**, and **control dynamics** rather than raw amplitude alone.  
+Correlation matrices summarize **synchronization and organization** across timescales (50–1000 ms), while transition matrices expose **directed, time-lagged dependencies** and how strongly activity **persists** or **propagates** across the cortex.  
+These second-order, multi-lag descriptors are:
+- **Physiologically meaningful:** they decompose behavior-relevant dynamics into stability, coupling, and directionality.  
+- **Robust/OOD-friendly:** based on standardized signals and regularized estimators, less sensitive to site-specific amplitude scales.  
+- **Interpretable & compact:** each feature has a clear network-level interpretation (e.g., persistence, diffuseness, sparsity).
+
+Below we list the exact features we extract from these matrices and the lags used.
+
+## Feature Engineering
+| Feature           | About (how calculated)                                                                            | Motivation (why related to externalizing)                                                      | Lags used (samples ≈ sec @100 Hz)                               |
+| ----------------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `corr_diag_mean`  | Mean of the **diagonal** of the lagged correlation matrix `corr(X_t, X_{t+lag})` across channels. | Captures **within-channel stability/persistence**; altered short–mid stability is informative. | 5 (0.05 s), 10 (0.10 s), 25 (0.25 s)                            |
+| `corr_mean_abs`   | Mean **absolute** value of all entries of `corr(X_t, X_{t+lag})`.                                 | Reflects global **synchronization strength** across channels.                                  | 10 (0.10 s), 25 (0.25 s), 50 (0.50 s)                           |
+| `corr_off_mean`   | Mean of **off-diagonal** entries of `corr(X_t, X_{t+lag})`.                                       | Measures **inter-channel coupling/integration** independent of self-effects.                   | 5 (0.05 s), 50 (0.50 s)                                         |
+| `corr_entropy`    | **Shannon entropy** of flattened, normalized absolute correlations.                               | Higher entropy ⇒ more **diffuse/less organized** coupling; organization shifts are diagnostic. | 5 (0.05 s), 10 (0.10 s), 25 (0.25 s), 50 (0.50 s), 100 (1.00 s) |
+| `A_diag_mean`     | Mean of the **diagonal** of ridge transition matrix `A` from `X_{t+lag} ≈ A X_t`.                 | Indicates **self-prediction/persistence** in linear dynamics over the lag.                     | 50 (0.50 s), 100 (1.00 s)                                       |
+| `A_mean_abs`      | Mean **absolute** value of all entries of `A`.                                                    | Total strength of **directed influences** among channels.                                      | 25 (0.25 s), 50 (0.50 s), 100 (1.00 s)                          |
+| `A_off_mean`      | Mean of **off-diagonal** entries of `A`.                                                          | Quantifies **directed cross-channel effects** (feed-forward/feedback mixing).                  | 5 (0.05 s), 10 (0.10 s)                                         |
+| `A_asym_mean_abs` | Mean **absolute** value of (A - A^\top).                                                          | Measures **directionality/asymmetry** of interactions; imbalance can be discriminative.        | 100 (1.00 s)                                                    |
+| `A_fro`           | **Frobenius norm** ( \lVert A \rVert_F ).                                                         | Overall **dynamic energy** captured by the linear transition.                                  | 100 (1.00 s)                                                    |
+| `A_sparsity@0.05` | Fraction of entries with ( \lvert A_{ij} \rvert < 0.05 ).                                         | **Sparsity** pattern (few strong vs. many weak links) often differs and is informative.        | 100 (1.00 s)                                                    |
+
+## Robast Feature Selection and Training
+
+### Focus on Release R11
+We concentrated on **Release 11 (R11)** because, based on the public dashboard, it appeared **closest in distribution** to the hidden evaluation set. This reduced domain shift and stabilized validation.
+
+### Building the feature pool
+1. Compute all correlation- and transition-matrix features on 2-s windows (sfreq=100 Hz; per-channel standardized).
+2. Rank features by **absolute correlation** with the externalizing score on the training subjects.
+3. Keep the **top-ranked features** as the initial **feature pool** for selection.
+
+### Subject split
+We split subjects such that the **mean and std of the target** are closely matched across folds/partitions (subject-level split; no leakage across sessions/runs).
+
+### Bootstrap-driven feature selection
+We run a stochastic, bootstrap-validated add/drop search:
+
+1. **Initialize** with a seed feature subset.
+2. **Bootstrap training subjects** (with replacement). For each bootstrapped set, draw multiple random **crops per subject**, build a training matrix, and **predict the fixed test partition**.
+3. Collect **NRMSE** over \(B\) bootstraps; form a **confidence interval** (e.g., 2.5–97.5 percentiles) and the **median**.
+4. **Acceptance rule:** a candidate subset is **better** if it **reduces the CI length** *and* **improves the median NRMSE** on the test subjects.
+5. **Move step:** randomly **drop** one feature from the current subset *or* **add** one from the pool; repeat steps 2–4.
+
+This continues until convergence (no improvement for several iterations). The procedure converged to the **feature set listed above**, and we saved the **best Ridge** weights for downstream use.
+
+> Outcome: the bootstrap criterion favors subsets that are **accurate** *and* **stable**, yielding a calibrated, generalizable ridge model on R11.
+
 ## 📜 Citation
 
 If you use this code or models, please cite this repository. A `CITATION.cff` is provided for automatic BibTeX/APA.
