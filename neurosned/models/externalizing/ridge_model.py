@@ -6,8 +6,8 @@ from sklearn.linear_model import Ridge
 
 class RidgeModel(nn.Module):
     """
-    Torch-модель для предсказаний на заранее вычисленных EEG фичах.
-    Использует простую линейную регрессию (ridge).
+    Torch model for predictions on precomputed EEG features.
+    Uses simple linear regression (ridge).
     """
     def __init__(self, usecols: list[str]):
         super().__init__()
@@ -19,7 +19,7 @@ class RidgeModel(nn.Module):
 
     def forward(self, feats: torch.Tensor) -> torch.Tensor:
         """
-        feats: (B, N) — признаки (возможно полный вектор)
+        feats: (B, N) — features (may be a full vector)
         """
         feats = (feats - self.feat_means) / self.feat_stds
         feats = feats[:, :len(self.usecols)]
@@ -35,7 +35,7 @@ class RidgeModel(nn.Module):
                         force_bias = None,
                         save_path: str = "ridge_checkpoint.pt"):
         """
-        Train ridge on X_train[usecols], save only per-usecols normalization stats.
+        Train ridge on X_train[usecols], save only normalization stats for usecols.
 
         Args:
             X_train: DataFrame with all features.

@@ -1,13 +1,11 @@
-# --- доп. импорты остаются прежними ---
 import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 
-# ---------- вспомогательные блоки из вашей версии (оставлены как есть) ----------
 class StdPerSample(nn.Module):
-    """Пер-семпловая нормализация по времени."""
+    """Per-sample normalization over time."""
     def __init__(self, eps=1e-5):
         super().__init__()
         self.eps = eps
@@ -28,7 +26,7 @@ class DSConv1d(nn.Module):
         return self.pw(self.dw(x))
 
 class ResBlock(nn.Module):
-    """Лёгкий residual-блок с DSConv."""
+    """Lightweight residual block with DSConv."""
     def __init__(self, ch, k=7, dropout=0.0, dilation=1):
         super().__init__()
         self.conv1 = DSConv1d(ch, k=k, dilation=dilation)
@@ -47,7 +45,7 @@ class ResBlock(nn.Module):
         return x
 
 class ChannelSqueeze(nn.Module):
-    """Смешивание электродов: 1x1 C_in→C_out."""
+    """Electrode mixing: 1x1 C_in→C_out."""
     def __init__(self, c_in, c_out):
         super().__init__()
         self.proj = nn.Conv1d(c_in, c_out, kernel_size=1, bias=False)
@@ -56,7 +54,7 @@ class ChannelSqueeze(nn.Module):
         return self.proj(x)
 
 class TimeDown(nn.Module):
-    """Антиалиас + AvgPool(stride=2) по времени."""
+    """Antialias + AvgPool(stride=2) over time."""
     def __init__(self, ch, k=5):
         super().__init__()
         pad = (k - 1) // 2
@@ -72,7 +70,7 @@ class TimeDown(nn.Module):
         return self.pool(self.aa(x))
 
 class UpBlock(nn.Module):
-    """Линейный апсемпл + skip concat + 1x1 fuse + ResBlock."""
+    """Linear upsample + skip concat + 1x1 fuse + ResBlock."""
     def __init__(self, in_ch, skip_ch, out_ch, k=7, dropout=0.0):
         super().__init__()
         self.fuse = nn.Conv1d(in_ch + skip_ch, out_ch, kernel_size=1, bias=False)
@@ -88,20 +86,20 @@ class UpBlock(nn.Module):
         return x
 
 
-# ---------- новый: факторизованные кросс-канальные взаимодействия ----------
+# ---------- New: Factorized cross-channel interactions ----------
 class FactorizedCrossChannel(nn.Module):
     """
-    FM-подобный слой для кросс-канальных взаимодействий.
-    На вход x: (B, C, T). Возвращает (B, F, T) — по факторам.
-    Реализует 0.5 * sum_f[ (sum_c v_cf x_c)^2 - sum_c (v_cf^2 x_c^2) ] в разложенном виде.
+    FM-like layer for cross-channel interactions.
+    Input x: (B, C, T). Returns (B, F, T) — per factor.
+    Implements 0.5 * sum_f[ (sum_c v_cf x_c)^2 - sum_c (v_cf^2 x_c^2) ] in factored form.
     """
     def __init__(self, n_chans: int, n_factors: int, dropout: float = 0.0, use_gn: bool = True):
         super().__init__()
         self.n_chans = n_chans
         self.n_factors = n_factors
-        # Матрица факторов V (C x F)
+        # Factor matrix V (C x F)
         self.V = nn.Parameter(torch.empty(n_chans, n_factors))
-        nn.init.xavier_normal_(self.V)  # стабильная инициализация
+        nn.init.xavier_normal_(self.V)  # stable initialization
         self.in_drop = nn.Dropout(dropout) if dropout > 0 else nn.Identity()
         self.out_norm = nn.GroupNorm(1, n_factors) if use_gn else nn.Identity()
         self.act = nn.GELU()
@@ -117,17 +115,17 @@ class FactorizedCrossChannel(nn.Module):
         return self.act(self.out_norm(inter))
 
 
-# ---------- новый: «гибкий» энкодер/декодер на произвольное число стейджей ----------
+# ---------- New: "Flexible" encoder/decoder for arbitrary number of stages ----------
 class Encoder1DFlex(nn.Module):
     """
-    Sneddy-style encoder на N стейджей: [enc(stage)->skip->down] * N, затем bottleneck.
-    Опционально можно вставить FM на выходе каждого стейджа и слить его с признаками.
+    Sneddy-style encoder with N stages: [enc(stage)->skip->down] * N, then bottleneck.
+    Optionally, FM can be inserted at the output of each stage and fused with the features.
     """
     def __init__(self, c0=32, widen=2, n_stages=3, depth_per_stage=2, k=7, dropout=0.1,
                  use_stage_fm: bool = False, fm_factors: int = 32, fm_dropout: float = 0.0):
         super().__init__()
-        assert n_stages >= 1, "n_stages должно быть >=1"
-        # канальные размеры стейджей (до даунсамплинга)
+        assert n_stages >= 1, "n_stages must be >= 1"
+        # Channels at each stage (before downsampling)
         chs = [c0]
         for _ in range(1, n_stages):
             chs.append(int(chs[-1] * widen))
@@ -143,7 +141,7 @@ class Encoder1DFlex(nn.Module):
             for _ in range(depth_per_stage):
                 stage.append(ResBlock(out_c, k=k, dropout=dropout, dilation=1))
             enc.append(nn.Sequential(*stage))
-            # опциональная FM-вставка в конце стейджа
+            # Optional FM insertion at the end of the stage
             if use_stage_fm:
                 stage_fm.append(FactorizedCrossChannel(out_c, fm_factors, dropout=fm_dropout, use_gn=True))
                 stage_fuse.append(nn.Conv1d(out_c + fm_factors, out_c, kernel_size=1, bias=False))
@@ -160,7 +158,7 @@ class Encoder1DFlex(nn.Module):
         self.encoder_blocks = nn.ModuleList(enc)
         self.downs = nn.ModuleList(downs)
 
-        # слои для FM-вставки по стейджам
+        # Layers for FM insertion at each stage
         self.use_stage_fm = use_stage_fm
         if use_stage_fm:
             self.stage_fm = nn.ModuleList(stage_fm)
@@ -168,7 +166,7 @@ class Encoder1DFlex(nn.Module):
             self.stage_norm = nn.ModuleList(stage_norm)
             self.stage_act = nn.ModuleList(stage_act)
 
-        # bottleneck на самом низком разрешении
+        # Bottleneck at the lowest resolution
         bottleneck_ch = chs[-1]
         self.bottleneck = nn.Sequential(
             ResBlock(bottleneck_ch, k=k, dropout=dropout, dilation=1),
@@ -186,19 +184,19 @@ class Encoder1DFlex(nn.Module):
             skips.append(h)
             h = down(h)
         h = self.bottleneck(h)
-        return h, skips  # h на самом низком слое, skips от мелкого к глубокому
+        return h, skips  # h at lowest scale, skips from shallow to deep
 
 
 class Decoder1DFlex(nn.Module):
-    """U-Net-подобный decoder на N стейджей (симметрично энкодеру)."""
+    """U-Net-like decoder over N stages (symmetric to encoder)."""
     def __init__(self, chs, k=7, dropout=0.1):
         super().__init__()
         steps = []
-        in_ch = chs[-1]  # входной канал из bottleneck
-        # поднимаемся с deepest skip к shallow
+        in_ch = chs[-1]  # input channel from bottleneck
+        # upsample from deepest skip to shallow
         for i in reversed(range(len(chs))):
             skip_ch = chs[i]
-            out_ch  = chs[i]  # держим те же каналы, что и skip
+            out_ch  = chs[i]  # keep same channels as skip
             steps.append(UpBlock(in_ch, skip_ch, out_ch, k=k, dropout=dropout))
             in_ch = out_ch
         self.upblocks = nn.ModuleList(steps)
@@ -210,12 +208,12 @@ class Decoder1DFlex(nn.Module):
         return h
 
 
-# ---------- фронт-энд со склейкой FM и линейного смешивания каналов ----------
+# ---------- Frontend with FM concatenation and linear channel mixing ----------
 class FactorizedFrontEnd(nn.Module):
     """
-    1) ChannelSqueeze C->c0 (линейное смешивание электродов),
-    2) FactorizedCrossChannel C->F (кросс-канальные взаимодействия),
-    3) fuse: concat по каналам -> 1x1 conv обратно в c0.
+    1) ChannelSqueeze C->c0 (linear mixing of electrodes),
+    2) FactorizedCrossChannel C->F (cross-channel interactions),
+    3) fuse: concat along channels -> 1x1 conv back to c0.
     """
     def __init__(self, n_chans: int, c0: int, fm_factors: int, fm_dropout: float = 0.0):
         super().__init__()
@@ -233,11 +231,11 @@ class FactorizedFrontEnd(nn.Module):
         return y
 
 
-# ---------- основная модель ----------
+# ---------- Main model ----------
 class FactorizationSneddyUnet(nn.Module):
     """
-    U-Net 1D с FM-взаимодействиями между каналами.
-    Параметры позволяют углублять сеть (n_stages, depth_per_stage) и расширять (widen, c0).
+    U-Net 1D with FM-style cross-channel interactions.
+    Parameters allow to deepen the network (n_stages, depth_per_stage) and widen (widen, c0).
     """
     def __init__(
         self,
@@ -251,7 +249,7 @@ class FactorizationSneddyUnet(nn.Module):
         dropout: float = 0.1,
         k: int = 7,
         out_channels: int = 1,
-        # FM-конфигурация
+        # FM config
         fm_factors_front: int = 32,
         fm_dropout_front: float = 0.0,
         use_stage_fm: bool = False,
@@ -293,17 +291,17 @@ class FactorizationSneddyUnet(nn.Module):
         x,
         mode: str = "argmax",          # "argmax" | "softargmax"
         temperature: float = 1.0,      # used for softargmax
-        window_sec: float = 2.0,       # длина окна соответствующая входу
+        window_sec: float = 2.0,       # window length corresponding to input
         return_var: bool = False
     ):
         """
-        Возвращает:
-          - t_hat_sec: (B,) время в секундах относительно начала окна
-          - var_sec (опционально): (B,) простая прокси дисперсии
+        Returns:
+          - t_hat_sec: (B,) time in seconds relative to window start
+          - var_sec (optional): (B,) simple proxy for variance
         """
         logits = self.forward(x)
         if self.out_channels != 1:
-            raise ValueError("predict() предполагает out_channels==1.")
+            raise ValueError("predict() expects out_channels==1.")
         B, _, T = logits.shape
         dt = window_sec / T
         z = logits.squeeze(1)  # (B, T)
@@ -327,13 +325,13 @@ class FactorizationSneddyUnet(nn.Module):
             return t_hat, var
 
         else:
-            raise ValueError("mode must be 'argmax' или 'softargmax'.")
+            raise ValueError("mode must be 'argmax' or 'softargmax'.")
 
     @torch.no_grad()
     def predict_mask(self, x, temperature: float = 1.0):
-        """Пер-временные вероятности (B, T) из логитов (softmax по времени)."""
+        """Per-timestep probabilities (B, T) from logits (softmax over time)."""
         logits = self.forward(x)
         if self.out_channels != 1:
-            raise ValueError("predict_mask() предполагает out_channels==1.")
+            raise ValueError("predict_mask() expects out_channels==1.")
         z = logits.squeeze(1)
         return F.softmax(z / temperature, dim=-1)

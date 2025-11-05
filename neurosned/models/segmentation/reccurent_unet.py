@@ -1,4 +1,4 @@
-# recurrent_sneddy_unet.py — reccurent 1D "segmentation" 
+# recurrent_sneddy_unet.py — recurrent 1D "segmentation"
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -19,7 +19,7 @@ class DropPath(nn.Module):
         return x * mask
 
 class StdPerSample(nn.Module):
-    """Пер-семпловая нормализация по времени: (B,C,T) -> (B,C,T)."""
+    """Per-sample normalization over time: (B,C,T) -> (B,C,T)."""
     def __init__(self, eps=1e-5):
         super().__init__()
         self.eps = eps
@@ -29,7 +29,7 @@ class StdPerSample(nn.Module):
         return (x - mu) / sd
 
 class DSConv1d(nn.Module):
-    """Depthwise separable 1D conv."""
+    """Depthwise separable 1D convolution."""
     def __init__(self, ch, k=7, stride=1, dilation=1, bias=False):
         super().__init__()
         pad = ((k - 1) // 2) * dilation
@@ -39,7 +39,7 @@ class DSConv1d(nn.Module):
         return self.pw(self.dw(x))
 
 class ResBlock(nn.Module):
-    """Лёгкий residual-блок на DSConv (для смешивания по каналам локально)."""
+    """Lightweight residual block on DSConv (for local channel mixing)."""
     def __init__(self, ch, k=7, dropout=0.0, dilation=1, drop_path: float = 0.0):
         super().__init__()
         self.conv1 = DSConv1d(ch, k=k, dilation=dilation)
@@ -61,7 +61,7 @@ class ResBlock(nn.Module):
         return x
 
 class ChannelSqueeze(nn.Module):
-    """Сужение по электродам: 1x1 C_in→C_out."""
+    """Channel squeeze: 1x1, C_in→C_out."""
     def __init__(self, c_in, c_out):
         super().__init__()
         self.proj = nn.Conv1d(c_in, c_out, kernel_size=1, bias=False)
@@ -70,7 +70,7 @@ class ChannelSqueeze(nn.Module):
         return self.proj(x)
 
 class TimeDown(nn.Module):
-    """Антиалиас depthwise + AvgPool(stride=2)."""
+    """Antialias depthwise + AvgPool(stride=2)."""
     def __init__(self, ch, k=5):
         super().__init__()
         pad = (k - 1) // 2
@@ -88,9 +88,9 @@ class TimeDown(nn.Module):
 # ------------------------- recurrent blocks -------------------------
 class RNNBlock1D(nn.Module):
     """
-    Реккурентный блок, сохраняющий размер каналов:
-    (B,C,T) -> LN -> {GRU/LSTM} по времени -> Linear->C + DropPath + skip -> GELU.
-    Опционально добавляет depthwise 'positional' conv перед RNN.
+    Recurrent block that preserves channel size:
+    (B,C,T) -> LN -> {GRU/LSTM} over time -> Linear->C + DropPath + skip -> GELU.
+    Optionally adds depthwise 'positional' conv before RNN.
     """
     def __init__(
         self,
@@ -137,7 +137,7 @@ class RNNBlock1D(nn.Module):
 
 # ------------------------- encoder / decoder -------------------------
 class RNNEncoder1D(nn.Module):
-    """Sneddy-style encoder, но в каждом уровне — стек реккурентных блоков."""
+    """Sneddy-style encoder, but each level is a stack of recurrent blocks."""
     def __init__(
         self,
         num_stages: int = 3,
@@ -155,7 +155,7 @@ class RNNEncoder1D(nn.Module):
         use_dwpos: bool = True,
     ):
         super().__init__()
-        assert 3 <= num_stages <= 5, "num_stages должен быть в диапазоне [3,5]"
+        assert 3 <= num_stages <= 5, "num_stages must be in [3,5]"
         self.chs = [int(round(c0 * (widen ** i))) for i in range(num_stages)]
 
         if isinstance(depth_per_stage, int):
@@ -170,7 +170,7 @@ class RNNEncoder1D(nn.Module):
             blocks = []
             if stage_idx > 0:
                 blocks += [nn.Conv1d(in_c, out_c, 1, bias=False), nn.GroupNorm(1, out_c), nn.GELU()]
-            # стек реккурентных блоков
+            # stack of recurrent blocks
             for _ in range(dps[stage_idx]):
                 blocks.append(
                     RNNBlock1D(
@@ -252,7 +252,7 @@ class RecurrentUpBlock(nn.Module):
         return x
 
 class RNNDecoder1D(nn.Module):
-    """U-Net-like decoder, но с RNN-refine на каждом апсемпле."""
+    """U-Net-like decoder, but with RNN-refine on each upsample."""
     def __init__(
         self,
         chs: List[int],
@@ -297,7 +297,7 @@ class RNNDecoder1D(nn.Module):
 
 
 class RNNBottleneck(nn.Module):
-    """Стек реккурентных блоков в бутылочном горлышке."""
+    """Stack of recurrent blocks in the bottleneck."""
     def __init__(
         self,
         ch: int,
@@ -338,7 +338,7 @@ class DilatedBottleneck(nn.Module):
         return self.net(x)
 
 class HybridBottleneck(nn.Module):
-    """Чередование RNN и дилатаций."""
+    """Alternating RNN and dilated blocks."""
     def __init__(
         self, ch: int, depth: int = 4, k: int = 7, dropout: float = 0.1,
         rnn_type: str = "gru", bidirectional: bool = True,
@@ -366,14 +366,14 @@ class HybridBottleneck(nn.Module):
 # ------------------------- model -------------------------
 class RecurrentSneddyUnet(nn.Module):
     """
-    Encoder/Decoder 1D сегментация с реккурентной "оптикой".
-    Интерфейс совместим с AttentionSneddyUnet + rnn-специфичные параметры.
+    Encoder/Decoder 1D segmentation with recurrent "optic".
+    Interface compatible with AttentionSneddyUnet + rnn-specific parameters.
 
-    Args (основные совпадают с твоей моделью):
+    Args (main ones match your model):
         n_chans, n_times, sfreq, c0, widen, depth_per_stage, dropout, k, out_channels,
         num_stages, bottleneck_type, bottleneck_depth, drop_path, skip_gating, use_norm
 
-    Новые параметры:
+    New parameters:
         rnn_type: "gru" | "lstm"
         bidirectional: bool
         rnn_layers_per_block: int
@@ -393,14 +393,14 @@ class RecurrentSneddyUnet(nn.Module):
         dropout: float = 0.1,
         k: int = 7,
         out_channels: int = 1,
-        # знакомые:
+        # familiar args:
         num_stages: int = 3,
         bottleneck_type: str = "rnn",     # "rnn" | "dilated" | "hybrid"
         bottleneck_depth: int = 2,
         drop_path: float = 0.0,
         skip_gating: bool = False,
         use_norm: bool = True,
-        # новые rnn-параметры:
+        # new rnn-parameters:
         rnn_type: str = "gru",
         bidirectional: bool = True,
         rnn_layers_per_block: int = 1,

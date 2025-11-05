@@ -6,8 +6,8 @@ import torch.nn.functional as F
 
 
 class StdPerSample(nn.Module):
-    """Пер-семпловая нормализация: вычитаем среднее по времени и делим на std по времени.
-    Без зависимости от датасета/батча. Для устойчивого старта."""
+    """Per-sample normalization: subtract mean over time and divide by std over time.
+    Independent of dataset/batch. For stable initialization."""
     def __init__(self, eps=1e-5):
         super().__init__()
         self.eps = eps
@@ -18,7 +18,7 @@ class StdPerSample(nn.Module):
 
 
 class DSConv1d(nn.Module):
-    """Depthwise separable 1D: depthwise (по каналам признаков) + pointwise 1x1."""
+    """Depthwise separable 1D: depthwise (along feature channels) + pointwise 1x1."""
     def __init__(self, ch, k=7, stride=1, dilation=1):
         super().__init__()
         pad = ((k - 1) // 2) * dilation
@@ -30,7 +30,7 @@ class DSConv1d(nn.Module):
 
 
 class ResBlock(nn.Module):
-    """Лёгкий residual-блок: DSConv → GN → GELU → DSConv → GN + skip."""
+    """Lightweight residual block: DSConv → GN → GELU → DSConv → GN + skip."""
     def __init__(self, ch, k=7, dropout=0.0, dilation=1):
         super().__init__()
         self.conv1 = DSConv1d(ch, k=k, dilation=dilation)
@@ -50,7 +50,7 @@ class ResBlock(nn.Module):
 
 
 class ChannelSqueeze(nn.Module):
-    """Сужение по электродам: 1x1 свёртка C_in→C_out (учебная смесь каналов)."""
+    """Channel squeeze over electrodes: 1x1 conv C_in→C_out (learned channel mixing)."""
     def __init__(self, c_in, c_out):
         super().__init__()
         self.proj = nn.Conv1d(c_in, c_out, kernel_size=1, bias=False)
@@ -60,13 +60,13 @@ class ChannelSqueeze(nn.Module):
 
 
 class TimeDown(nn.Module):
-    """Сужение по времени: антиалиас (легкий depthwise) + AvgPool(stride=2)."""
+    """Time downsampling: antialiasing (light depthwise) + AvgPool(stride=2)."""
     def __init__(self, ch, k=5):
         super().__init__()
         pad = (k - 1) // 2
         self.aa = nn.Conv1d(ch, ch, k, groups=ch, padding=pad, bias=False)
         with torch.no_grad():
-            # треугольное ядро сглаживания
+            # triangle-shaped smoothing kernel
             w = torch.tensor([1, 2, 3, 2, 1], dtype=torch.float32)
             w = (w / w.sum()).view(1, 1, -1).repeat(ch, 1, 1)
             self.aa.weight.copy_(w)
@@ -78,8 +78,8 @@ class TimeDown(nn.Module):
 
 
 class SegmentStatPool(nn.Module):
-    """Сегментный пуллинг: разбивает время на S сегментов и даёт mean/max по каждому.
-    Это выделяет 'где' (начало/конец/середина)."""
+    """Segmented pooling: splits time into S segments and returns mean/max for each.
+    This highlights 'where' (beginning/end/middle)."""
     def __init__(self, segments=(2, 4)):
         super().__init__()
         self.segments = segments
@@ -104,13 +104,13 @@ class SegmentStatPool(nn.Module):
 
 class SneddyNet(nn.Module):
     """
-    Простой baseline под (B, C, T), акцент на 'где изменение' (начало/конец):
-      - StdPerSample нормализация
+    Simple baseline for (B, C, T), focused on 'where is the change' (beginning/end):
+      - StdPerSample normalization
       - Channel squeeze (C -> c0)
-      - 3 ступени: [ResBlock x2 + TimeDown] с увеличением фич и сужением времени
-      - SegmentStatPool на последней карте признаков (S=2,4)
-      - MLP-голова -> n_outputs
-    Интерфейс совместим с braindecode-моделями.
+      - 3 stages: [ResBlock x2 + TimeDown] with increased features and reduced time
+      - SegmentStatPool on the last feature map (S=2,4)
+      - MLP head -> n_outputs
+    Interface compatible with braindecode models.
     """
     def __init__(
         self,
@@ -118,8 +118,8 @@ class SneddyNet(nn.Module):
         n_times: int,
         sfreq: int,
         n_outputs: int = 1,
-        c0: int = 32,          # стартовая ширина после сжатия каналов
-        widen: int = 2,        # коэффициент расширения фич по ступеням
+        c0: int = 32,          # initial feature width after channel squeeze
+        widen: int = 2,        # feature expansion coefficient per stage
         depth_per_stage: int = 2,
         dropout: float = 0.1,
         k: int = 7,
@@ -134,31 +134,31 @@ class SneddyNet(nn.Module):
 
         self.norm = StdPerSample()
 
-        # Channel squeeze: 129 -> 32 (по умолчанию)
+        # Channel squeeze: 129 -> 32 (by default)
         self.c_squeeze = ChannelSqueeze(n_chans, c0)
 
-        # Ступени пирамиды: time //= 2 на каждой
+        # Pyramid stages: time //= 2 at each
         chs = [c0, c0 * widen, c0 * widen * 2]
         stages = []
         in_c = c0
         for out_c in chs:
-            # расширяем число признаков в начале ступени
+            # expand features at the beginning of the stage
             if out_c != in_c:
                 stages.append(nn.Conv1d(in_c, out_c, kernel_size=1, bias=False))
                 stages.append(nn.GroupNorm(1, out_c))
                 stages.append(nn.GELU())
-            # residual блоки
+            # residual blocks
             for d in range(depth_per_stage):
                 stages.append(ResBlock(out_c, k=k, dropout=dropout, dilation=1))
-            # сужаем время
+            # time downsampling
             stages.append(TimeDown(out_c))  # stride=2
             in_c = out_c
         self.backbone = nn.Sequential(*stages)
 
-        # Сегментный пуллинг (чётко подсветить "раньше/позже")
-        self.segpool = SegmentStatPool(segments=(2, 4))  # даёт mean/max по сегментам
+        # Segmented pooling (explicitly highlight "early/late")
+        self.segpool = SegmentStatPool(segments=(2, 4))  # gives mean/max per segment
 
-        # Подсчитаем размер признаков после спины для головы
+        # Calculate feature size for head after the backbone
         with torch.no_grad():
             dummy = torch.zeros(1, n_chans, n_times)
             z = self.forward_features(dummy)

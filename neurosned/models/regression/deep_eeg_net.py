@@ -493,35 +493,3 @@ def soft_ce_loss(logits: torch.Tensor, soft_targets: torch.Tensor) -> torch.Tens
     loss = -(soft_targets * logp).sum(dim=-1).mean()
     return loss
 
-
-# =========================
-# Example instantiation (matches your input: 128x200 @ 100 Hz)
-# =========================
-# if __name__ == "__main__":
-#     # Example: deeper but effective default config (≈3 pyramid stages + transformer)
-#     model_deeper = DeepEEGRTNet(
-#         n_chans=128, n_times=200, sfreq=100.0,
-#         c0=96, widen1=3, widen2=2, widen3=2,
-#         k=15, dropout=0.50, layerscale_init=1e-4,
-#         hi_dilations=(1,2,4,8,16), hi_depth=24,
-#         lo1_dilations=(1,2,4,8,16), lo1_depth=16,
-#         lo2_dilations=(1,2,4,8,16), lo2_depth=16,
-#         lo3_dilations=(1,2,4,8,16), lo3_depth=12,
-#         use_transformer=True, transformer_dim=256, transformer_heads=8, transformer_layers=2,
-#         use_segpool=False
-#     ).cuda() if torch.cuda.is_available() else DeepEEGRTNet(
-#         n_chans=128, n_times=200, sfreq=100.0
-#     )
-
-#     # Dummy forward
-#     x = torch.randn(4, 128, 200)  # (B, C, T)
-#     y = model_deeper(x)           # (B, 1) seconds
-#     print("Pred (sec):", y.shape, y[:2].flatten())
-
-#     # If you want distributional training:
-#     out = model_deeper(x, return_dict=True)
-#     # Suppose ground-truth RT in seconds for the batch:
-#     t_gt = torch.tensor([0.42, 0.71, 0.33, 1.05], dtype=torch.float32, device=x.device)
-#     soft_t = gaussian_targets(t_gt, T=out['logits'].size(-1), bin_sec=out['bin_sec'], sigma_bins=1.5)
-#     loss = soft_ce_loss(out['logits'], soft_t)
-#     print("Loss:", loss.item())

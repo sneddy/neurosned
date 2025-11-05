@@ -6,8 +6,8 @@ import torch.nn.functional as F
 
 
 class StdPerSample(nn.Module):
-    """Пер-семпловая нормализация: вычитаем среднее по времени и делим на std по времени.
-    Без зависимости от датасета/батча. Для устойчивого старта."""
+    """Per-sample normalization: subtract mean over time and divide by std over time.
+    No dependence on dataset/batch. For stable startup."""
     def __init__(self, eps=1e-5):
         super().__init__()
         self.eps = eps
@@ -18,7 +18,7 @@ class StdPerSample(nn.Module):
 
 
 class DSConv1d(nn.Module):
-    """Depthwise separable 1D: depthwise (по каналам признаков) + pointwise 1x1."""
+    """Depthwise separable 1D: depthwise (over feature channels) + pointwise 1x1."""
     def __init__(self, ch, k=7, stride=1, dilation=1):
         super().__init__()
         pad = ((k - 1) // 2) * dilation
@@ -30,7 +30,7 @@ class DSConv1d(nn.Module):
 
 
 class ResBlock(nn.Module):
-    """Лёгкий residual-блок: DSConv → GN → GELU → DSConv → GN + skip."""
+    """Lightweight residual block: DSConv → GN → GELU → DSConv → GN + skip."""
     def __init__(self, ch, k=7, dropout=0.0, dilation=1):
         super().__init__()
         self.conv1 = DSConv1d(ch, k=k, dilation=dilation)
@@ -50,7 +50,7 @@ class ResBlock(nn.Module):
 
 
 class ChannelSqueeze(nn.Module):
-    """Сужение по электродам: 1x1 свёртка C_in→C_out (учебная смесь каналов)."""
+    """Channel squeeze: 1x1 conv C_in→C_out (learned channel mixing)."""
     def __init__(self, c_in, c_out):
         super().__init__()
         self.proj = nn.Conv1d(c_in, c_out, kernel_size=1, bias=False)
@@ -60,13 +60,13 @@ class ChannelSqueeze(nn.Module):
 
 
 class TimeDown(nn.Module):
-    """Сужение по времени: антиалиас (легкий depthwise) + AvgPool(stride=2)."""
+    """Temporal downsampling: antialias (lightweight depthwise) + AvgPool(stride=2)."""
     def __init__(self, ch, k=5):
         super().__init__()
         pad = (k - 1) // 2
         self.aa = nn.Conv1d(ch, ch, k, groups=ch, padding=pad, bias=False)
         with torch.no_grad():
-            # треугольное ядро сглаживания
+            # triangular smoothing kernel
             w = torch.tensor([1, 2, 3, 2, 1], dtype=torch.float32)
             w = (w / w.sum()).view(1, 1, -1).repeat(ch, 1, 1)
             self.aa.weight.copy_(w)
