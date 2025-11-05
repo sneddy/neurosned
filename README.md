@@ -1,7 +1,7 @@
 # NeuroSned – EEG Reaction-Time Modeling (Competition Track)
 
 This repository contains the code and notebooks we used to build a winning-level solution for the **EEG Foundation Model** competition task on **reaction-time prediction**.
-![Workflow diagram](assets/tasks_workflow.png)
+![Workflow diagram](assets/poster.png)
 
 
 ## 🔑 Core ideas
