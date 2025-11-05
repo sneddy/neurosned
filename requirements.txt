@@ -1,0 +1,9 @@
+braindecode==1.2.0
+eegdash==0.3.8
+joblib==1.5.2
+matplotlib==3.10.5
+numpy==1.26.4
+pandas==2.3.2
+scikit_learn==1.7.1
+torch==2.7.1 # torch is installed per-platform
+tqdm==4.67.1
