@@ -5,8 +5,8 @@ import torch.nn as nn
 
 class ExternalizingPredictor(nn.Module):
     """
-    Wraps: feature_extractor (numpy/torch-агностичный) + RidgeModel.
-    Forward принимает сырой EEG: (B, C, T), возвращает (B, 1).
+    Wraps: feature_extractor (numpy/torch-agnostic) + RidgeModel.
+    The forward method accepts raw EEG input with shape (B, C, T) and returns predictions with shape (B, 1).
     """
     def __init__(self, feature_extractor, ridge_model,
         clip_min: float | None = None, clip_max: float | None = None):
