@@ -90,28 +90,28 @@ To address detection explicitly, we introduced an **artificial segmentation targ
 Let logits be \(z_t\) for \(t=0,\dots,T-1\), sampling step \(\Delta t=1/\mathrm{sfreq}\),
 grid \(g_t=t\,\Delta t\), and window offset \(t_0=0.5\,\mathrm{s}\).
 
-\[
+$$
 p_t(\tau)=\frac{e^{z_t/\tau}}{\sum_{k=0}^{T-1} e^{z_k/\tau}},\qquad
 \hat t_{\mathrm{rel}}(\tau)=\sum_{t=0}^{T-1} p_t(\tau)\,g_t,\qquad
 \hat t_{\mathrm{abs}}(\tau)=t_0+\hat t_{\mathrm{rel}}(\tau).
-\]
+$$
 
 **Temperature selection**
 
-\[
+$$
 \tau^\star = \arg\min_{\tau\in\mathcal{T}}
 \ \mathrm{RMSE}_{\text{val}}\big(\hat t_{\mathrm{abs}}(\tau)\big).
-\]
+$$
 
 #### Target: segmentation label with \(\sigma\)
 
 For true relative time \(y_{\mathrm{rel}}\in[0,\mathrm{crop\_sec}]\) we build a Gaussian label on \(g_t\):
 
-\[
+$$
 \tilde q_t=\exp\!\left(-\frac{(g_t-y_{\mathrm{rel}})^2}{2\sigma^2}\right),\qquad
 q_t=\frac{\tilde q_t}{\sum_{k=0}^{T-1}\tilde q_k\,\Delta t},\qquad
 \sum_{t=0}^{T-1} q_t\,\Delta t=1.
-\]
+$$
 
 This smooth label stabilizes training while preserving temporal localization.
 
@@ -158,7 +158,6 @@ We split validation into **5 folds** with a matched target (RT) distribution, ex
 │   │   ├── boosting_model.py
 │   │   ├── feature_extractor_new.py
 │   │   ├── feature_extractor.py
-│   │   ├── __init__.py
 │   │   └── median_bootstrap_ridge.py
 │   ├── models
 │   │   ├── externalizing
