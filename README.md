@@ -238,12 +238,12 @@ Below we list the exact features we extract from these matrices and the lags use
 | `A_mean_abs`      | Mean **absolute** value of all entries of `A`.                                                    | Total strength of **directed influences** among channels.                                      | 25 (0.25 s), 50 (0.50 s), 100 (1.00 s)                          |
 | `A_off_mean`      | Mean of **off-diagonal** entries of `A`.                                                          | Quantifies **directed cross-channel effects** (feed-forward/feedback mixing).                  | 5 (0.05 s), 10 (0.10 s)                                         |
 | `A_asym_mean_abs` | Mean **absolute** value of (A - A^\top).                                                          | Measures **directionality/asymmetry** of interactions; imbalance can be discriminative.        | 100 (1.00 s)                                                    |
-| `A_fro`           | **Frobenius norm** ( \lVert A \rVert_F ).                                                         | Overall **dynamic energy** captured by the linear transition.                                  | 100 (1.00 s)                                                    |
+| `A_fro`           | **Frobenius norm** $\lVert A \rVert_F $.                                                         | Overall **dynamic energy** captured by the linear transition.                                  | 100 (1.00 s)                                                    |
 | `A_sparsity@0.05` | Fraction of entries with ( \lvert A_{ij} \rvert < 0.05 ).                                         | **Sparsity** pattern (few strong vs. many weak links) often differs and is informative.        | 100 (1.00 s)                                                    |
 
 ---
 
-## Robast Feature Selection and Training
+## Robust Feature Selection and Training
 
 ### Building the feature pool
 1. Compute all correlation- and transition-matrix features on 2-s windows (sfreq = 100 Hz; per-channel standardized).
