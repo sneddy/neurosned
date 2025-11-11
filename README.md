@@ -116,7 +116,7 @@ $$
 
 #### Target: segmentation label with \(\sigma\)
 
-For true relative time \(y_{\mathrm{rel}}\in[0,\mathrm{crop\_sec}]\) we build a Gaussian label on \(g_t\):
+For true relative time $y_{\mathrm{rel}}\in[0,\mathrm{crop\_sec}]$ we build a Gaussian label on $g_t$:
 
 $$
 \tilde q_t=\exp\!\left(-\frac{(g_t-y_{\mathrm{rel}})^2}{2\sigma^2}\right),\qquad
@@ -208,12 +208,12 @@ and extrapolation. The goal is not only to minimize error on seen subjects, but 
 We frame Challenge 2 as **structured feature extraction** from short (2 s) EEG windows sampled at 100 Hz with per-channel standardization.  
 For each window and a set of lags, we build two derived objects:
 
-1) **Lagged cross-correlation matrix** \( \mathrm{corr}(X_t,\;X_{t+\text{lag}}) \)  
+1) **Lagged cross-correlation matrix** $ \mathrm{corr}(X_t,\;X_{t+\text{lag}}) $  
    — captures **how stable a channel is over time** (diagonal, auto-correlation) and **how channels co-fluctuate** (off-diagonals) at specific timescales.
 
-2) **Ridge transition matrix** \( A \) in \( X_{t+\text{lag}} \approx A\,X_t \)  
+2) **Ridge transition matrix** $ A $ in $ X_{t+\text{lag}} \approx A\,X_t $  
    — a linear, regularized estimate of **directed influences** between channels (self-persistence on the diagonal, cross-channel effects off-diagonal).  
-   We also analyze **asymmetry** \(A - A^\top\) (directionality/feedback imbalance), **norm/energy** \(\|A\|_F\), and **sparsity**.
+   We also analyze **asymmetry** $A - A^\top$ (directionality/feedback imbalance), **norm/energy** $\|A\|_F$, and **sparsity**.
 
 ### Why these representations are informative for externalizing
 Externalizing traits are linked to differences in **temporal stability**, **inter-regional integration**, and **control dynamics** rather than raw amplitude alone.  
@@ -232,14 +232,14 @@ Below we list the exact features we extract from these matrices and the lags use
 | ----------------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
 | `corr_diag_mean`  | Mean of the **diagonal** of the lagged correlation matrix `corr(X_t, X_{t+lag})` across channels. | Captures **within-channel stability/persistence**; altered short–mid stability is informative. | 5 (0.05 s), 10 (0.10 s), 25 (0.25 s)                            |
 | `corr_mean_abs`   | Mean **absolute** value of all entries of `corr(X_t, X_{t+lag})`.                                 | Reflects global **synchronization strength** across channels.                                  | 10 (0.10 s), 25 (0.25 s), 50 (0.50 s)                           |
-| `corr_off_mean`   | Mean of **off-diagonal** entries of `corr(X_t, X_{t+lag})`.                                       | Measures **inter-channel coupling/integration** independent of self-effects.                   | 5 (0.05 s), 50 (0.50 s)                                         |
+| `corr_off_mean`   | Mean of **off-diagonal** entries of `$corr(X_t, X_{t+lag})$`.                                       | Measures **inter-channel coupling/integration** independent of self-effects.                   | 5 (0.05 s), 50 (0.50 s)                                         |
 | `corr_entropy`    | **Shannon entropy** of flattened, normalized absolute correlations.                               | Higher entropy ⇒ more **diffuse/less organized** coupling; organization shifts are diagnostic. | 5 (0.05 s), 10 (0.10 s), 25 (0.25 s), 50 (0.50 s), 100 (1.00 s) |
-| `A_diag_mean`     | Mean of the **diagonal** of ridge transition matrix `A` from `X_{t+lag} ≈ A X_t`.                 | Indicates **self-prediction/persistence** in linear dynamics over the lag.                     | 50 (0.50 s), 100 (1.00 s)                                       |
+| `A_diag_mean`     | Mean of the **diagonal** of ridge transition matrix `A` from $X_{t+lag} ≈ A X_t$.                 | Indicates **self-prediction/persistence** in linear dynamics over the lag.                     | 50 (0.50 s), 100 (1.00 s)                                       |
 | `A_mean_abs`      | Mean **absolute** value of all entries of `A`.                                                    | Total strength of **directed influences** among channels.                                      | 25 (0.25 s), 50 (0.50 s), 100 (1.00 s)                          |
 | `A_off_mean`      | Mean of **off-diagonal** entries of `A`.                                                          | Quantifies **directed cross-channel effects** (feed-forward/feedback mixing).                  | 5 (0.05 s), 10 (0.10 s)                                         |
 | `A_asym_mean_abs` | Mean **absolute** value of (A - A^\top).                                                          | Measures **directionality/asymmetry** of interactions; imbalance can be discriminative.        | 100 (1.00 s)                                                    |
 | `A_fro`           | **Frobenius norm** $\lVert A \rVert_F $.                                                         | Overall **dynamic energy** captured by the linear transition.                                  | 100 (1.00 s)                                                    |
-| `A_sparsity@0.05` | Fraction of entries with ( \lvert A_{ij} \rvert < 0.05 ).                                         | **Sparsity** pattern (few strong vs. many weak links) often differs and is informative.        | 100 (1.00 s)                                                    |
+| `A_sparsity@0.05` | Fraction of entries with $ \lvert A_{ij} \rvert < 0.05 $.                                         | **Sparsity** pattern (few strong vs. many weak links) often differs and is informative.        | 100 (1.00 s)                                                    |
 
 ---
 
