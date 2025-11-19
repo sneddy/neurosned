@@ -26,7 +26,7 @@ preprocessing → model zoo → calibration / stacking → feature engineering �
 **Key findings**
 - Temporal-segmentation models outperform direct regression for RT and generalize across subjects.  
 - Temperature calibration and out-of-fold stacking substantially improve consistency.  
-- A compact ridge model on correlation/transition features yields robust, OOD-friendly externalizing predictions.
+- A compact ridge model on correlation/transition features yields robust, out-of-distribution (OOD) friendly externalizing predictions.
 
 ![Workflow diagram](assets/poster_cropped.jpg)
 
