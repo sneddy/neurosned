@@ -153,8 +153,8 @@ To address detection explicitly, we introduced an **artificial segmentation targ
 
 #### Inference: soft-argmax with temperature
 
-Let logits be \(z_t\) for \(t=0,\dots,T-1\), sampling step \(\Delta t=1/\mathrm{sfreq}\),
-grid \(g_t=t\,\Delta t\), and window offset \(t_0=0.5\,\mathrm{s}\).
+Let logits be $\(z_t\) for \(t=0,\dots,T-1\)$, sampling step $\(\Delta t=1/\mathrm{sfreq}\)$,
+grid $\(g_t=t\,\Delta t\)$, and window offset $\(t_0=0.5\,\mathrm{s}\)$.
 
 $$
 p_t(\tau)=\frac{e^{z_t/\tau}}{\sum_{k=0}^{T-1} e^{z_k/\tau}},\qquad
@@ -169,7 +169,7 @@ $$
 \ \mathrm{RMSE}_{\text{val}}\big(\hat t_{\mathrm{abs}}(\tau)\big).
 $$
 
-#### Target: segmentation label with \(\sigma\)
+#### Target: segmentation label with $\sigma$
 
 For true relative time $y_{\mathrm{rel}}\in[0,\mathrm{crop\_sec}]$ we build a Gaussian label on $g_t$:
 
