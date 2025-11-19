@@ -153,8 +153,8 @@ To address detection explicitly, we introduced an **artificial segmentation targ
 
 #### Inference: soft-argmax with temperature
 
-Let logits be $\(z_t\) for \(t=0,\dots,T-1\)$, sampling step $\(\Delta t=1/\mathrm{sfreq}\)$,
-grid $\(g_t=t\,\Delta t\)$, and window offset $\(t_0=0.5\,\mathrm{s}\)$.
+Let logits be $z_t$ for $t=0,\dots,T-1\)$, sampling step $\Delta t=1/\mathrm{sfreq}$,
+grid $g_t=t\,\Delta t$, and window offset $\(t_0=0.5\,\mathrm{s}\)$.
 
 $$
 p_t(\tau)=\frac{e^{z_t/\tau}}{\sum_{k=0}^{T-1} e^{z_k/\tau}},\qquad
