@@ -1,18 +1,34 @@
-# NeuroSned – EEG Reaction-Time Modeling (Competition Track)
+# NeuroSned – Framework for Stimulus-Locked EEG  
+### *First-Place Solution (by Combined 2-Challenges Metric) — NeurIPS EEG Foundation Challenge*
 
 [![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](#-license)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-informational)]()
-<!-- Optionally add DOI & arXiv badges once available
+<!-- Optional badges once released:
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.xxxxxxx.svg)](https://doi.org/10.5281/zenodo.xxxxxxx)
 [![arXiv](https://img.shields.io/badge/arXiv-YYYY.NNNNN-B31B1B.svg)](https://arxiv.org/abs/YYYY.NNNNN)
 -->
 
-## Abstract
-We present **NeuroSned**, a reproducible pipeline for two NeurIPS “EEG Foundation Model” challenges:  
-**(1)** reaction-time (RT) prediction from stimulus-locked EEG, reframed as **temporal segmentation** with soft time-distributions and soft-argmax inference;  
-**(2)** prediction of the **externalizing factor** using **interpretable features** derived from lagged correlation and ridge transition matrices.  
-Our training code (notebooks + scripts) provides end-to-end reproduction, including preprocessing, model zoo, calibration/stacking, and robust feature selection. Results show (i) segmentation beats direct regression for RT, especially with temperature calibration and OOF stacking; (ii) a compact ridge model on correlation/transition features yields robust, OOD-friendly externalizing predictions.
+## 🧠 Abstract
+**NeuroSned** is a reproducible **framework** for cross-subject EEG decoding,  
+developed as the **first-place (combined metric) solution** to the *NeurIPS EEG Foundation Challenge: From Cross-Task to Cross-Subject EEG Decoding*.
+
+The framework unifies two complementary tasks:
+
+1. **Reaction-time (RT) prediction** - reframed as **temporal segmentation** of stimulus-locked EEG,  
+   using soft time-distributions, calibrated soft-argmax inference, and distribution-aware loss design.  
+2. **Externalizing-factor prediction** — subject-level regression from interpretable **lagged correlation** and **ridge transition-matrix** features  
+   with bootstrap-validated feature selection and ridge regression.
+
+NeuroSned provides fully documented **training scripts and notebooks** enabling end-to-end reproduction:  
+preprocessing → model zoo → calibration / stacking → feature engineering → evaluation.
+
+**Key findings**
+- Temporal-segmentation models outperform direct regression for RT and generalize across subjects.  
+- Temperature calibration and out-of-fold stacking substantially improve consistency.  
+- A compact ridge model on correlation/transition features yields robust, OOD-friendly externalizing predictions.
+
 ![Workflow diagram](assets/poster_cropped.jpg)
+
 
 ## Challenges at a glance
 - **Challenge 1 — Reaction-time prediction (segmentation):**  
@@ -50,14 +66,18 @@ pip install -r requirements.txt
 
 ## 📁 Data
 
-We use the challenge-ready HBN data via `EEGChallengeDataset` (preprocessed to 100 Hz, 0.5–50 Hz).  
-Set `DATA_DIR` to your data cache location (the notebooks will populate it on first run).
+We use the **original HBN EEG dataset** provided through the `EEGChallengeDataset` interface  
+(the official competition preprocessing: resampled to **100 Hz**, band-pass filtered **0.5–50 Hz**).  
+All preprocessing and annotation steps — including windowing, stimulus-locking, and filtering -  
+are explicitly implemented and documented in the corresponding  
+`data_preparation.ipynb` notebooks for each challenge.
 
 ```
 artefacts/
   data/      # pickled datasets / cached windows
   models/    # checkpoints
-```
+``` 
+The notebooks will automatically download, prepare, and store the data on first run.
 
 ---
 
@@ -329,18 +349,20 @@ The procedure converged to the **feature set listed above**, and we saved the **
 ├── requirements.txt
 ```
 
-## 📜 Citation
+## 📜 How to Cite
 
-If you use this code or models, please cite this repository. A `CITATION.cff` is provided for automatic BibTeX/APA.
+If you use this repository or its models, please cite:
 
 ```bibtex
 @software{neurosned2025,
-  title   = {NeuroSned: Stimulus-locked EEG modeling for reaction-time prediction},
+  title   = {NeuroSned: First-Place Solution (by Combined 2-Challenges Metric) & Framework for Stimulus-Locked EEG (NeurIPS EEG Foundation Challenge)},
+  author  = {Anuar Aimoldin and Ayana Mussabayeva},
   year    = {2025},
-  author  = {Anuar Aimoldin, Ayana Mussabayeva, Yedige Mussabayev},
   url     = {https://github.com/sneddy/neurosned}
 }
 ```
+
+A full machine-readable citation is provided in [`CITATION.cff`](./CITATION.cff) and is automatically available via GitHub’s **“Cite this repository”** button.
 
 ---
 
