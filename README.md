@@ -39,17 +39,36 @@ preprocessing → model zoo → calibration / stacking → feature engineering �
 
 # Challenge 1: Reaction-time prediction
 ## 🔑 Core ideas
-- **Manual architecture exploration.** We systematically designed and evaluated
-  a family of lightweight 1-D segmentation models tailored for EEG signals.
-  The most effective architecture — **SneddyUNet** — delivered the highest
-  accuracy-efficiency trade-off and became the reference backbone for all
-  subsequent experiments.
-- **Stimulus-locked preprocessing.** We convert run-level EEG into fixed **2-second windows** starting **0.5 s after stimulus onset**, using anchor annotations. Data are already normalized by the challenge preprocessing (100 Hz, 0.5–50 Hz band).
-- **Targets as time distributions.** Instead of a single scalar, we supervise a **soft 1-D distribution** over time steps (`q`), and train the model to predict logits over time. We then compute the **expected time** `t_hat` from the distribution for RMSE.
-- **Loss cocktail.** Weighted combination of **CE** on soft labels, **time RMSE**, optional **KL**, **Wasserstein-1 (CDF)** and **entropy** regularization. An optional **hazard** head converts logits to a discrete-time hazard distribution.
-- **Architectures.** 1D segmentation-style models (UNet family, attention UNet, factorized UNet, Inception-style, recurrent UNet) with a unified output `(B,1,T)`.
-- **Robust training.** Time-aware data augmentation (time scaling, channel dropout, cutout, Gaussian noise), **mixup** over time-bins, early stopping with **LR halving & restart from best checkpoint**.
-- **Ensembling.** Average distributions / expected times across multiple architectures and seeds for best validation scores.
+
+- **Custom lightweight architectures.** We systematically designed and evaluated
+  a family of efficient 1-D segmentation models tailored for EEG decoding.
+  The most effective configuration, **SneddyUNet**, combined depthwise-separable
+  convolutions, residual refinement, and linear skip upsampling, providing the
+  best accuracy–efficiency trade-off. Variants of this architecture (attention,
+  factorized, inception-style, recurrent) formed the core model zoo for Challenge 1.
+
+- **Stimulus-locked preprocessing.** Run-level EEG recordings are converted into
+  fixed **2-second windows** starting **0.5 s after stimulus onset** using anchor
+  annotations. Data are normalized as in the official preprocessing
+  (100 Hz, 0.5–50 Hz band-pass).
+
+- **Targets as time distributions.** Instead of a single scalar, each sample is
+  represented as a **soft 1-D time distribution** (`q`). The model predicts
+  logits over time; the **expected time** `t̂` from this distribution is used
+  for RMSE evaluation.
+
+- **Loss cocktail.** Combined objective: **cross-entropy** on soft labels,
+  **time RMSE**, optional **KL divergence**, **Wasserstein-1 (CDF)** distance,
+  and **entropy regularization**. A **hazard head** optionally models
+  discrete-time event probabilities.
+
+- **Robust training.** Time-aware data augmentations (scaling, channel dropout,
+  cutout, Gaussian noise), **mixup** over time bins, early stopping with
+  learning-rate halving and checkpoint restarts.
+
+- **Ensembling and calibration.** Model predictions (time distributions) are
+  aggregated across architectures and seeds; out-of-fold stacking and
+  temperature calibration improve consistency and leaderboard performance.
 
 > **Disclaimer**  
 > You can choose **any model** below for testing — all the scores mentioned in comments are **achievable using the same training code**, given enough runs and proper tuning. The provided setups represent **the most stable base configurations** for both initial training and fine-tuning modes. Exact leaderboard-level performance may require **multiple restarts and hyperparameter tweaks** for each model individually.
