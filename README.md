@@ -1,6 +1,17 @@
 # NeuroSned – EEG Reaction-Time Modeling (Competition Track)
 
-This repository contains the code and notebooks we used to build a winning-level solution for the **EEG Foundation Model** competition task on **reaction-time prediction**.
+[![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](#-license)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-informational)]()
+<!-- Optionally add DOI & arXiv badges once available
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.xxxxxxx.svg)](https://doi.org/10.5281/zenodo.xxxxxxx)
+[![arXiv](https://img.shields.io/badge/arXiv-YYYY.NNNNN-B31B1B.svg)](https://arxiv.org/abs/YYYY.NNNNN)
+-->
+
+## Abstract
+We present **NeuroSned**, a reproducible pipeline for two NeurIPS “EEG Foundation Model” challenges:  
+**(1)** reaction-time (RT) prediction from stimulus-locked EEG, reframed as **temporal segmentation** with soft time-distributions and soft-argmax inference;  
+**(2)** prediction of the **externalizing factor** using **interpretable features** derived from lagged correlation and ridge transition matrices.  
+Our training code (notebooks + scripts) provides end-to-end reproduction, including preprocessing, model zoo, calibration/stacking, and robust feature selection. Results show (i) segmentation beats direct regression for RT, especially with temperature calibration and OOF stacking; (ii) a compact ridge model on correlation/transition features yields robust, OOD-friendly externalizing predictions.
 ![Workflow diagram](assets/poster_cropped.jpg)
 
 ## Challenges at a glance
