@@ -1,0 +1,57 @@
+cff-version: 1.2.0
+type: software
+title: "NeuroSned: First-Place Solution (by Combined 2-Challenges Metric) & Framework for Stimulus-Locked EEG (NeurIPS EEG Foundation Challenge)"
+message: "If you use this software, please cite it as below."
+abstract: >
+  NeuroSned provides a reproducible end-to-end pipeline for (1) reaction-time prediction reframed as temporal segmentation
+  with calibrated soft-argmax and (2) externalizing-factor regression using interpretable lag-correlation and ridge
+  transition features. This repository contains the first-place solution in the NeurIPS EEG Foundation Challenge and a
+  reusable framework for broader EEG modeling.
+
+authors:
+  - family-names: Aimoldin
+    given-names: Anuar
+    orcid: "https://orcid.org/0009-0004-8495-0739"
+    website: "https://scholar.google.com/citations?user=SE9vprcAAAAJ&hl=en"
+  - family-names: Mussabayeva
+    given-names: Ayana
+    orcid: "https://orcid.org/0000-0002-5303-199X"
+    website: "https://scholar.google.com/citations?user=56zYG1kAAAAJ&hl=en"
+  - family-names: Mussabayev
+    given-names: Yedyge
+    orcid: "https://orcid.org/0009-0007-1688-4460"
+
+repository-code: "https://github.com/sneddy/neurosned"
+keywords:
+  - neurips-2025-competition
+  - eeg-foundation-challenge
+  - eeg-decoding
+  - transfer-learning
+  - reaction-time-prediction
+  - contrast-change-detection
+  - ccd-task
+  - externalizing-factor
+  - hbn-eeg
+  - temporal-segmentation
+  - temperature-calibration
+license: Apache-2.0
+version: "1.0.0"
+date-released: "2025-11-19"
+
+preferred-citation:
+  type: software
+  title: "NeuroSned: First-Place Solution & Framework for Stimulus-Locked EEG (NeurIPS EEG Foundation Challenge)"
+  authors:
+    - family-names: Aimoldin
+      given-names: Anuar
+      orcid: "https://orcid.org/0009-0004-8495-0739"
+      website: "https://scholar.google.com/citations?user=SE9vprcAAAAJ&hl=en"
+    - family-names: Mussabayeva
+      given-names: Ayana
+      orcid: "https://orcid.org/0000-0002-5303-199X"
+      website: "https://scholar.google.com/citations?user=56zYG1kAAAAJ&hl=en"
+    - family-names: Mussabayev
+      given-names: Yedyge
+      orcid: "https://orcid.org/0009-0007-1688-4460"
+  year: 2025
+  url: "https://github.com/sneddy/neurosned"
