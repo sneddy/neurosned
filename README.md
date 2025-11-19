@@ -15,9 +15,10 @@ developed as the **first-place (combined metric) solution** to the *NeurIPS EEG 
 The framework unifies two complementary tasks:
 
 1. **Reaction-time (RT) prediction** - reframed as **temporal segmentation** of stimulus-locked EEG,  
-   using soft time-distributions, calibrated soft-argmax inference, and distribution-aware loss design.  
-2. **Externalizing-factor prediction** — subject-level regression from interpretable **lagged correlation** and **ridge transition-matrix** features  
-   with bootstrap-validated feature selection and ridge regression.
+   using soft time-distributions, calibrated soft-argmax inference, and distribution-aware loss design. Our progress in Challenge 1 was largely driven by systematic experiments
+   with manually designed lightweight 1-D segmentation architectures. The most successful and stable variant, **SneddyUNet**, combined depthwise-separable
+   convolutions, residual refinement, and linear skip upsampling, and served as the backbone of our winning configuration.
+2. **Externalizing-factor prediction** — subject-level regression from interpretable **lagged correlation** and **ridge transition-matrix** features with bootstrap-validated feature selection and ridge regression.
 
 NeuroSned provides fully documented **training scripts and notebooks** enabling end-to-end reproduction:  
 preprocessing → model zoo → calibration / stacking → feature engineering → evaluation.
@@ -38,7 +39,11 @@ preprocessing → model zoo → calibration / stacking → feature engineering �
 
 # Challenge 1: Reaction-time prediction
 ## 🔑 Core ideas
-
+- **Manual architecture exploration.** We systematically designed and evaluated
+  a family of lightweight 1-D segmentation models tailored for EEG signals.
+  The most effective architecture — **SneddyUNet** — delivered the highest
+  accuracy-efficiency trade-off and became the reference backbone for all
+  subsequent experiments.
 - **Stimulus-locked preprocessing.** We convert run-level EEG into fixed **2-second windows** starting **0.5 s after stimulus onset**, using anchor annotations. Data are already normalized by the challenge preprocessing (100 Hz, 0.5–50 Hz band).
 - **Targets as time distributions.** Instead of a single scalar, we supervise a **soft 1-D distribution** over time steps (`q`), and train the model to predict logits over time. We then compute the **expected time** `t_hat` from the distribution for RMSE.
 - **Loss cocktail.** Weighted combination of **CE** on soft labels, **time RMSE**, optional **KL**, **Wasserstein-1 (CDF)** and **entropy** regularization. An optional **hazard** head converts logits to a discrete-time hazard distribution.
