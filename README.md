@@ -263,10 +263,10 @@ and extrapolation. The goal is not only to minimize error on seen subjects, but 
 We frame Challenge 2 as **structured feature extraction** from short (2 s) EEG windows sampled at 100 Hz with per-channel standardization.  
 For each window and a set of lags, we build two derived objects:
 
-1) **Lagged cross-correlation matrix** $ \mathrm{corr}(X_t,\;X_{t+\text{lag}}) $  
+1) **Lagged cross-correlation matrix** $ corr (X_t,\;X_{t+lag}) $  
    — captures **how stable a channel is over time** (diagonal, auto-correlation) and **how channels co-fluctuate** (off-diagonals) at specific timescales.
 
-2) **Ridge transition matrix** $ A $ in $ X_{t+\text{lag}} \approx A\,X_t $  
+2) **Ridge transition matrix** $ A $ in $X_{t+ lag} \approx A\,X_t $  
    — a linear, regularized estimate of **directed influences** between channels (self-persistence on the diagonal, cross-channel effects off-diagonal).  
    We also analyze **asymmetry** $A - A^\top$ (directionality/feedback imbalance), **norm/energy** $\|A\|_F$, and **sparsity**.
 
