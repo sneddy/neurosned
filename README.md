@@ -221,14 +221,15 @@ We split validation into **5 folds** with a matched target (RT) distribution, ex
 
 ## Best Models Overview
 
-| Model                          | NRMSE (default) | NRMSE (calibrated) | Best temperature |
-| ------------------------------ | --------------: | -----------------: | ---------------: |
-| unet_deeper_widen4_v1          |        0.902532 |           0.902324 |            1.076 |
-| unet_deeper_v4                 |        0.898899 |           0.898757 |            1.076 |
-| unet_v4                        |        0.903785 |           0.903785 |            1.000 |
-| attention_unet_v2              |        0.901512 |           0.901511 |            1.028 |
-| inception_v0                   |        0.917441 |           0.916910 |            1.124 |
-| factorization_unet_v1_finetune |        0.910517 |           0.909281 |            1.221 |
+| Model                          | NRMSE (default) | NRMSE (calibrated) | Best temperature | Model size |
+| ------------------------------ | --------------: | -----------------: | ---------------: | ----------: |
+| unet_deeper_widen4_v1          |        0.902532 |           0.902324 |            1.076 |     20.8 MB |
+| unet_deeper_v4                 |        0.898899 |           0.898757 |            1.076 |     12.5 MB |
+| unet_v4                        |        0.903785 |           0.903785 |            1.000 |      9.2 MB |
+| attention_unet_v2              |        0.901512 |           0.901511 |            1.028 |      130 MB |
+| inception_v0                   |        0.917441 |           0.916910 |            1.124 |      0.66 MB |
+| factorization_unet_v1_finetune |        0.910517 |           0.909281 |            1.221 |       41 MB |
+
 
 ## Ensembling Overview
 
