@@ -221,14 +221,15 @@ We split validation into **5 folds** with a matched target (RT) distribution, ex
 
 ## Best Models Overview
 
-| Model                          | NRMSE (default) | NRMSE (calibrated) | Best temperature | Model size |
-| ------------------------------ | --------------: | -----------------: | ---------------: | ----------: |
-| unet_deeper_widen4_v1          |        0.902532 |           0.902324 |            1.076 |     20.8 MB |
-| unet_deeper_v4                 |        0.898899 |           0.898757 |            1.076 |     12.5 MB |
-| unet_v4                        |        0.903785 |           0.903785 |            1.000 |      9.2 MB |
-| attention_unet_v2              |        0.901512 |           0.901511 |            1.028 |      130 MB |
-| inception_v0                   |        0.917441 |           0.916910 |            1.124 |      0.66 MB |
-| factorization_unet_v1_finetune |        0.910517 |           0.909281 |            1.221 |       41 MB |
+| Model | NRMSE (default) | NRMSE (calibrated) | Best temperature | Model size | Download |
+| ------ | --------------: | -----------------: | ---------------: | ----------: | :-------: |
+| [unet_deeper_widen4_v1](https://drive.google.com/file/d/1a3c0uE_7-qWPUc3dJsSSZPe0xCiE3y0R/view?usp=drive_link) | 0.902532 | 0.902324 | 1.076 | 20.8 MB | [⬇️ Download](https://drive.google.com/uc?export=download&id=1a3c0uE_7-qWPUc3dJsSSZPe0xCiE3y0R) |
+| [unet_deeper_v4](https://drive.google.com/file/d/1AYZbVjeGIcAnm-hnIUWUYZe9I1wNWI0M/view?usp=drive_link) | 0.898899 | 0.898757 | 1.076 | 12.5 MB | [⬇️ Download](https://drive.google.com/uc?export=download&id=1AYZbVjeGIcAnm-hnIUWUYZe9I1wNWI0M) |
+| [unet_v4](https://drive.google.com/file/d/16S-lhiIZuST0mdsHFjqgg6vzOlqjvxnD/view?usp=drive_link) | 0.903785 | 0.903785 | 1.000 | 9.2 MB | [⬇️ Download](https://drive.google.com/uc?export=download&id=16S-lhiIZuST0mdsHFjqgg6vzOlqjvxnD) |
+| [attention_unet_v2](https://drive.google.com/file/d/1n2QZTwpzYXb6WENQNvDuDuw8ncz-npmg/view?usp=drive_link) | 0.901512 | 0.901511 | 1.028 | 130 MB | [⬇️ Download](https://drive.google.com/uc?export=download&id=1n2QZTwpzYXb6WENQNvDuDuw8ncz-npmg) |
+| [inception_v0](https://drive.google.com/file/d/1yN3Flqmmf6h4kZcdmmlnx-GfyhKZXOw3/view?usp=drive_link) | 0.917441 | 0.916910 | 1.124 | 0.66 MB | [⬇️ Download](https://drive.google.com/uc?export=download&id=1yN3Flqmmf6h4kZcdmmlnx-GfyhKZXOw3) |
+| [factorization_unet_v1_finetune](https://drive.google.com/file/d/1rsPZE6ArV3ntqLpd5Ip1pIiRBuVkQ27t/view?usp=drive_link) | 0.910517 | 0.909281 | 1.221 | 41 MB | [⬇️ Download](https://drive.google.com/uc?export=download&id=1rsPZE6ArV3ntqLpd5Ip1pIiRBuVkQ27t) |
+
 
 
 ## Ensembling Overview
