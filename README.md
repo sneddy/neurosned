@@ -28,7 +28,7 @@ preprocessing → model zoo → calibration / stacking → feature engineering �
 - Temperature calibration and out-of-fold stacking substantially improve consistency.  
 - A compact ridge model on correlation/transition features yields robust, out-of-distribution (OOD) friendly externalizing predictions.
 
-![Workflow diagram](assets/figure_main.png)
+![Workflow diagram](assets/Figure_main_1.png)
 
 
 ## Challenges at a glance
