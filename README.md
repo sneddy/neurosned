@@ -215,7 +215,6 @@ We split validation into **5 folds** with a matched target (RT) distribution, ex
 - **Augmentations ↔ temperature (τ).** **`Aug params`** (especially **`mixup`**) are **model-dependent** and change the optimal **`temperature (τ)`** at inference (more mixup → less confidence → higher entropy). Tune **`mixup`** and **`τ`** together.
 - **Key knobs to tune:** **`LR`**, **`σ`**, and **`τ`**. The effect of **`τ`** varies **strongly by architecture**.
 
-
 ---
 
 
@@ -250,6 +249,9 @@ We split validation into **5 folds** with a matched target (RT) distribution, ex
 The externalizing factor is a widely recognized construct in mental health research, representing a common underlying dimension of psychopathology across various disorders.
 Currently, the externalizing factor is often assessed using self-report questionnaires or clinician ratings, which can be subjective, prone to bias, and time-consuming.
 **The Challenge 2** consists of developing a model to predict the externalizing factor from EEG recordings.
+
+### Best model checkpoint (Challenge 2)
+- [Bootstrap-stabilized Ridge (final) ⬇️](https://drive.google.com/uc?export=download&id=1rfVDL_C9BHogTH0_Oq2XqmJ136Sfh4V4)
 
 The challenge encourages learning physiologically meaningful signal representations and discovery of reproducible biomarkers.
 Models of any size should emphasize robust, interpretable features that generalize across subjects,
