@@ -1,5 +1,7 @@
 # custom
-data
+data/*
+!data/new_validation/
+!data/new_validation/**
 artefacts
 *.pth
 

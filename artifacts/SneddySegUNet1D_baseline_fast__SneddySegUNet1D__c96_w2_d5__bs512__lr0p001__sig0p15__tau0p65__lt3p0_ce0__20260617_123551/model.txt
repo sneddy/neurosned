@@ -1,0 +1,340 @@
+SneddySegUNet1D(
+  (norm): StdPerSample()
+  (c_squeeze): ChannelSqueeze(
+    (proj): Conv1d(128, 96, kernel_size=(1,), stride=(1,), bias=False)
+  )
+  (encoder): Encoder1D(
+    (encoder_blocks): ModuleList(
+      (0): Sequential(
+        (0): ResBlock(
+          (conv1): DSConv1d(
+            (dw): Conv1d(96, 96, kernel_size=(15,), stride=(1,), padding=(7,), groups=96, bias=False)
+            (pw): Conv1d(96, 96, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn1): GroupNorm(1, 96, eps=1e-05, affine=True, bias=True)
+          (conv2): DSConv1d(
+            (dw): Conv1d(96, 96, kernel_size=(15,), stride=(1,), padding=(7,), groups=96, bias=False)
+            (pw): Conv1d(96, 96, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn2): GroupNorm(1, 96, eps=1e-05, affine=True, bias=True)
+          (dropout): Dropout(p=0.2, inplace=False)
+          (act): GELU(approximate='none')
+        )
+        (1): ResBlock(
+          (conv1): DSConv1d(
+            (dw): Conv1d(96, 96, kernel_size=(15,), stride=(1,), padding=(7,), groups=96, bias=False)
+            (pw): Conv1d(96, 96, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn1): GroupNorm(1, 96, eps=1e-05, affine=True, bias=True)
+          (conv2): DSConv1d(
+            (dw): Conv1d(96, 96, kernel_size=(15,), stride=(1,), padding=(7,), groups=96, bias=False)
+            (pw): Conv1d(96, 96, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn2): GroupNorm(1, 96, eps=1e-05, affine=True, bias=True)
+          (dropout): Dropout(p=0.2, inplace=False)
+          (act): GELU(approximate='none')
+        )
+        (2): ResBlock(
+          (conv1): DSConv1d(
+            (dw): Conv1d(96, 96, kernel_size=(15,), stride=(1,), padding=(7,), groups=96, bias=False)
+            (pw): Conv1d(96, 96, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn1): GroupNorm(1, 96, eps=1e-05, affine=True, bias=True)
+          (conv2): DSConv1d(
+            (dw): Conv1d(96, 96, kernel_size=(15,), stride=(1,), padding=(7,), groups=96, bias=False)
+            (pw): Conv1d(96, 96, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn2): GroupNorm(1, 96, eps=1e-05, affine=True, bias=True)
+          (dropout): Dropout(p=0.2, inplace=False)
+          (act): GELU(approximate='none')
+        )
+        (3): ResBlock(
+          (conv1): DSConv1d(
+            (dw): Conv1d(96, 96, kernel_size=(15,), stride=(1,), padding=(7,), groups=96, bias=False)
+            (pw): Conv1d(96, 96, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn1): GroupNorm(1, 96, eps=1e-05, affine=True, bias=True)
+          (conv2): DSConv1d(
+            (dw): Conv1d(96, 96, kernel_size=(15,), stride=(1,), padding=(7,), groups=96, bias=False)
+            (pw): Conv1d(96, 96, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn2): GroupNorm(1, 96, eps=1e-05, affine=True, bias=True)
+          (dropout): Dropout(p=0.2, inplace=False)
+          (act): GELU(approximate='none')
+        )
+        (4): ResBlock(
+          (conv1): DSConv1d(
+            (dw): Conv1d(96, 96, kernel_size=(15,), stride=(1,), padding=(7,), groups=96, bias=False)
+            (pw): Conv1d(96, 96, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn1): GroupNorm(1, 96, eps=1e-05, affine=True, bias=True)
+          (conv2): DSConv1d(
+            (dw): Conv1d(96, 96, kernel_size=(15,), stride=(1,), padding=(7,), groups=96, bias=False)
+            (pw): Conv1d(96, 96, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn2): GroupNorm(1, 96, eps=1e-05, affine=True, bias=True)
+          (dropout): Dropout(p=0.2, inplace=False)
+          (act): GELU(approximate='none')
+        )
+      )
+      (1): Sequential(
+        (0): Conv1d(96, 192, kernel_size=(1,), stride=(1,), bias=False)
+        (1): GroupNorm(1, 192, eps=1e-05, affine=True, bias=True)
+        (2): GELU(approximate='none')
+        (3): ResBlock(
+          (conv1): DSConv1d(
+            (dw): Conv1d(192, 192, kernel_size=(15,), stride=(1,), padding=(7,), groups=192, bias=False)
+            (pw): Conv1d(192, 192, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn1): GroupNorm(1, 192, eps=1e-05, affine=True, bias=True)
+          (conv2): DSConv1d(
+            (dw): Conv1d(192, 192, kernel_size=(15,), stride=(1,), padding=(7,), groups=192, bias=False)
+            (pw): Conv1d(192, 192, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn2): GroupNorm(1, 192, eps=1e-05, affine=True, bias=True)
+          (dropout): Dropout(p=0.2, inplace=False)
+          (act): GELU(approximate='none')
+        )
+        (4): ResBlock(
+          (conv1): DSConv1d(
+            (dw): Conv1d(192, 192, kernel_size=(15,), stride=(1,), padding=(7,), groups=192, bias=False)
+            (pw): Conv1d(192, 192, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn1): GroupNorm(1, 192, eps=1e-05, affine=True, bias=True)
+          (conv2): DSConv1d(
+            (dw): Conv1d(192, 192, kernel_size=(15,), stride=(1,), padding=(7,), groups=192, bias=False)
+            (pw): Conv1d(192, 192, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn2): GroupNorm(1, 192, eps=1e-05, affine=True, bias=True)
+          (dropout): Dropout(p=0.2, inplace=False)
+          (act): GELU(approximate='none')
+        )
+        (5): ResBlock(
+          (conv1): DSConv1d(
+            (dw): Conv1d(192, 192, kernel_size=(15,), stride=(1,), padding=(7,), groups=192, bias=False)
+            (pw): Conv1d(192, 192, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn1): GroupNorm(1, 192, eps=1e-05, affine=True, bias=True)
+          (conv2): DSConv1d(
+            (dw): Conv1d(192, 192, kernel_size=(15,), stride=(1,), padding=(7,), groups=192, bias=False)
+            (pw): Conv1d(192, 192, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn2): GroupNorm(1, 192, eps=1e-05, affine=True, bias=True)
+          (dropout): Dropout(p=0.2, inplace=False)
+          (act): GELU(approximate='none')
+        )
+        (6): ResBlock(
+          (conv1): DSConv1d(
+            (dw): Conv1d(192, 192, kernel_size=(15,), stride=(1,), padding=(7,), groups=192, bias=False)
+            (pw): Conv1d(192, 192, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn1): GroupNorm(1, 192, eps=1e-05, affine=True, bias=True)
+          (conv2): DSConv1d(
+            (dw): Conv1d(192, 192, kernel_size=(15,), stride=(1,), padding=(7,), groups=192, bias=False)
+            (pw): Conv1d(192, 192, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn2): GroupNorm(1, 192, eps=1e-05, affine=True, bias=True)
+          (dropout): Dropout(p=0.2, inplace=False)
+          (act): GELU(approximate='none')
+        )
+        (7): ResBlock(
+          (conv1): DSConv1d(
+            (dw): Conv1d(192, 192, kernel_size=(15,), stride=(1,), padding=(7,), groups=192, bias=False)
+            (pw): Conv1d(192, 192, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn1): GroupNorm(1, 192, eps=1e-05, affine=True, bias=True)
+          (conv2): DSConv1d(
+            (dw): Conv1d(192, 192, kernel_size=(15,), stride=(1,), padding=(7,), groups=192, bias=False)
+            (pw): Conv1d(192, 192, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn2): GroupNorm(1, 192, eps=1e-05, affine=True, bias=True)
+          (dropout): Dropout(p=0.2, inplace=False)
+          (act): GELU(approximate='none')
+        )
+      )
+      (2): Sequential(
+        (0): Conv1d(192, 384, kernel_size=(1,), stride=(1,), bias=False)
+        (1): GroupNorm(1, 384, eps=1e-05, affine=True, bias=True)
+        (2): GELU(approximate='none')
+        (3): ResBlock(
+          (conv1): DSConv1d(
+            (dw): Conv1d(384, 384, kernel_size=(15,), stride=(1,), padding=(7,), groups=384, bias=False)
+            (pw): Conv1d(384, 384, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn1): GroupNorm(1, 384, eps=1e-05, affine=True, bias=True)
+          (conv2): DSConv1d(
+            (dw): Conv1d(384, 384, kernel_size=(15,), stride=(1,), padding=(7,), groups=384, bias=False)
+            (pw): Conv1d(384, 384, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn2): GroupNorm(1, 384, eps=1e-05, affine=True, bias=True)
+          (dropout): Dropout(p=0.2, inplace=False)
+          (act): GELU(approximate='none')
+        )
+        (4): ResBlock(
+          (conv1): DSConv1d(
+            (dw): Conv1d(384, 384, kernel_size=(15,), stride=(1,), padding=(7,), groups=384, bias=False)
+            (pw): Conv1d(384, 384, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn1): GroupNorm(1, 384, eps=1e-05, affine=True, bias=True)
+          (conv2): DSConv1d(
+            (dw): Conv1d(384, 384, kernel_size=(15,), stride=(1,), padding=(7,), groups=384, bias=False)
+            (pw): Conv1d(384, 384, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn2): GroupNorm(1, 384, eps=1e-05, affine=True, bias=True)
+          (dropout): Dropout(p=0.2, inplace=False)
+          (act): GELU(approximate='none')
+        )
+        (5): ResBlock(
+          (conv1): DSConv1d(
+            (dw): Conv1d(384, 384, kernel_size=(15,), stride=(1,), padding=(7,), groups=384, bias=False)
+            (pw): Conv1d(384, 384, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn1): GroupNorm(1, 384, eps=1e-05, affine=True, bias=True)
+          (conv2): DSConv1d(
+            (dw): Conv1d(384, 384, kernel_size=(15,), stride=(1,), padding=(7,), groups=384, bias=False)
+            (pw): Conv1d(384, 384, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn2): GroupNorm(1, 384, eps=1e-05, affine=True, bias=True)
+          (dropout): Dropout(p=0.2, inplace=False)
+          (act): GELU(approximate='none')
+        )
+        (6): ResBlock(
+          (conv1): DSConv1d(
+            (dw): Conv1d(384, 384, kernel_size=(15,), stride=(1,), padding=(7,), groups=384, bias=False)
+            (pw): Conv1d(384, 384, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn1): GroupNorm(1, 384, eps=1e-05, affine=True, bias=True)
+          (conv2): DSConv1d(
+            (dw): Conv1d(384, 384, kernel_size=(15,), stride=(1,), padding=(7,), groups=384, bias=False)
+            (pw): Conv1d(384, 384, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn2): GroupNorm(1, 384, eps=1e-05, affine=True, bias=True)
+          (dropout): Dropout(p=0.2, inplace=False)
+          (act): GELU(approximate='none')
+        )
+        (7): ResBlock(
+          (conv1): DSConv1d(
+            (dw): Conv1d(384, 384, kernel_size=(15,), stride=(1,), padding=(7,), groups=384, bias=False)
+            (pw): Conv1d(384, 384, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn1): GroupNorm(1, 384, eps=1e-05, affine=True, bias=True)
+          (conv2): DSConv1d(
+            (dw): Conv1d(384, 384, kernel_size=(15,), stride=(1,), padding=(7,), groups=384, bias=False)
+            (pw): Conv1d(384, 384, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn2): GroupNorm(1, 384, eps=1e-05, affine=True, bias=True)
+          (dropout): Dropout(p=0.2, inplace=False)
+          (act): GELU(approximate='none')
+        )
+      )
+    )
+    (downs): ModuleList(
+      (0): TimeDown(
+        (aa): Conv1d(96, 96, kernel_size=(5,), stride=(1,), padding=(2,), groups=96, bias=False)
+        (pool): AvgPool1d(kernel_size=(2,), stride=(2,), padding=(0,))
+      )
+      (1): TimeDown(
+        (aa): Conv1d(192, 192, kernel_size=(5,), stride=(1,), padding=(2,), groups=192, bias=False)
+        (pool): AvgPool1d(kernel_size=(2,), stride=(2,), padding=(0,))
+      )
+      (2): TimeDown(
+        (aa): Conv1d(384, 384, kernel_size=(5,), stride=(1,), padding=(2,), groups=384, bias=False)
+        (pool): AvgPool1d(kernel_size=(2,), stride=(2,), padding=(0,))
+      )
+    )
+    (bottleneck): Sequential(
+      (0): ResBlock(
+        (conv1): DSConv1d(
+          (dw): Conv1d(384, 384, kernel_size=(15,), stride=(1,), padding=(7,), groups=384, bias=False)
+          (pw): Conv1d(384, 384, kernel_size=(1,), stride=(1,), bias=False)
+        )
+        (gn1): GroupNorm(1, 384, eps=1e-05, affine=True, bias=True)
+        (conv2): DSConv1d(
+          (dw): Conv1d(384, 384, kernel_size=(15,), stride=(1,), padding=(7,), groups=384, bias=False)
+          (pw): Conv1d(384, 384, kernel_size=(1,), stride=(1,), bias=False)
+        )
+        (gn2): GroupNorm(1, 384, eps=1e-05, affine=True, bias=True)
+        (dropout): Dropout(p=0.2, inplace=False)
+        (act): GELU(approximate='none')
+      )
+      (1): ResBlock(
+        (conv1): DSConv1d(
+          (dw): Conv1d(384, 384, kernel_size=(15,), stride=(1,), padding=(14,), dilation=(2,), groups=384, bias=False)
+          (pw): Conv1d(384, 384, kernel_size=(1,), stride=(1,), bias=False)
+        )
+        (gn1): GroupNorm(1, 384, eps=1e-05, affine=True, bias=True)
+        (conv2): DSConv1d(
+          (dw): Conv1d(384, 384, kernel_size=(15,), stride=(1,), padding=(7,), groups=384, bias=False)
+          (pw): Conv1d(384, 384, kernel_size=(1,), stride=(1,), bias=False)
+        )
+        (gn2): GroupNorm(1, 384, eps=1e-05, affine=True, bias=True)
+        (dropout): Dropout(p=0.2, inplace=False)
+        (act): GELU(approximate='none')
+      )
+    )
+  )
+  (decoder): Decoder1D(
+    (upblocks): ModuleList(
+      (0): UpBlock(
+        (fuse): Conv1d(768, 192, kernel_size=(1,), stride=(1,), bias=False)
+        (gn): GroupNorm(1, 192, eps=1e-05, affine=True, bias=True)
+        (act): GELU(approximate='none')
+        (refine): ResBlock(
+          (conv1): DSConv1d(
+            (dw): Conv1d(192, 192, kernel_size=(15,), stride=(1,), padding=(7,), groups=192, bias=False)
+            (pw): Conv1d(192, 192, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn1): GroupNorm(1, 192, eps=1e-05, affine=True, bias=True)
+          (conv2): DSConv1d(
+            (dw): Conv1d(192, 192, kernel_size=(15,), stride=(1,), padding=(7,), groups=192, bias=False)
+            (pw): Conv1d(192, 192, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn2): GroupNorm(1, 192, eps=1e-05, affine=True, bias=True)
+          (dropout): Dropout(p=0.2, inplace=False)
+          (act): GELU(approximate='none')
+        )
+      )
+      (1): UpBlock(
+        (fuse): Conv1d(384, 96, kernel_size=(1,), stride=(1,), bias=False)
+        (gn): GroupNorm(1, 96, eps=1e-05, affine=True, bias=True)
+        (act): GELU(approximate='none')
+        (refine): ResBlock(
+          (conv1): DSConv1d(
+            (dw): Conv1d(96, 96, kernel_size=(15,), stride=(1,), padding=(7,), groups=96, bias=False)
+            (pw): Conv1d(96, 96, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn1): GroupNorm(1, 96, eps=1e-05, affine=True, bias=True)
+          (conv2): DSConv1d(
+            (dw): Conv1d(96, 96, kernel_size=(15,), stride=(1,), padding=(7,), groups=96, bias=False)
+            (pw): Conv1d(96, 96, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn2): GroupNorm(1, 96, eps=1e-05, affine=True, bias=True)
+          (dropout): Dropout(p=0.2, inplace=False)
+          (act): GELU(approximate='none')
+        )
+      )
+      (2): UpBlock(
+        (fuse): Conv1d(192, 96, kernel_size=(1,), stride=(1,), bias=False)
+        (gn): GroupNorm(1, 96, eps=1e-05, affine=True, bias=True)
+        (act): GELU(approximate='none')
+        (refine): ResBlock(
+          (conv1): DSConv1d(
+            (dw): Conv1d(96, 96, kernel_size=(15,), stride=(1,), padding=(7,), groups=96, bias=False)
+            (pw): Conv1d(96, 96, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn1): GroupNorm(1, 96, eps=1e-05, affine=True, bias=True)
+          (conv2): DSConv1d(
+            (dw): Conv1d(96, 96, kernel_size=(15,), stride=(1,), padding=(7,), groups=96, bias=False)
+            (pw): Conv1d(96, 96, kernel_size=(1,), stride=(1,), bias=False)
+          )
+          (gn2): GroupNorm(1, 96, eps=1e-05, affine=True, bias=True)
+          (dropout): Dropout(p=0.2, inplace=False)
+          (act): GELU(approximate='none')
+        )
+      )
+    )
+  )
+  (head): Conv1d(96, 1, kernel_size=(1,), stride=(1,))
+)
+
+Total parameters: 3,101,761

@@ -1,0 +1,73 @@
+{
+  "run_name": "SneddySegUNet1D_ce02_lt3_fast__SneddySegUNet1D__c96_w2_d5__bs512__lr0p001__sig0p15__tau0p65__lt3p0_ce0p2__20260617_133259",
+  "experiment_name": "SneddySegUNet1D_ce02_lt3_fast",
+  "created_at": "2026-06-17T13:32:59Z",
+  "device": "cuda",
+  "model_name": "SneddySegUNet1D",
+  "model_config": {
+    "n_chans": 128,
+    "n_times": 200,
+    "sfreq": 100,
+    "c0": 96,
+    "widen": 2,
+    "depth_per_stage": 5,
+    "dropout": 0.2,
+    "k": 15,
+    "out_channels": 1
+  },
+  "training_config": {
+    "n_epochs": 45,
+    "early_stopping_patience": 8,
+    "use_augmentation": true,
+    "initial_lr": 0.001,
+    "weight_decay": 0,
+    "optimizer": "Adam",
+    "batch_size": 512,
+    "eval_batch_size": 256,
+    "sigma": 0.15,
+    "cropping_offset": 0.25,
+    "crop_proba": 0.3,
+    "dropout_proba": 0.25,
+    "dropout_range": 0.8,
+    "mixup_p": 0.1,
+    "temperature": 0.65,
+    "train_temperature": 0.65,
+    "eval_temperature": 0.65,
+    "lambda_time": 3.0,
+    "lambda_ce": 0.2,
+    "lambda_wass": 0.0,
+    "lambda_kl": 0.0,
+    "lambda_entropy": 0.0,
+    "lambda_focal": 0.0,
+    "grad_accum": 1,
+    "save_epoch_plots": false,
+    "show_val_epoch_plots": false,
+    "run_holdout_test": false,
+    "seed": 42
+  },
+  "data_config": {
+    "train_5sec": "/home/qdata/ayana_experiments/neurosned/data/new_validation/r1_r8_train_5sec.pkl",
+    "train_2sec": "/home/qdata/ayana_experiments/neurosned/data/new_validation/r1_r8_train.pkl",
+    "valid_2sec": "/home/qdata/ayana_experiments/neurosned/data/new_validation/r9_r10_val.pkl",
+    "valid_5sec": "/home/qdata/ayana_experiments/neurosned/data/new_validation/r9_r10_val_5sec.pkl",
+    "test_2sec": "/home/qdata/ayana_experiments/neurosned/data/new_validation/r11_test.pkl",
+    "split": "R1-R8 train, R9-R10 validation, R11 holdout"
+  },
+  "load_initial_checkpoint": false,
+  "input_checkpoint_path": null,
+  "output_checkpoint_path": "/home/qdata/ayana_experiments/neurosned/artifacts/SneddySegUNet1D_ce02_lt3_fast__SneddySegUNet1D__c96_w2_d5__bs512__lr0p001__sig0p15__tau0p65__lt3p0_ce0p2__20260617_133259/best_model.pth",
+  "image_dirs": {
+    "train": "/home/qdata/ayana_experiments/neurosned/artifacts/SneddySegUNet1D_ce02_lt3_fast__SneddySegUNet1D__c96_w2_d5__bs512__lr0p001__sig0p15__tau0p65__lt3p0_ce0p2__20260617_133259/img/train",
+    "val": "/home/qdata/ayana_experiments/neurosned/artifacts/SneddySegUNet1D_ce02_lt3_fast__SneddySegUNet1D__c96_w2_d5__bs512__lr0p001__sig0p15__tau0p65__lt3p0_ce0p2__20260617_133259/img/val"
+  },
+  "timing": {
+    "run_created_at": "2026-06-17T13:32:59Z",
+    "training_started_at": "2026-06-17T13:32:59Z",
+    "training_finished_at": "2026-06-17T13:43:35Z",
+    "training_wall_seconds": 636.4750530429883,
+    "avg_epoch_seconds": 27.672828393173404,
+    "best_epoch_finished_at": "2026-06-17T13:39:54Z",
+    "time_to_best_seconds": 415.0067297880305
+  },
+  "notebook": "ayana_revision/segmentation.ipynb"
+}
