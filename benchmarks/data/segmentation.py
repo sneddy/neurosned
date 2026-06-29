@@ -7,7 +7,7 @@ import torch
 from torch.nn import functional as F
 from torch.utils.data import Dataset
 
-from benchmarks.training.labels import soft_label_1d
+from benchmarks.pkg.training.labels import soft_label_1d
 
 
 class TrainCroppingDataset(Dataset):

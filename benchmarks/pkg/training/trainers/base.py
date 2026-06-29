@@ -2,12 +2,19 @@
 
 from __future__ import annotations
 
+import time
 from abc import ABC, abstractmethod
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 import torch
 from tqdm import tqdm
+
+
+def now_utc_iso() -> str:
+    """Return a compact UTC timestamp."""
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 class BaseTrainer(ABC):
@@ -28,7 +35,11 @@ class BaseTrainer(ABC):
         early_stopping_patience: int | None = None,
         plateau_scheduler=None,
         print_batch_stats: bool = True,
-        history_exclude_keys: tuple[str, ...] = ("preds_abs", "preds", "diffs"),
+        on_epoch_end=None,
+        stage_name: str | None = None,
+        epoch_offset: int = 0,
+        seconds_offset: float = 0.0,
+        history_exclude_keys: tuple[str, ...] = ("preds_abs", "preds", "diffs", "logits"),
     ):
         self.model = model
         self.train_loader = train_loader
@@ -42,24 +53,66 @@ class BaseTrainer(ABC):
         self.early_stopping_patience = early_stopping_patience
         self.plateau_scheduler = plateau_scheduler
         self.print_batch_stats = print_batch_stats
+        self.on_epoch_end = on_epoch_end
+        self.stage_name = stage_name
+        self.epoch_offset = int(epoch_offset)
+        self.seconds_offset = float(seconds_offset)
         self.history_exclude_keys = set(history_exclude_keys)
 
-        self.best_metric = float("inf") if minimize else -float("inf")
+        self.best_metric = self._initial_best_metric()
         self.best_epoch: int | None = None
+        self.best_valid_metrics: dict[str, Any] | None = None
         self.epochs_no_improve = 0
         self.history: list[dict[str, Any]] = []
+        self.training_started_at: str | None = None
+        self.training_finished_at: str | None = None
+        self.training_wall_seconds: float | None = None
+        self.avg_epoch_seconds: float | None = None
+        self.best_epoch_finished_at: str | None = None
+        self.time_to_best_seconds: float | None = None
+
+    def _initial_best_metric(self) -> float:
+        """Return the hardcoded initial best metric."""
+        if self.minimize and self.monitor == "nrmse":
+            return 1.0
+        return float("inf") if self.minimize else -float("inf")
 
     def run(self) -> list[dict[str, Any]]:
         """Run train/validation epochs and return metric history."""
-        for epoch in range(1, self.n_epochs + 1):
+        self.training_started_at = now_utc_iso()
+        started = time.perf_counter()
+        for stage_epoch in range(1, self.n_epochs + 1):
+            epoch = self.epoch_offset + stage_epoch
+            epoch_started = time.perf_counter()
+            train_started = time.perf_counter()
             train_metrics = self.run_train_epoch(epoch)
+            train_seconds = time.perf_counter() - train_started
+            valid_started = time.perf_counter()
             valid_metrics = self.run_valid_epoch(epoch)
-            row = {"epoch": epoch, **self._prefixed_metrics("train", train_metrics), **self._prefixed_metrics("valid", valid_metrics)}
+            valid_seconds = time.perf_counter() - valid_started
+            epoch_seconds = time.perf_counter() - epoch_started
+            cumulative_seconds = self.seconds_offset + time.perf_counter() - started
+            row = {
+                "epoch": epoch,
+                "stage_epoch": stage_epoch,
+                "train_seconds": train_seconds,
+                "valid_seconds": valid_seconds,
+                "epoch_seconds": epoch_seconds,
+                "cumulative_training_seconds": cumulative_seconds,
+                **self._prefixed_metrics("train", train_metrics),
+                **self._prefixed_metrics("valid", valid_metrics),
+            }
+            if self.stage_name is not None:
+                row["stage"] = self.stage_name
             self.history.append(row)
 
+            should_break = False
             if self.is_best(valid_metrics):
                 self.best_epoch = epoch
                 self.best_metric = float(valid_metrics[self.monitor])
+                self.best_valid_metrics = valid_metrics
+                self.best_epoch_finished_at = now_utc_iso()
+                self.time_to_best_seconds = cumulative_seconds
                 self.epochs_no_improve = 0
                 print(f"New best validation {self.monitor}: {self.best_metric:.6f} at epoch {epoch}")
                 self.save_checkpoint()
@@ -67,9 +120,18 @@ class BaseTrainer(ABC):
                 self.epochs_no_improve += 1
                 if self.should_stop():
                     if self.plateau_scheduler is None:
-                        break
-                    self.plateau_scheduler.step(self)
-                    self.epochs_no_improve = 0
+                        should_break = True
+                    else:
+                        should_break = not self.plateau_scheduler.step(self)
+                        if not should_break:
+                            self.epochs_no_improve = 0
+            if self.on_epoch_end is not None:
+                self.on_epoch_end(self, self.history)
+            if should_break:
+                break
+        self.training_finished_at = now_utc_iso()
+        self.training_wall_seconds = time.perf_counter() - started
+        self.avg_epoch_seconds = self.training_wall_seconds / len(self.history) if self.history else None
         return self.history
 
     def run_train_epoch(self, epoch: int) -> dict[str, Any]:
@@ -87,6 +149,7 @@ class BaseTrainer(ABC):
             self.optimizer.zero_grad()
 
         state = self.create_epoch_state(train=train)
+        state["epoch"] = epoch
         n_batches = len(dataloader)
         progress = tqdm(enumerate(dataloader), total=n_batches, disable=not self.print_batch_stats)
 

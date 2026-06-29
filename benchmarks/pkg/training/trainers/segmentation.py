@@ -2,14 +2,15 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 import numpy as np
 import torch
 import torch.nn.functional as F
 
-from benchmarks.training.base_trainer import BaseTrainer
-from benchmarks.training.labels import soft_label_1d
+from benchmarks.pkg.training.trainers.base import BaseTrainer
+from benchmarks.pkg.training.labels import soft_label_1d
 
 
 class SegmTrainer(BaseTrainer):
@@ -61,6 +62,8 @@ class SegmTrainer(BaseTrainer):
         default_rmse: float | None = None,
         use_soft_argmax: bool = True,
         plot_last_batch: bool = True,
+        plot_save_dir: str | Path | None = None,
+        plot_show: bool = True,
         **base_kwargs,
     ):
         super().__init__(
@@ -90,6 +93,8 @@ class SegmTrainer(BaseTrainer):
         self.default_rmse = default_rmse
         self.use_soft_argmax = use_soft_argmax
         self.plot_last_batch = plot_last_batch
+        self.plot_save_dir = Path(plot_save_dir) if plot_save_dir is not None else None
+        self.plot_show = plot_show
 
     def create_epoch_state(self, *, train: bool) -> dict[str, Any]:
         """Create segmentation metric accumulators."""
@@ -105,6 +110,7 @@ class SegmTrainer(BaseTrainer):
             state.update({"total_kl": 0.0, "total_wass": 0.0, "sum_y": 0.0, "sum_y2": 0.0})
         else:
             state["preds_abs"] = []
+            state["logits"] = []
             state["last_batch"] = None
         return state
 
@@ -211,6 +217,7 @@ class SegmTrainer(BaseTrainer):
         state["sse"] += torch.sum(diff_abs * diff_abs).item()
         state["n_samples"] += y.numel()
         state["preds_abs"].extend(t_hat_abs.cpu().numpy())
+        state["logits"].append(z.detach().cpu().numpy().astype(np.float32, copy=False))
         state["last_batch"] = {
             "X": X.cpu(),
             "y": y.cpu(),
@@ -225,7 +232,7 @@ class SegmTrainer(BaseTrainer):
             "temperature": self.eval_temperature,
         }
 
-        metrics = self._running_eval_metrics(state, final=False)
+        metrics = self._running_eval_metrics(state)
         metrics.update({"loss": float(loss.detach()), "ce": float(ce.detach()), "rmse": float(rmse_time.detach())})
         return metrics
 
@@ -245,19 +252,28 @@ class SegmTrainer(BaseTrainer):
             )
             return metrics
 
-        metrics = self._running_eval_metrics(state, final=True)
+        metrics = self._running_eval_metrics(state)
         metrics.update(
             {
                 "loss": state["total_loss"] / n_batches,
                 "ce": state["total_ce"] / n_batches,
                 "rmse": state["total_rmse"] / n_batches,
                 "preds_abs": np.array(state["preds_abs"]),
+                "logits": np.concatenate(state["logits"], axis=0) if state["logits"] else np.empty((0, 0), dtype=np.float32),
             }
         )
         if self.plot_last_batch and state["last_batch"] is not None:
-            from benchmarks.training.visualization import draw_batch
+            from benchmarks.pkg.training.visualization import draw_batch
 
-            draw_batch(**state["last_batch"])
+            plot_path = self._plot_path(state)
+            draw_batch(
+                **state["last_batch"],
+                save_path=plot_path,
+                title_prefix=f"epoch {state.get('epoch')} validation",
+                show=self.plot_show,
+            )
+            if plot_path is not None:
+                metrics["diagnostic_plot"] = str(plot_path)
         return metrics
 
     def format_progress(
@@ -333,9 +349,14 @@ class SegmTrainer(BaseTrainer):
         var_y = max((state["sum_y2"] / max(state["n_samples"], 1)) - mean_y**2, 1e-12)
         return {"nrmse": rmse_ds / (var_y**0.5)}
 
-    def _running_eval_metrics(self, state: dict[str, Any], *, final: bool) -> dict[str, float]:
+    def _running_eval_metrics(self, state: dict[str, Any]) -> dict[str, float]:
         rmse = (state["sse"] / max(state["n_samples"], 1)) ** 0.5
-        if final:
-            rmse = rmse * 1000
         nrmse = rmse / self.default_rmse if self.default_rmse else rmse
         return {"nrmse": nrmse}
+
+    def _plot_path(self, state: dict[str, Any]) -> Path | None:
+        """Return the diagnostic validation plot path for this epoch."""
+        if self.plot_save_dir is None:
+            return None
+        epoch = int(state.get("epoch", 0))
+        return self.plot_save_dir / f"epoch_{epoch:04d}_validation_batch.png"

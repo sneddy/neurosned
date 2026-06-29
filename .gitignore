@@ -2,6 +2,8 @@
 data/*
 !data/new_validation/
 !data/new_validation/**
+release_data/
+experiments/
 artefacts
 *.pth
 

@@ -8,24 +8,19 @@ import numpy as np
 import torch
 from torch import nn
 
-from benchmarks.training.base_trainer import BaseTrainer
+from benchmarks.pkg.training.trainers.base import BaseTrainer
 
 
 class RegrTrainer(BaseTrainer):
     """Trainer for scalar reaction-time regression.
 
-    Regression batches are `(X, y)` from the prepared pickle dataset, without
-    the segmentation crop wrapper. The model predicts a scalar reaction time and
-    validation reports normalized RMSE plus threshold accuracies at 100 ms and
-    250 ms.
+    Regression batches are `(X, y)` from fixed-window datasets. The model
+    predicts a scalar reaction time and validation reports normalized RMSE plus
+    threshold accuracies at 100 ms and 250 ms.
 
     Main tuning knobs:
 
-    - `channel_dropout_max_ratio`: random per-sample channel masking strength.
-    - `cutout_proba`, `cutout_min_len`, `cutout_max_len`: temporal cutout.
-    - `noise_proba`, `noise_base_std`, `noise_random_std`: Gaussian noise.
     - `mixup_p`, `mixup_alpha`: batch mixup for EEG and scalar targets.
-    - `channels_list`: optional fixed channel subset for train and validation.
     - `default_rmse`: denominator for normalized RMSE.
     """
 
@@ -40,15 +35,7 @@ class RegrTrainer(BaseTrainer):
         n_epochs: int,
         loss_fn=None,
         scheduler=None,
-        channels_list: list | None = None,
         default_rmse: float | None = None,
-        channel_dropout_max_ratio: float = 0.5,
-        cutout_proba: float = 0.5,
-        cutout_min_len: int = 10,
-        cutout_max_len: int = 100,
-        noise_proba: float = 0.2,
-        noise_base_std: float = 0.01,
-        noise_random_std: float = 0.03,
         mixup_p: float = 0.5,
         mixup_alpha: float = 0.4,
         **base_kwargs,
@@ -65,15 +52,7 @@ class RegrTrainer(BaseTrainer):
         )
         self.loss_fn = loss_fn or nn.MSELoss()
         self.scheduler = scheduler
-        self.channels_list = channels_list
         self.default_rmse = default_rmse
-        self.channel_dropout_max_ratio = channel_dropout_max_ratio
-        self.cutout_proba = cutout_proba
-        self.cutout_min_len = cutout_min_len
-        self.cutout_max_len = cutout_max_len
-        self.noise_proba = noise_proba
-        self.noise_base_std = noise_base_std
-        self.noise_random_std = noise_random_std
         self.mixup_p = mixup_p
         self.mixup_alpha = mixup_alpha
 
@@ -101,7 +80,7 @@ class RegrTrainer(BaseTrainer):
     ) -> dict[str, Any]:
         """Run one regression train batch."""
         X, y = self._prepare_batch(batch)
-        X, y = self._augment_train_batch(X, y)
+        X, y = self._mixup_batch(X, y)
         X = X.contiguous()
 
         self.optimizer.zero_grad()
@@ -179,30 +158,9 @@ class RegrTrainer(BaseTrainer):
 
     def _prepare_batch(self, batch):
         X, y = batch[0], batch[1]
-        if self.channels_list is not None:
-            X = X[:, self.channels_list, :]
         return X.to(self.device).float(), y.to(self.device).float()
 
-    def _augment_train_batch(self, X, y):
-        if self.channel_dropout_max_ratio > 0:
-            channel_dropout_ratio = torch.rand(1).item() * self.channel_dropout_max_ratio
-            if channel_dropout_ratio > 0:
-                batch_size, channels, _ = X.shape
-                mask = (torch.rand(batch_size, channels, device=X.device) > channel_dropout_ratio).float().unsqueeze(-1)
-                X = X * mask
-
-        if self.cutout_proba > 0 and torch.rand(1).item() < self.cutout_proba:
-            batch_size, _, times = X.shape
-            max_len = min(self.cutout_max_len, times)
-            for batch_idx in range(batch_size):
-                seg_len = int(torch.randint(self.cutout_min_len, max_len + 1, (1,)).item())
-                start = int(torch.randint(0, times - seg_len + 1, (1,)).item())
-                X[batch_idx, :, start:start + seg_len] = 0
-
-        if self.noise_proba > 0 and torch.rand(1).item() < self.noise_proba:
-            noise_std = self.noise_random_std * torch.randn(1).abs().item() + self.noise_base_std
-            X = X + torch.randn_like(X) * noise_std
-
+    def _mixup_batch(self, X, y):
         if self.mixup_p > 0 and torch.rand(1).item() < self.mixup_p:
             batch_size = X.shape[0]
             perm = torch.randperm(batch_size, device=X.device)

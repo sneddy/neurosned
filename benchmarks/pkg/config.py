@@ -101,10 +101,18 @@ class LoadersConfig(StrictConfig):
 
 
 class CheckpointConfig(StrictConfig):
-    """Input and output checkpoint paths relative to the project root."""
+    """Optional input checkpoint path relative to the project root.
+
+    Output checkpoints are owned by `ArtefactsManager` and saved inside the run
+    directory under `experiments/`.
+    """
 
     input: Path | None = None
-    output: Path
+    output: Path | None = None
+
+
+class OptimizerConfig(ObjectConfig):
+    """Importable optimizer configuration."""
 
 
 class PlateauConfig(StrictConfig):
@@ -117,6 +125,22 @@ class PlateauConfig(StrictConfig):
 
     enabled: bool = True
     factor: float = 0.5
+    max_restarts: int | None = None
+
+
+class TrainerStageConfig(StrictConfig):
+    """Optional stage override for multi-stage training."""
+
+    name: str
+    n_epochs: int
+    reload: Literal["none", "best"] = "none"
+    optimizer: OptimizerConfig | None = None
+    train_dataset_params: dict[str, Any] = Field(default_factory=dict)
+    train_loader: LoaderConfig | None = None
+    early_stopping_patience: int | None = None
+    print_batch_stats: bool | None = None
+    plateau: PlateauConfig | None = None
+    params: dict[str, Any] = Field(default_factory=dict)
 
 
 class TrainerConfig(StrictConfig):
@@ -127,7 +151,7 @@ class TrainerConfig(StrictConfig):
     `params` and are passed directly to the configured trainer.
     """
 
-    module_name: str = "benchmarks.training"
+    module_name: str = "benchmarks.pkg.training.trainers"
     class_name: str
     n_epochs: int
     checkpoint: CheckpointConfig
@@ -137,15 +161,12 @@ class TrainerConfig(StrictConfig):
     print_batch_stats: bool = True
     plateau: PlateauConfig = Field(default_factory=PlateauConfig)
     params: dict[str, Any] = Field(default_factory=dict)
+    stages: list[TrainerStageConfig] | None = None
 
     def load_class(self):
         """Import and return the configured trainer class."""
         module = import_module(self.module_name)
         return getattr(module, self.class_name)
-
-
-class OptimizerConfig(ObjectConfig):
-    """Importable optimizer configuration."""
 
 
 class ExperimentConfig(StrictConfig):
@@ -158,6 +179,7 @@ class ExperimentConfig(StrictConfig):
     `trainer.params`.
     """
 
+    experiment: str
     name: str
     task: Literal["segmentation", "regression"]
     seed: int

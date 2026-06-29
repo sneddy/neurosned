@@ -1,0 +1,32 @@
+# Human map for paper-facing benchmark groups. This file is not loaded by code.
+
+experiments:
+  - name: 00_protocol_calibration
+    configs: benchmarks/configs/segmentation
+    artifacts: benchmarks/experiments/00_protocol_calibration
+    comment: Choose a simple reproducible SneddyUNet protocol for later comparisons.
+
+  - name: 01_regression_baselines
+    configs: benchmarks/configs/regression
+    artifacts: benchmarks/experiments/01_regression_baselines
+    comment: Compare SneddyNet-style regression against standard fixed-window EEG baselines.
+
+  - name: 02_regression_vs_segmentation
+    configs: benchmarks/configs
+    artifacts: benchmarks/experiments/02_regression_vs_segmentation
+    comment: Compare direct scalar regression with temporal segmentation under the same split.
+
+  - name: 03_component_ablations
+    configs: benchmarks/configs/segmentation
+    artifacts: benchmarks/experiments/03_component_ablations
+    comment: One-factor SneddyUNet ablations under the simple protocol.
+
+  - name: 04_advanced_training_protocol
+    configs: benchmarks/configs/segmentation
+    artifacts: benchmarks/experiments/04_advanced_training_protocol
+    comment: Full engineering recipe after the controlled ablations are fixed.
+
+  - name: 05_stacked_calibration
+    configs: benchmarks/configs/stacking
+    artifacts: benchmarks/experiments/05_stacked_calibration
+    comment: Post-hoc ensemble calibration over fixed base models and saved checkpoints.

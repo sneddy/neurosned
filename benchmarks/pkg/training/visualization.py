@@ -1,34 +1,35 @@
 """Benchmark visualization helpers."""
 
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
 
 
-def draw_batch(X, y, z, t_hat_abs, ce, rmse_time, T, dt, win_offset, q, temperature, n_samples=4, rows=2):
-    """
-    Visualizes batch outputs: predicted distribution, actual value, groundtruth soft label, and losses.
-
-    Args:
-        X: Input batch (B, C, T)
-        y: Groundtruth absolute times (B,)
-        z: logits.squeeze(1) (B, T)
-        t_hat_abs: predicted absolute times (B,)
-        ce: cross-entropy loss (float)
-        rmse_time: regression loss (float)
-        T: int, window size (time bins)
-        dt: time step (float)
-        win_offset: float, window offset
-        y_rel: relative click (B,)
-        q: soft labels (B, T)
-        temperature: softmax temperature
-        n_samples: number of samples to plot from batch
-        rows: number of rows in grid plot
-    """
+def draw_batch(
+    X,
+    y,
+    z,
+    t_hat_abs,
+    ce,
+    rmse_time,
+    T,
+    dt,
+    win_offset,
+    q,
+    temperature,
+    n_samples=4,
+    rows=2,
+    save_path=None,
+    title_prefix=None,
+    show=True,
+):
+    """Visualize batch predictions and optionally save the figure."""
     b = min(n_samples, X.shape[0])
     idxs = np.random.choice(X.shape[0], size=b, replace=False)
     cols = int(np.ceil(b / rows))
-    plt.figure(figsize=(cols * 5, rows * 2))
+    fig = plt.figure(figsize=(cols * 5, rows * 2))
     t_grid = (np.arange(T) * dt) + win_offset
     for plot_idx, i in enumerate(idxs):
         plt.subplot(rows, cols, plot_idx + 1)
@@ -43,5 +44,15 @@ def draw_batch(X, y, z, t_hat_abs, ce, rmse_time, T, dt, win_offset, q, temperat
         plt.ylabel("Probability / Weight")
         plt.legend()
         plt.tight_layout()
-    plt.show()
-
+    if title_prefix:
+        fig.suptitle(title_prefix)
+        fig.tight_layout()
+    if save_path is not None:
+        save_path = Path(save_path)
+        save_path.parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(save_path, dpi=160, bbox_inches="tight")
+    if show:
+        plt.show()
+    else:
+        plt.close(fig)
+    return fig

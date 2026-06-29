@@ -1,3 +1,4 @@
+experiment: 00_protocol_calibration
 name: attention_unet_v5
 task: segmentation
 seed: 2025
@@ -59,12 +60,11 @@ optimizer:
     weight_decay: 0
 
 trainer:
-  module_name: benchmarks.training
+  module_name: benchmarks.pkg.training.trainers
   class_name: SegmTrainer
   n_epochs: 10
   checkpoint:
     input: artefacts/models/challenge_1/attention_unet_v4.pth
-    output: artefacts/models/challenge_1/attention_unet_v5.pth
   monitor: nrmse
   minimize: true
   early_stopping_patience: 20

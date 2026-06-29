@@ -1,5 +1,5 @@
 experiment: 00_protocol_calibration
-name: unet_deeper_demo
+name: unet_deeper_two_stage_demo
 task: segmentation
 seed: 2025
 
@@ -19,7 +19,7 @@ data:
       cropping_offset: 0.25
       crop_proba: 0.3
       dropout_proba: 0.25
-      dropout_range: 0.25
+      dropout_range: 0.8
   valid_dataset: null
 
 loaders:
@@ -56,9 +56,9 @@ optimizer:
 trainer:
   module_name: benchmarks.pkg.training.trainers
   class_name: SegmTrainer
-  n_epochs: 10
+  n_epochs: 100
   checkpoint:
-    input: artefacts/models/benchmark/unet_deeper_new.pth
+    input: artefacts/models/challenge_1/unet_deeper.pth
   monitor: nrmse
   minimize: true
   early_stopping_patience: 20
@@ -66,12 +66,13 @@ trainer:
   plateau:
     enabled: true
     factor: 0.5
+    max_restarts: 2
   params:
     temperature: 0.65
     eval_temperature: 0.65
     lambda_time: 3.0
     eval_lambda_time: 1.0
-    lambda_ce: 1.0
+    lambda_ce: 0.0
     lambda_kl: 0.0
     lambda_wass: 0.0
     lambda_entropy: 0.0
@@ -81,3 +82,61 @@ trainer:
     grad_accum: 1
     sigma: 0.15
     plot_last_batch: true
+  stages:
+    - name: main
+      n_epochs: 100
+      reload: none
+      early_stopping_patience: 20
+      optimizer:
+        module_name: torch.optim
+        class_name: Adam
+        params:
+          lr: 0.001
+          weight_decay: 0
+      plateau:
+        enabled: true
+        factor: 0.5
+        max_restarts: 2
+      train_dataset_params:
+        sigma: 0.15
+        cropping_offset: 0.25
+        crop_proba: 0.3
+        dropout_proba: 0.25
+        dropout_range: 0.8
+      params:
+        temperature: 0.65
+        eval_temperature: 0.65
+        lambda_time: 3.0
+        eval_lambda_time: 1.0
+        lambda_ce: 0.0
+        mixup_p: 0.1
+        sigma: 0.15
+
+    - name: finetune
+      n_epochs: 100
+      reload: best
+      early_stopping_patience: 20
+      optimizer:
+        module_name: torch.optim
+        class_name: SGD
+        params:
+          lr: 0.0001
+          weight_decay: 0
+      plateau:
+        enabled: true
+        factor: 0.5
+        max_restarts: 2
+      train_dataset_params:
+        sigma: 0.15
+        cropping_offset: 0.2
+        crop_proba: 0.1
+        dropout_proba: 0.3
+        dropout_range: 0.2
+      params:
+        temperature: 0.75
+        eval_temperature: 0.75
+        lambda_time: 0.0
+        eval_lambda_time: 1.0
+        lambda_ce: 1.0
+        mixup_p: 0.5
+        sigma: 0.15

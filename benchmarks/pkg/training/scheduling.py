@@ -26,15 +26,22 @@ class ReloadBestOnPlateau:
         factor: float = 0.5,
         optimizer_kwargs: dict | None = None,
         fallback_checkpoint_path: str | Path | None = None,
+        max_restarts: int | None = None,
     ):
         self.optimizer_factory = optimizer_factory
         self.current_lr = float(lr)
         self.factor = float(factor)
         self.optimizer_kwargs = optimizer_kwargs or {}
         self.fallback_checkpoint_path = Path(fallback_checkpoint_path) if fallback_checkpoint_path is not None else None
+        self.max_restarts = max_restarts
+        self.n_restarts = 0
 
     def step(self, trainer) -> bool:
         """Apply reload-best plus learning-rate decay and continue training."""
+        if self.max_restarts is not None and self.n_restarts >= self.max_restarts:
+            print(f"Stopping after {self.n_restarts} reload-best restart(s).")
+            return False
+
         reload_path = self._reload_path(trainer)
         print(f"Restart from checkpoint {reload_path}. Best Val NRMSE: {trainer.best_metric:.6f} (epoch {trainer.best_epoch})")
         trainer.model.load_state_dict(torch.load(reload_path, map_location=trainer.device))
@@ -47,6 +54,7 @@ class ReloadBestOnPlateau:
             lr=self.current_lr,
             **self.optimizer_kwargs,
         )
+        self.n_restarts += 1
         return True
 
     def _reload_path(self, trainer) -> Path:

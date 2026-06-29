@@ -1,5 +1,5 @@
 experiment: 00_protocol_calibration
-name: factorization_unet_v2_finetune
+name: unet_deeper_sgd
 task: segmentation
 seed: 2025
 
@@ -33,28 +33,22 @@ loaders:
     num_workers: 4
 
 model:
-  module_name: neurosned.models.segmentation.factorization_unet
-  class_name: FactorizationSneddyUnet
+  module_name: neurosned.models.segmentation.sneddy_unet
+  class_name: SneddySegUNet1D
   params:
     n_chans: 128
     n_times: 200
     sfreq: 100
     c0: 96
     widen: 2
-    n_stages: 4
-    depth_per_stage: 2
-    dropout: 0.1
-    k: 7
+    depth_per_stage: 5
+    dropout: 0.2
+    k: 15
     out_channels: 1
-    fm_factors_front: 64
-    fm_dropout_front: 0.05
-    use_stage_fm: true
-    fm_factors_stage: 32
-    fm_dropout_stage: 0.05
 
 optimizer:
   module_name: torch.optim
-  class_name: Adam
+  class_name: SGD
   params:
     lr: 0.001
     weight_decay: 0
@@ -62,15 +56,15 @@ optimizer:
 trainer:
   module_name: benchmarks.pkg.training.trainers
   class_name: SegmTrainer
-  n_epochs: 10
+  n_epochs: 100
   checkpoint:
-    input: artefacts/models/challenge_1/factorization_unet_v1_finetune.pth
+    input: null
   monitor: nrmse
   minimize: true
-  early_stopping_patience: 20
+  early_stopping_patience: 10
   print_batch_stats: true
   plateau:
-    enabled: true
+    enabled: false
     factor: 0.5
   params:
     temperature: 0.65

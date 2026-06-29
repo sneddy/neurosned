@@ -1,3 +1,4 @@
+experiment: 00_protocol_calibration
 name: unet_deeper_widen4_hard
 task: segmentation
 seed: 2025
@@ -53,12 +54,11 @@ optimizer:
     weight_decay: 0
 
 trainer:
-  module_name: benchmarks.training
+  module_name: benchmarks.pkg.training.trainers
   class_name: SegmTrainer
   n_epochs: 10
   checkpoint:
     input: artefacts/models/challenge_1/unet_deeper_widen4_v11_hard.pth
-    output: artefacts/models/challenge_1/unet_deeper_widen4_v11_hard.pth
   monitor: nrmse
   minimize: true
   early_stopping_patience: 20
