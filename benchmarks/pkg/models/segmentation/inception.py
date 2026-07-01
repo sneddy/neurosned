@@ -1,0 +1,253 @@
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+from benchmarks.pkg.models.layers import ResBlock, StdPerSample
+
+
+# ==== Inception-like branches for 1D EEG ====
+
+class InceptionTemporalSpatialBranch(nn.Module):
+    """
+    Branch: (temporal depthwise for each electrode) -> (spatial 1x1 channel mixing).
+    Idea as in EEGInceptionERP: time first, then channels. No change in T.
+    """
+    def __init__(self, n_chans, out_ch, k_time, dropout=0.1, bn_momentum=0.01, activation=nn.ELU):
+        super().__init__()
+        pad = (k_time - 1) // 2
+        # Temporal depthwise: per-electrode temporal filtering; channels unchanged
+        self.t_dw = nn.Conv1d(n_chans, n_chans, kernel_size=k_time, padding=pad,
+                              groups=n_chans, bias=False)
+        self.t_bn = nn.BatchNorm1d(n_chans, momentum=bn_momentum)
+        self.act  = activation()
+        self.do   = nn.Dropout(dropout)
+        # Spatial 1x1 mix: learnable mixing of electrodes -> out_ch
+        self.s_pw = nn.Conv1d(n_chans, out_ch, kernel_size=1, bias=False)
+        self.s_bn = nn.BatchNorm1d(out_ch, momentum=bn_momentum)
+
+    def forward(self, x):   # x: (B,C,T)
+        x = self.t_dw(x)
+        x = self.act(self.t_bn(x))
+        x = self.do(x)
+        x = self.s_pw(x)
+        x = self.act(self.s_bn(x))
+        x = self.do(x)
+        return x             # (B, out_ch, T)
+
+class InceptionStage1(nn.Module):
+    """
+    First Inception stage: 3 temporal scales + channel concat.
+    """
+    def __init__(self, n_chans, branch_out, scales_samples, dropout=0.1, bn_momentum=0.01, activation=nn.ELU):
+        super().__init__()
+        self.b1 = InceptionTemporalSpatialBranch(n_chans, branch_out, scales_samples[0],
+                                                 dropout, bn_momentum, activation)
+        self.b2 = InceptionTemporalSpatialBranch(n_chans, branch_out, scales_samples[1],
+                                                 dropout, bn_momentum, activation)
+        self.b3 = InceptionTemporalSpatialBranch(n_chans, branch_out, scales_samples[2],
+                                                 dropout, bn_momentum, activation)
+    def forward(self, x):
+        x1 = self.b1(x)
+        x2 = self.b2(x)
+        x3 = self.b3(x)
+        return torch.cat([x1, x2, x3], dim=1)  # (B, 3*branch_out, T)
+
+class InceptionStage2(nn.Module):
+    """
+    Second Inception stage: operates on features (after branch concat),
+    shorter kernels (as in original).
+    """
+    def __init__(self, in_ch, branch_out, k_list, dropout=0.1, bn_momentum=0.01, activation=nn.ELU):
+        super().__init__()
+        def conv_block(k):
+            pad = (k - 1) // 2
+            return nn.Sequential(
+                nn.Conv1d(in_ch, branch_out, kernel_size=k, padding=pad, bias=False),
+                nn.BatchNorm1d(branch_out, momentum=bn_momentum),
+                activation(),
+                nn.Dropout(dropout),
+            )
+        self.c4 = conv_block(k_list[0])
+        self.c5 = conv_block(k_list[1])
+        self.c6 = conv_block(k_list[2])
+
+    def forward(self, x):
+        z4 = self.c4(x)
+        z5 = self.c5(x)
+        z6 = self.c6(x)
+        return torch.cat([z4, z5, z6], dim=1)  # (B, 3*branch_out, T)
+
+# ==== Encoder/Decoder in Sneddy Unet style ====
+class InceptionEncoder1D(nn.Module):
+    """
+    Encoder: Stage1 (multi-scale) -> (optional) soft T compression -> Stage2 (shorter scales) -> bottleneck.
+    Temporal downsampling is optional and very soft to preserve peak accuracy.
+    """
+    def __init__(self, n_chans, sfreq, branch_out=16, scales_s=(0.5, 0.25, 0.125),
+                 pooling_sizes=(1, 1),  # (p1, p2) over time; 1=no pooling
+                 dropout=0.1, bn_momentum=0.01, activation=nn.ELU):
+        super().__init__()
+        # Convert seconds to samples given sampling frequency
+        scales_samples = tuple(max(3, int(round(s * sfreq))//2*2 + 1) for s in scales_s)  # guarantee odd k
+        # Stage 1
+        self.stage1 = InceptionStage1(n_chans, branch_out, scales_samples,
+                                      dropout, bn_momentum, activation)
+        self.pool1  = None if pooling_sizes[0] == 1 else nn.AvgPool1d(kernel_size=pooling_sizes[0], stride=pooling_sizes[0])
+        # Stage 2: kernels are 4x shorter (as in original)
+        k_list = [max(3, s//4//2*2 + 1) for s in scales_samples]
+        self.stage2 = InceptionStage2(in_ch=3*branch_out, branch_out=branch_out,
+                                      k_list=k_list, dropout=dropout,
+                                      bn_momentum=bn_momentum, activation=activation)
+        self.pool2  = None if pooling_sizes[1] == 1 else nn.AvgPool1d(kernel_size=pooling_sizes[1], stride=pooling_sizes[1])
+
+        self.bottleneck = ResBlock(3*branch_out, k=7, dropout=dropout, dilation=2)
+
+        self.out_ch = 3*branch_out
+
+    def forward(self, x):  # (B,C,T)
+        skips = []
+        h = self.stage1(x)          # (B, 3*branch_out, T)
+        skips.append(h)
+        if self.pool1 is not None:
+            h = self.pool1(h)       # soft time downsampling
+        h = self.stage2(h)          # (B, 3*branch_out, T' or T/p1)
+        skips.append(h)
+        if self.pool2 is not None:
+            h = self.pool2(h)
+        h = self.bottleneck(h)      # (B, out_ch, T'')
+        return h, skips
+
+class InceptionDecoder1D(nn.Module):
+    """
+    Decoder: linear upsampling to skip dimensions + merging + light refinement.
+    """
+    def __init__(self, ch, dropout=0.1, k=7):
+        super().__init__()
+        self.refine2 = ResBlock(ch, k=k, dropout=dropout, dilation=1)  # after merge with skip2
+        self.refine1 = ResBlock(ch, k=k, dropout=dropout, dilation=1)  # after merge with skip1
+        self.gn = nn.GroupNorm(1, ch)
+        self.act = nn.GELU()
+
+    def forward(self, h, skips):
+        # skips: [after stage1 (high-res), after stage2 (mid-res)]
+        s1, s2 = skips[0], skips[1]
+        # upsample to s2
+        if h.shape[-1] != s2.shape[-1]:
+            h = F.interpolate(h, size=s2.shape[-1], mode='linear', align_corners=False)
+        h = self.refine2(h + s2)
+        # upsample to s1
+        if h.shape[-1] != s1.shape[-1]:
+            h = F.interpolate(h, size=s1.shape[-1], mode='linear', align_corners=False)
+        h = self.refine1(h + s1)
+        return h  # (B, ch, T)
+
+class EEGInceptionSeg1D(nn.Module):
+    """
+    Inception-like segmentation/localization for EEG:
+      StdPerSample -> Encoder(Inception1/2, optional soft pooling) -> Decoder(upsample+res) -> 1x1 head
+    Output: logits (B, out_channels, T) with no loss in resolution (if pooling_sizes=(1,1)).
+    Supported methods: predict / predict_mask.
+    """
+    def __init__(
+        self,
+        n_chans: int,
+        n_times: int,
+        sfreq: int,
+        # Main "knobs":
+        branch_out: int = 16,                 # number of channels per branch
+        scales_samples_s = (0.5, 0.25, 0.125),# temporal scales (seconds)
+        pooling_sizes = (1, 1),               # soft time pooling for Stage1/2; 1=no pooling
+        dropout: float = 0.1,
+        bn_momentum: float = 0.01,
+        activation: nn.Module = nn.ELU,
+        out_channels: int = 1,
+        head_kernel: int = 1,                 # 1x1 by default
+    ):
+        super().__init__()
+        self.n_chans = n_chans
+        self.n_times = n_times
+        self.sfreq   = sfreq
+        self.out_channels = out_channels
+
+        self.norm = StdPerSample()
+
+        self.encoder = InceptionEncoder1D(
+            n_chans=n_chans, sfreq=sfreq,
+            branch_out=branch_out,
+            scales_s=scales_samples_s,
+            pooling_sizes=pooling_sizes,
+            dropout=dropout, bn_momentum=bn_momentum, activation=activation
+        )
+        self.decoder = InceptionDecoder1D(self.encoder.out_ch, dropout=dropout, k=7)
+
+        pad = (head_kernel - 1) // 2
+        self.head = nn.Conv1d(self.encoder.out_ch, out_channels, kernel_size=head_kernel, padding=pad, bias=True)
+
+        self._init_weights()
+
+    def _init_weights(self):
+        for m in self.modules():
+            if isinstance(m, (nn.Conv1d,)):
+                nn.init.kaiming_normal_(m.weight, nonlinearity="linear")
+                if getattr(m, "bias", None) is not None:
+                    nn.init.zeros_(m.bias)
+            elif isinstance(m, (nn.BatchNorm1d, nn.GroupNorm)):
+                if getattr(m, "weight", None) is not None:
+                    nn.init.ones_(m.weight)
+                if getattr(m, "bias", None) is not None:
+                    nn.init.zeros_(m.bias)
+
+    def forward(self, x):  # x: (B,C,T)
+        B, C, T = x.shape
+        x = self.norm(x)
+        h_low, skips = self.encoder(x)
+        h = self.decoder(h_low, skips)
+        if h.shape[-1] != T:
+            h = F.interpolate(h, size=T, mode='linear', align_corners=False)
+        logits = self.head(h)  # (B, out_channels, T)
+        return logits
+
+    @torch.no_grad()
+    def predict(
+        self,
+        x,
+        mode: str = "argmax",     # "argmax" | "softargmax"
+        temperature: float = 1.0,
+        window_sec: float = 2.0,
+        return_var: bool = False
+    ):
+        logits = self.forward(x)
+        if self.out_channels != 1:
+            raise ValueError("predict() assumes out_channels==1 for time readout.")
+        B, _, T = logits.shape
+        dt = window_sec / T
+        z = logits.squeeze(1)  # (B, T)
+
+        if mode == "argmax":
+            idx = torch.argmax(z, dim=-1)
+            t_hat = idx.to(z.dtype) * dt
+            if not return_var:
+                return t_hat
+            var = torch.full_like(t_hat, fill_value=dt**2)
+            return t_hat, var
+
+        elif mode == "softargmax":
+            p = F.softmax(z / temperature, dim=-1)
+            grid = torch.arange(T, device=z.device, dtype=z.dtype)[None, :]
+            t_idx = (p * grid).sum(dim=-1)
+            t_hat = t_idx * dt
+            if not return_var:
+                return t_hat
+            var = (p * ((grid * dt - t_hat[:, None])**2)).sum(dim=-1)
+            return t_hat, var
+
+        else:
+            raise ValueError("mode must be 'argmax' or 'softargmax'.")
+
+    @torch.no_grad()
+    def predict_mask(self, x, temperature: float = 1.0):
+        logits = self.forward(x)
+        if self.out_channels != 1:
+            raise ValueError("predict_mask() assumes out_channels==1.")
+        z = logits.squeeze(1)
+        return F.softmax(z / temperature, dim=-1)

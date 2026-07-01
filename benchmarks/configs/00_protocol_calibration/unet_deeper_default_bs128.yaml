@@ -1,5 +1,5 @@
 experiment: 00_protocol_calibration
-name: unet_deeper_lr2e4
+name: unet_deeper_default_bs128
 task: segmentation
 seed: 2025
 
@@ -24,7 +24,7 @@ data:
 
 loaders:
   train:
-    batch_size: 2000
+    batch_size: 128
     shuffle: true
     num_workers: 8
   valid:
@@ -50,7 +50,7 @@ optimizer:
   module_name: torch.optim
   class_name: Adam
   params:
-    lr: 0.0002
+    lr: 0.001
     weight_decay: 0
 
 trainer:

@@ -42,6 +42,15 @@ class TrainCroppingDataset(Dataset):
         crop_proba: float = 1.0,
         dropout_range: float = 0.2,
         dropout_proba: float = 0.5,
+        scale_proba: float = 0.2,
+        scale_min: float = 0.8,
+        scale_max: float = 1.2,
+        cutout_proba: float = 0.25,
+        cutout_min_len: int = 10,
+        cutout_max_len: int = 60,
+        noise_proba: float = 0.2,
+        noise_base_std: float = 0.01,
+        noise_random_std: float = 0.03,
         use_channels: list | None = None,
         end_time: float | None = None,
         use_augmentation: bool = False,
@@ -55,6 +64,15 @@ class TrainCroppingDataset(Dataset):
         self.crop_proba = crop_proba
         self.dropout_proba = dropout_proba
         self.dropout_range = dropout_range
+        self.scale_proba = scale_proba
+        self.scale_min = scale_min
+        self.scale_max = scale_max
+        self.cutout_proba = cutout_proba
+        self.cutout_min_len = cutout_min_len
+        self.cutout_max_len = cutout_max_len
+        self.noise_proba = noise_proba
+        self.noise_base_std = noise_base_std
+        self.noise_random_std = noise_random_std
         self.use_channels = use_channels
         self.end_time = end_time
         self.use_augmentation = use_augmentation
@@ -86,12 +104,11 @@ class TrainCroppingDataset(Dataset):
     def _augment_segment(self, X: torch.Tensor, y_rel_sec: float):
         C, T = X.shape
 
-        if torch.rand((), device=X.device) < 0.2:
-            min_scale, max_scale = 0.8, 1.2
+        if torch.rand((), device=X.device) < self.scale_proba:
             eps = 1e-6
 
-            lb = max(min_scale, (y_rel_sec / self.crop_sec) + eps)
-            ub = max_scale
+            lb = max(self.scale_min, (y_rel_sec / self.crop_sec) + eps)
+            ub = self.scale_max
             scale = 1.0 if lb > ub else float(torch.empty((), device=X.device).uniform_(lb, ub))
             new_T = int(round(T * scale))
 
@@ -109,13 +126,15 @@ class TrainCroppingDataset(Dataset):
                 ch_mask = (torch.rand(C, device=X.device) > drop).to(X.dtype).unsqueeze(-1)
                 X = X * ch_mask
 
-        if torch.rand((), device=X.device) < 0.25:
-            seg_len = int(torch.randint(10, min(60, T) + 1, (1,), device=X.device))
-            start = int(torch.randint(0, T - seg_len + 1, (1,), device=X.device))
-            X[:, start:start + seg_len] = 0
+        if self.cutout_proba > 0 and torch.rand((), device=X.device) < self.cutout_proba:
+            max_len = min(self.cutout_max_len, T)
+            if max_len >= self.cutout_min_len:
+                seg_len = int(torch.randint(self.cutout_min_len, max_len + 1, (1,), device=X.device))
+                start = int(torch.randint(0, T - seg_len + 1, (1,), device=X.device))
+                X[:, start:start + seg_len] = 0
 
-        if torch.rand((), device=X.device) < 0.2:
-            noise_std = 0.03 * torch.randn((), device=X.device).abs().item() + 0.01
+        if self.noise_proba > 0 and torch.rand((), device=X.device) < self.noise_proba:
+            noise_std = self.noise_random_std * torch.randn((), device=X.device).abs().item() + self.noise_base_std
             X = X + torch.randn_like(X) * noise_std
 
         return X.contiguous(), y_rel_sec

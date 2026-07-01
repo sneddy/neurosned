@@ -7,7 +7,7 @@ parameters.
 
 Importable objects use the same structure everywhere:
 
-    module_name: neurosned.models.segmentation.sneddy_unet
+    module_name: benchmarks.pkg.models.segmentation.sneddy_unet
     class_name: SneddySegUNet1D
     params:
       n_chans: 128
@@ -169,6 +169,38 @@ class TrainerConfig(StrictConfig):
         return getattr(module, self.class_name)
 
 
+class RepeatedRunsConfig(StrictConfig):
+    """Planned independent training seeds for final paper evaluation."""
+
+    enabled: bool = False
+    seeds: list[int] = Field(default_factory=list)
+
+
+class ConfidenceIntervalConfig(StrictConfig):
+    """Confidence interval settings for saved holdout predictions."""
+
+    enabled: bool = False
+    method: Literal["subject_bootstrap"] = "subject_bootstrap"
+    n_samples: int = 1000
+    resampling_seed: int = 2025
+
+
+class EvaluationConfig(StrictConfig):
+    """Explicit holdout-evaluation settings.
+
+    Calibration configs keep `holdout_eval` false so R11 is not touched during
+    protocol search. Frozen paper-facing configs can set it true to run one
+    post-training evaluation on `data.test`.
+    """
+
+    holdout_eval: bool = False
+    holdout_split: str = "test"
+    save_predictions: bool = True
+    save_logits: bool = False
+    repeated_runs: RepeatedRunsConfig = Field(default_factory=RepeatedRunsConfig)
+    confidence_interval: ConfidenceIntervalConfig = Field(default_factory=ConfidenceIntervalConfig)
+
+
 class ExperimentConfig(StrictConfig):
     """Complete benchmark experiment config.
 
@@ -188,18 +220,22 @@ class ExperimentConfig(StrictConfig):
     model: ObjectConfig
     optimizer: OptimizerConfig
     trainer: TrainerConfig
+    evaluation: EvaluationConfig = Field(default_factory=EvaluationConfig)
 
     def build_datasets(self, project_root: str | Path):
         """Load train and validation pickle datasets."""
-        train_path = resolve_path(self.data.train, project_root)
-        valid_path = resolve_path(self.data.valid, project_root)
+        return self.build_dataset("train", project_root), self.build_dataset("valid", project_root)
 
-        with train_path.open("rb") as f:
-            train_dataset = pickle.load(f)
-        with valid_path.open("rb") as f:
-            valid_dataset = pickle.load(f)
+    def build_dataset(self, split: str, project_root: str | Path):
+        """Load one configured dataset split from pickle."""
+        if split not in {"train", "valid", "test"}:
+            raise ValueError(f"Unknown dataset split: {split}")
+        path = resolve_path(getattr(self.data, split), project_root)
+        if path is None:
+            raise ValueError(f"Dataset split has no configured path: {split}")
 
-        return train_dataset, valid_dataset
+        with path.open("rb") as f:
+            return pickle.load(f)
 
     def data_paths(self, project_root: str | Path) -> dict[str, Path | None]:
         """Return resolved dataset paths."""

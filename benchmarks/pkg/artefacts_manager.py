@@ -55,6 +55,49 @@ def _relative(path: Path | None, root: Path) -> str | None:
         return str(path)
 
 
+def _prediction_key(metrics: dict[str, Any]) -> str | None:
+    for key in ("preds_abs", "preds"):
+        if key in metrics:
+            return key
+    return None
+
+
+def _subject_bootstrap_nrmse(predictions, metadata, *, n_samples: int, resampling_seed: int) -> dict[str, Any]:
+    """Return a subject-level bootstrap interval for NRMSE."""
+    frame = pd.DataFrame(
+        {
+            "subject": metadata["subject"].to_numpy() if "subject" in metadata else np.arange(len(metadata)),
+            "target": metadata["target"].to_numpy(),
+            "prediction": np.asarray(predictions),
+        }
+    )
+    subjects = frame["subject"].drop_duplicates().to_numpy()
+    rng = np.random.default_rng(resampling_seed)
+    values = []
+    grouped = {subject: group for subject, group in frame.groupby("subject", sort=False)}
+
+    for _ in range(n_samples):
+        sampled_subjects = rng.choice(subjects, size=len(subjects), replace=True)
+        sample = pd.concat([grouped[subject] for subject in sampled_subjects], ignore_index=True)
+        target = sample["target"].to_numpy()
+        prediction = sample["prediction"].to_numpy()
+        rmse = float(np.sqrt(np.mean((prediction - target) ** 2)))
+        denominator = float(np.std(target, ddof=1)) if len(target) > 1 else 0.0
+        values.append(rmse / denominator if denominator else rmse)
+
+    values = np.asarray(values)
+    return {
+        "method": "subject_bootstrap",
+        "n_samples": int(n_samples),
+        "resampling_seed": int(resampling_seed),
+        "n_subjects": int(len(subjects)),
+        "n_rows": int(len(frame)),
+        "nrmse_mean": float(np.mean(values)),
+        "nrmse_ci_low": float(np.quantile(values, 0.025)),
+        "nrmse_ci_high": float(np.quantile(values, 0.975)),
+    }
+
+
 @dataclass(frozen=True)
 class ArtefactPaths:
     """Filesystem paths owned by one experiment run."""
@@ -314,6 +357,75 @@ class ArtefactsManager:
             self.save_summary(best_logits=_relative(logits_path, self.project_root))
         return None
 
+    def save_holdout_evaluation(
+        self,
+        *,
+        split: str,
+        metrics: dict[str, Any],
+        metadata,
+        evaluation,
+        checkpoint_loaded: bool,
+    ) -> Path:
+        """Save holdout metrics, predictions and optional confidence interval."""
+        scalar_metrics = _scalar_metrics(metrics)
+        metrics_path = self.paths.run_dir / f"{_safe_slug(split)}_metrics.json"
+        prediction_path = None
+        logits_path = None
+        ci_path = None
+        ci_metrics = None
+
+        prediction_key = _prediction_key(metrics)
+        if evaluation.save_predictions and prediction_key is not None:
+            prediction_path = self.save_predictions(f"{split}_predictions", metrics[prediction_key], metadata)
+
+        if evaluation.save_logits and "logits" in metrics:
+            logits_path = self.save_logits(f"{split}_logits", metrics["logits"])
+
+        ci_config = evaluation.confidence_interval
+        if ci_config.enabled and prediction_key is not None:
+            ci_metrics = _subject_bootstrap_nrmse(
+                metrics[prediction_key],
+                metadata,
+                n_samples=ci_config.n_samples,
+                resampling_seed=ci_config.resampling_seed,
+            )
+            ci_path = self.paths.run_dir / f"{_safe_slug(split)}_ci.json"
+            with ci_path.open("w", encoding="utf-8") as f:
+                json.dump(ci_metrics, f, indent=2, default=_json_default)
+
+        output = {
+            "split": split,
+            "checkpoint_loaded": checkpoint_loaded,
+            "metrics": scalar_metrics,
+            "predictions": _relative(prediction_path, self.project_root),
+            "logits": _relative(logits_path, self.project_root),
+            "confidence_interval": ci_metrics,
+        }
+        with metrics_path.open("w", encoding="utf-8") as f:
+            json.dump(output, f, indent=2, default=_json_default)
+
+        summary_updates = {
+            f"{split}_{key}": value for key, value in scalar_metrics.items()
+        }
+        summary_updates.update(
+            {
+                f"{split}_metrics": _relative(metrics_path, self.project_root),
+                f"{split}_predictions": _relative(prediction_path, self.project_root),
+                f"{split}_logits": _relative(logits_path, self.project_root),
+                f"{split}_ci": _relative(ci_path, self.project_root),
+                f"{split}_checkpoint_loaded": checkpoint_loaded,
+            }
+        )
+        if ci_metrics is not None:
+            summary_updates.update(
+                {
+                    f"{split}_nrmse_ci_low": ci_metrics["nrmse_ci_low"],
+                    f"{split}_nrmse_ci_high": ci_metrics["nrmse_ci_high"],
+                }
+            )
+        self.save_summary(**summary_updates)
+        return metrics_path
+
     def save_gpu_monitoring(self, summary: dict[str, Any] | None) -> None:
         """Save GPU monitoring aggregate fields in summary.json."""
         if not summary:
@@ -434,6 +546,9 @@ class ArtefactsManager:
             "seed",
             "best_epoch",
             "best_metric",
+            "test_nrmse",
+            "test_nrmse_ci_low",
+            "test_nrmse_ci_high",
             "last_epoch",
             "training_wall_seconds",
             "time_to_best_seconds",

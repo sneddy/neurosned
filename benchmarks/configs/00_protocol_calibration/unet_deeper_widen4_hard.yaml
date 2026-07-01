@@ -1,5 +1,5 @@
 experiment: 00_protocol_calibration
-name: unet_depth10_v0
+name: unet_deeper_widen4_hard
 task: segmentation
 seed: 2025
 
@@ -33,17 +33,17 @@ loaders:
     num_workers: 4
 
 model:
-  module_name: neurosned.models.segmentation.sneddy_unet
+  module_name: benchmarks.pkg.models.segmentation.sneddy_unet
   class_name: SneddySegUNet1D
   params:
     n_chans: 128
     n_times: 200
     sfreq: 100
-    c0: 128
-    widen: 2
-    depth_per_stage: 10
-    dropout: 0.2
-    k: 19
+    c0: 64
+    widen: 4
+    depth_per_stage: 5
+    dropout: 0.05
+    k: 15
     out_channels: 1
 
 optimizer:
@@ -58,7 +58,7 @@ trainer:
   class_name: SegmTrainer
   n_epochs: 10
   checkpoint:
-    input: artefacts/models/challenge_1/unet_depth10_v0.pth
+    input: artefacts/models/challenge_1/unet_deeper_widen4_v11_hard.pth
   monitor: nrmse
   minimize: true
   early_stopping_patience: 20

@@ -1,5 +1,5 @@
 experiment: 00_protocol_calibration
-name: attention_unet_v5
+name: unet_deeper_default_bs128_aug_v2
 task: segmentation
 seed: 2025
 
@@ -18,13 +18,22 @@ data:
       use_augmentation: true
       cropping_offset: 0.25
       crop_proba: 0.3
+      scale_proba: 0.2
+      scale_min: 0.8
+      scale_max: 1.2
       dropout_proba: 0.25
-      dropout_range: 0.25
+      dropout_range: 0.3
+      cutout_proba: 0.25
+      cutout_min_len: 10
+      cutout_max_len: 50
+      noise_proba: 0.3
+      noise_base_std: 0.01
+      noise_random_std: 0.01
   valid_dataset: null
 
 loaders:
   train:
-    batch_size: 2000
+    batch_size: 128
     shuffle: true
     num_workers: 8
   valid:
@@ -33,24 +42,18 @@ loaders:
     num_workers: 4
 
 model:
-  module_name: neurosned.models.segmentation.attention_sneddy_unet
-  class_name: AttentionSneddyUnet
+  module_name: benchmarks.pkg.models.segmentation.sneddy_unet
+  class_name: SneddySegUNet1D
   params:
     n_chans: 128
     n_times: 200
     sfreq: 100
-    c0: 64
-    num_stages: 5
-    widen: 2.0
-    depth_per_stage: [2, 2, 2, 1, 1]
-    bottleneck_type: mhsa
-    bottleneck_depth: 3
-    attn_heads: 4
-    attn_dropout: 0.05
-    ffn_dropout: 0.05
-    drop_path: 0.1
-    skip_gating: true
-    use_norm: true
+    c0: 96
+    widen: 2
+    depth_per_stage: 5
+    dropout: 0.2
+    k: 15
+    out_channels: 1
 
 optimizer:
   module_name: torch.optim
@@ -62,15 +65,15 @@ optimizer:
 trainer:
   module_name: benchmarks.pkg.training.trainers
   class_name: SegmTrainer
-  n_epochs: 10
+  n_epochs: 100
   checkpoint:
-    input: artefacts/models/challenge_1/attention_unet_v4.pth
+    input: null
   monitor: nrmse
   minimize: true
-  early_stopping_patience: 20
+  early_stopping_patience: 10
   print_batch_stats: true
   plateau:
-    enabled: true
+    enabled: false
     factor: 0.5
   params:
     temperature: 0.65

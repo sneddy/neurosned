@@ -115,6 +115,17 @@ def stage_name(stage) -> str:
     return stage.name if stage is not None else "default"
 
 
+def build_dataset_wrapper(dataset_config, base_dataset, channels_list, params: dict | None = None):
+    """Build a dataset wrapper and pass configured channel selection."""
+    wrapper_params = dict(dataset_config.params)
+    if params is not None:
+        wrapper_params.update(params)
+    if channels_list is not None and "use_channels" not in wrapper_params:
+        wrapper_params["use_channels"] = channels_list
+    dataset_cls = dataset_config.load_class()
+    return dataset_cls(base_dataset, **wrapper_params)
+
+
 def stage_train_dataset(config, base_dataset, channels_list, stage):
     """Build the train dataset wrapper for one stage."""
     if config.data.train_dataset is None:
@@ -122,10 +133,7 @@ def stage_train_dataset(config, base_dataset, channels_list, stage):
     params = dict(config.data.train_dataset.params)
     if stage is not None:
         params.update(stage.train_dataset_params)
-    dataset_cls = config.data.train_dataset.load_class()
-    if channels_list is None:
-        return dataset_cls(base_dataset, **params)
-    return dataset_cls(base_dataset, use_channels=channels_list, **params)
+    return build_dataset_wrapper(config.data.train_dataset, base_dataset, channels_list, params=params)
 
 
 def stage_train_loader_config(config, stage):
@@ -187,7 +195,7 @@ def build_stage_trainer(
     model,
     train_dataset,
     valid_loader,
-    default_rmse_valid,
+    default_rmse_by_split: dict[str, float],
     channels_list,
     output_checkpoint_path: Path,
     input_checkpoint_path: Path | None,
@@ -244,7 +252,7 @@ def build_stage_trainer(
         "stage_name": name if stage is not None else None,
         "epoch_offset": epoch_offset,
         "seconds_offset": completed_history[-1]["cumulative_training_seconds"] if completed_history else 0.0,
-        "default_rmse": default_rmse_valid,
+        "default_rmse_by_split": default_rmse_by_split,
     }
     if config.task == "segmentation":
         trainer_kwargs["channels_list"] = channels_list
@@ -255,10 +263,87 @@ def build_stage_trainer(
     return trainer, train_loader, train_dataset_for_loader, optimizer_config, plateau_config
 
 
-def run_config(config_path: Path, *, output_dir: Path, device: torch.device, show_plots: bool, skip_initial_validation: bool) -> ArtefactsManager:
+def build_eval_dataset(config, base_dataset, channels_list):
+    """Build a non-training dataset wrapper."""
+    if config.data.valid_dataset is None:
+        return base_dataset
+    return build_dataset_wrapper(config.data.valid_dataset, base_dataset, channels_list)
+
+
+def run_holdout_evaluation(
+    *,
+    config,
+    trainer,
+    model,
+    channels_list,
+    output_checkpoint_path: Path,
+    default_rmse_by_split: dict[str, float],
+    artefacts: ArtefactsManager,
+    device,
+):
+    """Run optional post-training holdout evaluation."""
+    evaluation = config.evaluation
+    if not evaluation.holdout_eval:
+        return None
+
+    split = evaluation.holdout_split
+    print(f"Holdout evaluation: split={split}")
+    holdout_dataset = config.build_dataset(split, PROJECT_ROOT)
+    holdout_metadata = holdout_dataset.get_metadata()
+    holdout_std = float(holdout_metadata["target"].std())
+    default_rmse_by_split[split] = holdout_std
+    if hasattr(trainer, "default_rmse_by_split"):
+        trainer.default_rmse_by_split[split] = holdout_std
+
+    holdout_dataset_for_loader = build_eval_dataset(config, holdout_dataset, channels_list)
+    holdout_loader = DataLoader(holdout_dataset_for_loader, **config.loaders.valid.to_kwargs())
+    print(
+        f"Holdout loader: rows={len(holdout_dataset_for_loader):,}, "
+        f"batches={len(holdout_loader):,}, denominator={holdout_std:.4f}"
+    )
+
+    checkpoint_loaded = False
+    if output_checkpoint_path.exists():
+        model.load_state_dict(torch.load(output_checkpoint_path, map_location=device))
+        checkpoint_loaded = True
+        print(f"Loaded best checkpoint for holdout: {path_text(output_checkpoint_path)}")
+    else:
+        print("Best checkpoint is missing; evaluating current model state.")
+
+    metrics = trainer.run_eval_epoch(holdout_loader, split=split, epoch=0)
+    artefacts.save_holdout_evaluation(
+        split=split,
+        metrics=metrics,
+        metadata=holdout_metadata,
+        evaluation=evaluation,
+        checkpoint_loaded=checkpoint_loaded,
+    )
+    monitor_value = metrics.get(config.trainer.monitor)
+    if monitor_value is not None:
+        print(f"Holdout {config.trainer.monitor}: {monitor_value:.6f}")
+    return metrics
+
+
+def run_config(
+    config_path: Path,
+    *,
+    output_dir: Path,
+    device: torch.device,
+    show_plots: bool,
+    skip_initial_validation: bool,
+    seed_override: int | None = None,
+    name_suffix: str | None = None,
+) -> ArtefactsManager:
     """Run one benchmark config and return its artefacts manager."""
     config_path = config_path.resolve()
     config = load_experiment_config(config_path)
+    updates = {}
+    if seed_override is not None:
+        updates["seed"] = int(seed_override)
+    if name_suffix is not None:
+        updates["name"] = f"{config.name}_{name_suffix}"
+    if updates:
+        config = config.model_copy(update=updates)
     set_seed(config.seed)
 
     train_dataset, valid_dataset = config.build_datasets(PROJECT_ROOT)
@@ -274,6 +359,10 @@ def run_config(config_path: Path, *, output_dir: Path, device: torch.device, sho
     )
     default_rmse_train = meta_information["target"].std()
     default_rmse_valid = meta_information_valid["target"].std()
+    default_rmse_by_split = {
+        "train": float(default_rmse_train),
+        "valid": float(default_rmse_valid),
+    }
 
     model = config.model.build().to(device)
     input_checkpoint_path = resolve_path(config.trainer.checkpoint.input, PROJECT_ROOT)
@@ -317,7 +406,7 @@ def run_config(config_path: Path, *, output_dir: Path, device: torch.device, sho
             print(f"Train windows: {len(train_dataset):,}")
             print(f"Valid windows: {len(valid_dataset):,}")
             print(summary.to_string(index=False))
-            print(f"Default RMSE denominator: train={default_rmse_train:.4f}, valid={default_rmse_valid:.4f}")
+            print(f"Default RMSE denominators: train={default_rmse_train:.4f}, valid={default_rmse_valid:.4f}")
             print(f"Model class: {config.model.class_name}")
             print(f"Parameters: {total_params:,} ({mb_total:.2f} MB float32)")
             print(f"Input checkpoint: {path_text(input_checkpoint_path)}")
@@ -330,7 +419,7 @@ def run_config(config_path: Path, *, output_dir: Path, device: torch.device, sho
 
             valid_dataset_for_loader = valid_dataset
             if config.data.valid_dataset is not None:
-                valid_dataset_for_loader = config.data.valid_dataset.build(valid_dataset)
+                valid_dataset_for_loader = build_dataset_wrapper(config.data.valid_dataset, valid_dataset, channels_list)
 
             valid_wrapper = config.data.valid_dataset.class_name if config.data.valid_dataset is not None else "None"
 
@@ -355,7 +444,7 @@ def run_config(config_path: Path, *, output_dir: Path, device: torch.device, sho
                 model=model,
                 train_dataset=train_dataset,
                 valid_loader=valid_loader,
-                default_rmse_valid=default_rmse_valid,
+                default_rmse_by_split=default_rmse_by_split,
                 channels_list=channels_list,
                 output_checkpoint_path=output_checkpoint_path,
                 input_checkpoint_path=input_checkpoint_path,
@@ -421,7 +510,7 @@ def run_config(config_path: Path, *, output_dir: Path, device: torch.device, sho
                             model=model,
                             train_dataset=train_dataset,
                             valid_loader=valid_loader,
-                            default_rmse_valid=default_rmse_valid,
+                            default_rmse_by_split=default_rmse_by_split,
                             channels_list=channels_list,
                             output_checkpoint_path=output_checkpoint_path,
                             input_checkpoint_path=input_checkpoint_path,
@@ -457,6 +546,16 @@ def run_config(config_path: Path, *, output_dir: Path, device: torch.device, sho
                         print(f"Saved GPU plot: {path_text(artefacts.paths.gpu_plot)}")
             artefacts.finish_training(trainer, history)
             best_val_predictions_path = artefacts.save_best_validation_predictions(trainer, meta_information_valid)
+            holdout_metrics = run_holdout_evaluation(
+                config=config,
+                trainer=trainer,
+                model=model,
+                channels_list=channels_list,
+                output_checkpoint_path=output_checkpoint_path,
+                default_rmse_by_split=default_rmse_by_split,
+                artefacts=artefacts,
+                device=device,
+            )
 
             print(f"Best {config.trainer.monitor}: {best_metric:.6f}")
             print(f"Best epoch: {best_epoch}")
@@ -464,6 +563,8 @@ def run_config(config_path: Path, *, output_dir: Path, device: torch.device, sho
             print(f"Saved metrics: {path_text(artefacts.paths.metrics)}")
             if best_val_predictions_path is not None:
                 print(f"Saved best validation predictions: {path_text(best_val_predictions_path)}")
+            if holdout_metrics is not None:
+                print(f"Saved holdout evaluation: {path_text(artefacts.paths.run_dir / f'{config.evaluation.holdout_split}_metrics.json')}")
             print(f"Run summary: {path_text(artefacts.paths.run_summary)}")
 
             history_df = pd.DataFrame(history)

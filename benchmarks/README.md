@@ -54,7 +54,7 @@ Importable objects use this pattern:
 
 ```yaml
 model:
-  module_name: neurosned.models.segmentation.sneddy_unet
+  module_name: benchmarks.pkg.models.segmentation.sneddy_unet
   class_name: SneddySegUNet1D
   params:
     n_chans: 128

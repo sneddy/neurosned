@@ -136,20 +136,25 @@ class BaseTrainer(ABC):
 
     def run_train_epoch(self, epoch: int) -> dict[str, Any]:
         """Run one training epoch."""
-        return self.run_epoch(self.train_loader, epoch=epoch, train=True)
+        return self.run_epoch(self.train_loader, epoch=epoch, train=True, split="train")
 
     def run_valid_epoch(self, epoch: int) -> dict[str, Any]:
         """Run one validation epoch."""
-        return self.run_epoch(self.valid_loader, epoch=epoch, train=False)
+        return self.run_eval_epoch(self.valid_loader, split="valid", epoch=epoch)
 
-    def run_epoch(self, dataloader, *, epoch: int, train: bool) -> dict[str, Any]:
+    def run_eval_epoch(self, dataloader, *, split: str, epoch: int = 0) -> dict[str, Any]:
+        """Run one non-training epoch on an arbitrary evaluation split."""
+        return self.run_epoch(dataloader, epoch=epoch, train=False, split=split)
+
+    def run_epoch(self, dataloader, *, epoch: int, train: bool, split: str) -> dict[str, Any]:
         """Run one epoch in train or validation mode."""
         self.model.train(train)
         if train:
             self.optimizer.zero_grad()
 
-        state = self.create_epoch_state(train=train)
+        state = self.create_epoch_state(train=train, split=split)
         state["epoch"] = epoch
+        state["split"] = split
         n_batches = len(dataloader)
         progress = tqdm(enumerate(dataloader), total=n_batches, disable=not self.print_batch_stats)
 
@@ -205,7 +210,7 @@ class BaseTrainer(ABC):
         """Prefix scalar-like metrics for history rows."""
         return {f"{prefix}_{key}": value for key, value in metrics.items() if key not in self.history_exclude_keys}
 
-    def create_epoch_state(self, *, train: bool) -> dict[str, Any]:
+    def create_epoch_state(self, *, train: bool, split: str) -> dict[str, Any]:
         """Create task-specific accumulator state."""
         return {}
 

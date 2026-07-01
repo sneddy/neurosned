@@ -1,5 +1,5 @@
 experiment: 00_protocol_calibration
-name: unet_deeper_widen4_hard
+name: unet_deeper_default_bs512
 task: segmentation
 seed: 2025
 
@@ -24,7 +24,7 @@ data:
 
 loaders:
   train:
-    batch_size: 2000
+    batch_size: 512
     shuffle: true
     num_workers: 8
   valid:
@@ -33,16 +33,16 @@ loaders:
     num_workers: 4
 
 model:
-  module_name: neurosned.models.segmentation.sneddy_unet
+  module_name: benchmarks.pkg.models.segmentation.sneddy_unet
   class_name: SneddySegUNet1D
   params:
     n_chans: 128
     n_times: 200
     sfreq: 100
-    c0: 64
-    widen: 4
+    c0: 96
+    widen: 2
     depth_per_stage: 5
-    dropout: 0.05
+    dropout: 0.2
     k: 15
     out_channels: 1
 
@@ -56,15 +56,15 @@ optimizer:
 trainer:
   module_name: benchmarks.pkg.training.trainers
   class_name: SegmTrainer
-  n_epochs: 10
+  n_epochs: 100
   checkpoint:
-    input: artefacts/models/challenge_1/unet_deeper_widen4_v11_hard.pth
+    input: null
   monitor: nrmse
   minimize: true
-  early_stopping_patience: 20
+  early_stopping_patience: 10
   print_batch_stats: true
   plateau:
-    enabled: true
+    enabled: false
     factor: 0.5
   params:
     temperature: 0.65

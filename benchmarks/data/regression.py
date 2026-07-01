@@ -22,6 +22,7 @@ class FixedWindowDataset(Dataset):
         base: Dataset,
         use_channels: list | None = None,
         use_augmentation: bool = False,
+        channel_dropout_proba: float = 1.0,
         channel_dropout_max_ratio: float = 0.0,
         cutout_proba: float = 0.0,
         cutout_min_len: int = 10,
@@ -33,6 +34,7 @@ class FixedWindowDataset(Dataset):
         self.base = base
         self.use_channels = use_channels
         self.use_augmentation = use_augmentation
+        self.channel_dropout_proba = channel_dropout_proba
         self.channel_dropout_max_ratio = channel_dropout_max_ratio
         self.cutout_proba = cutout_proba
         self.cutout_min_len = cutout_min_len
@@ -59,7 +61,7 @@ class FixedWindowDataset(Dataset):
     def _augment_window(self, X: torch.Tensor) -> torch.Tensor:
         channels, times = X.shape
 
-        if self.channel_dropout_max_ratio > 0:
+        if self.channel_dropout_max_ratio > 0 and torch.rand(1).item() < self.channel_dropout_proba:
             channel_dropout_ratio = torch.rand(1).item() * self.channel_dropout_max_ratio
             if channel_dropout_ratio > 0:
                 mask = (torch.rand(channels, device=X.device) > channel_dropout_ratio).to(X.dtype).unsqueeze(-1)
