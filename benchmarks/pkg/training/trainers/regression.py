@@ -21,7 +21,7 @@ class RegrTrainer(BaseTrainer):
     Main tuning knobs:
 
     - `mixup_p`, `mixup_alpha`: batch mixup for EEG and scalar targets.
-    - `default_rmse`: denominator for normalized RMSE.
+    - `default_rmse_by_split`: split-specific denominators for normalized RMSE.
     """
 
     def __init__(
@@ -36,11 +36,12 @@ class RegrTrainer(BaseTrainer):
         loss_fn=None,
         scheduler=None,
         default_rmse: float | None = None,
+        default_rmse_by_split: dict[str, float] | None = None,
         mixup_p: float = 0.5,
         mixup_alpha: float = 0.4,
         **base_kwargs,
     ):
-        base_kwargs.setdefault("monitor", "rmse")
+        base_kwargs.setdefault("monitor", "nrmse")
         super().__init__(
             model=model,
             train_loader=train_loader,
@@ -52,13 +53,17 @@ class RegrTrainer(BaseTrainer):
         )
         self.loss_fn = loss_fn or nn.MSELoss()
         self.scheduler = scheduler
-        self.default_rmse = default_rmse
+        self.default_rmse_by_split = dict(default_rmse_by_split or {})
+        if default_rmse is not None:
+            self.default_rmse_by_split.setdefault("valid", default_rmse)
         self.mixup_p = mixup_p
         self.mixup_alpha = mixup_alpha
 
-    def create_epoch_state(self, *, train: bool) -> dict[str, Any]:
+    def create_epoch_state(self, *, train: bool, split: str) -> dict[str, Any]:
         """Create regression metric accumulators."""
         state = {
+            "split": split,
+            "default_rmse": self.default_rmse_for(split),
             "total_loss": 0.0,
             "sse": 0.0,
             "n_samples": 0,
@@ -115,7 +120,7 @@ class RegrTrainer(BaseTrainer):
         n_batches = max(state["n_batches"], 1)
         metrics = {
             "loss": state["total_loss"] / n_batches,
-            "rmse": self._normalized_rmse(state),
+            "nrmse": self._normalized_rmse(state),
         }
         if train:
             return metrics
@@ -129,7 +134,7 @@ class RegrTrainer(BaseTrainer):
             }
         )
         print(
-            f"Val RMSE: {metrics['rmse']:.6f}, "
+            f"Val NRMSE: {metrics['nrmse']:.6f}, "
             f"Val Loss: {metrics['loss']:.6f}, "
             f"acc_100: {metrics['acc_100']:.6f}, "
             f"acc_250: {metrics['acc_250']:.6f}"
@@ -149,11 +154,11 @@ class RegrTrainer(BaseTrainer):
         if train:
             return (
                 f"Epoch {epoch}, Batch {batch_idx + 1}/{n_batches}, "
-                f"Loss: {metrics['loss']:.6f}, RMSE: {metrics['rmse']:.6f}"
+                f"Loss: {metrics['loss']:.6f}, NRMSE: {metrics['nrmse']:.6f}"
             )
         return (
             f"Val Batch {batch_idx + 1}/{n_batches}, "
-            f"Loss: {metrics['loss']:.6f}, RMSE: {metrics['rmse']:.6f}"
+            f"Loss: {metrics['loss']:.6f}, NRMSE: {metrics['nrmse']:.6f}"
         )
 
     def _prepare_batch(self, batch):
@@ -193,8 +198,14 @@ class RegrTrainer(BaseTrainer):
             state["preds"].extend(preds_flat.cpu().numpy())
             state["diffs"].extend(diffs.cpu().numpy())
 
-        return {"loss": loss, "rmse": self._normalized_rmse(state)}
+        return {"loss": loss, "nrmse": self._normalized_rmse(state)}
 
     def _normalized_rmse(self, state: dict[str, Any]) -> float:
+        """Return RMSE normalized by the current split denominator."""
         rmse = (state["sse"] / max(state["n_samples"], 1)) ** 0.5
-        return rmse / self.default_rmse if self.default_rmse else rmse
+        default_rmse = state.get("default_rmse")
+        return rmse / default_rmse if default_rmse else rmse
+
+    def default_rmse_for(self, split: str) -> float | None:
+        """Return the configured NRMSE denominator for one split."""
+        return self.default_rmse_by_split.get(split)
