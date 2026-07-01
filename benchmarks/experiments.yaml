@@ -2,14 +2,14 @@
 
 experiments:
   - name: 00_protocol_calibration
-    configs: benchmarks/configs/segmentation
+    configs: benchmarks/configs/00_protocol_calibration
     artifacts: benchmarks/experiments/00_protocol_calibration
-    comment: Choose a simple reproducible SneddyUNet protocol for later comparisons.
+    comment: Archive exploratory recipe-search configs before frozen paper-facing reruns.
 
   - name: 01_regression_baselines
-    configs: benchmarks/configs/regression
+    configs: benchmarks/configs/01_regression_baselines
     artifacts: benchmarks/experiments/01_regression_baselines
-    comment: Compare SneddyNet-style regression against standard fixed-window EEG baselines.
+    comment: Clean frozen-protocol regression configs will be created here for final reruns.
 
   - name: 02_regression_vs_segmentation
     configs: benchmarks/configs
@@ -17,14 +17,14 @@ experiments:
     comment: Compare direct scalar regression with temporal segmentation under the same split.
 
   - name: 03_component_ablations
-    configs: benchmarks/configs/segmentation
+    configs: benchmarks/configs/03_component_ablations
     artifacts: benchmarks/experiments/03_component_ablations
-    comment: One-factor SneddyUNet ablations under the simple protocol.
+    comment: Clean one-factor SneddyUNet ablations under the frozen protocol.
 
   - name: 04_advanced_training_protocol
-    configs: benchmarks/configs/segmentation
+    configs: benchmarks/configs/04_advanced_training_protocol
     artifacts: benchmarks/experiments/04_advanced_training_protocol
-    comment: Full engineering recipe after the controlled ablations are fixed.
+    comment: Optional full engineering recipe after the controlled ablations are fixed.
 
   - name: 05_stacked_calibration
     configs: benchmarks/configs/stacking

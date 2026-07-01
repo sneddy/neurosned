@@ -60,6 +60,7 @@ class SegmTrainer(BaseTrainer):
         win_offset: float = 0.5,
         channels_list: list | None = None,
         default_rmse: float | None = None,
+        default_rmse_by_split: dict[str, float] | None = None,
         use_soft_argmax: bool = True,
         plot_last_batch: bool = True,
         plot_save_dir: str | Path | None = None,
@@ -90,15 +91,19 @@ class SegmTrainer(BaseTrainer):
         self.sigma = sigma
         self.win_offset = win_offset
         self.channels_list = channels_list
-        self.default_rmse = default_rmse
+        self.default_rmse_by_split = dict(default_rmse_by_split or {})
+        if default_rmse is not None:
+            self.default_rmse_by_split.setdefault("valid", default_rmse)
         self.use_soft_argmax = use_soft_argmax
         self.plot_last_batch = plot_last_batch
         self.plot_save_dir = Path(plot_save_dir) if plot_save_dir is not None else None
         self.plot_show = plot_show
 
-    def create_epoch_state(self, *, train: bool) -> dict[str, Any]:
+    def create_epoch_state(self, *, train: bool, split: str) -> dict[str, Any]:
         """Create segmentation metric accumulators."""
         state = {
+            "split": split,
+            "default_rmse": self.default_rmse_for(split),
             "total_loss": 0.0,
             "total_ce": 0.0,
             "total_rmse": 0.0,
@@ -287,12 +292,19 @@ class SegmTrainer(BaseTrainer):
     ) -> str:
         """Format segmentation progress text."""
         if train:
-            return (
-                f"Epoch {epoch} [{batch_idx + 1}/{n_batches}] "
-                f"Loss {metrics['loss']:.4f} CE {metrics['ce']:.4f} "
-                f"RMSE {metrics['rmse']:.4f} KL {metrics['kl']:.4f} WASS {metrics['wass']:.4f} "
-                f"NRMSE {metrics['nrmse']:.4f} Entropy {metrics['entropy']:.3f}"
-            )
+            parts = [f"Epoch {epoch} [{batch_idx + 1}/{n_batches}]", f"Loss {metrics['loss']:.4f}"]
+            if self.lambda_ce:
+                parts.append(f"CE {metrics['ce']:.4f}")
+            if self.lambda_time:
+                parts.append(f"RMSE {metrics['rmse']:.4f}")
+            if self.lambda_kl:
+                parts.append(f"KL {metrics['kl']:.4f}")
+            if self.lambda_wass:
+                parts.append(f"WASS {metrics['wass']:.4f}")
+            parts.append(f"NRMSE {metrics['nrmse']:.4f}")
+            if self.lambda_entropy:
+                parts.append(f"Entropy {metrics['entropy']:.3f}")
+            return " ".join(parts)
         return (
             f"Val [{batch_idx + 1}/{n_batches}] Loss {metrics['loss']:.4f} "
             f"CE {metrics['ce']:.4f} RMSE {metrics['rmse']:.4f} NRMSE {metrics['nrmse']:.4f}"
@@ -345,14 +357,23 @@ class SegmTrainer(BaseTrainer):
 
     def _running_train_metrics(self, state: dict[str, Any]) -> dict[str, float]:
         rmse_ds = (state["sse"] / max(state["n_samples"], 1)) ** 0.5
+        default_rmse = state.get("default_rmse")
+        if default_rmse:
+            return {"nrmse": rmse_ds / default_rmse}
+
         mean_y = state["sum_y"] / max(state["n_samples"], 1)
         var_y = max((state["sum_y2"] / max(state["n_samples"], 1)) - mean_y**2, 1e-12)
         return {"nrmse": rmse_ds / (var_y**0.5)}
 
     def _running_eval_metrics(self, state: dict[str, Any]) -> dict[str, float]:
         rmse = (state["sse"] / max(state["n_samples"], 1)) ** 0.5
-        nrmse = rmse / self.default_rmse if self.default_rmse else rmse
+        default_rmse = state.get("default_rmse")
+        nrmse = rmse / default_rmse if default_rmse else rmse
         return {"nrmse": nrmse}
+
+    def default_rmse_for(self, split: str) -> float | None:
+        """Return the configured NRMSE denominator for one split."""
+        return self.default_rmse_by_split.get(split)
 
     def _plot_path(self, state: dict[str, Any]) -> Path | None:
         """Return the diagnostic validation plot path for this epoch."""
