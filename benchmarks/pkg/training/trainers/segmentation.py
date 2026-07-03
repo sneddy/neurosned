@@ -27,6 +27,8 @@ class SegmTrainer(BaseTrainer):
     - `lambda_time`: weight for RMSE of expected time on train crops.
     - `eval_lambda_time`: validation loss time term; metrics still report RMSE.
     - `lambda_ce`: soft-label cross entropy on the Gaussian target `q`.
+    - `eval_lambda_ce`: validation loss CE weight, kept at 1.0 by default.
+    - `lambda_event_nll`: continuous event-time mixture likelihood term.
     - `lambda_kl`, `lambda_wass`, `lambda_entropy`, `lambda_focal`: optional
       distribution-shape terms retained from the notebook experiments.
     - `mixup_p`, `mixup_alpha`: time-aware mixup probability and Beta alpha.
@@ -49,8 +51,12 @@ class SegmTrainer(BaseTrainer):
         lambda_time: float = 1.0,
         eval_lambda_time: float | None = None,
         lambda_ce: float = 1.0,
+        eval_lambda_ce: float = 1.0,
+        lambda_event_nll: float = 0.0,
+        eval_lambda_event_nll: float | None = None,
         lambda_kl: float = 0.0,
         lambda_wass: float = 0.0,
+        eval_lambda_wass: float = 0.0,
         lambda_entropy: float = 0.0,
         lambda_focal: float = 0.0,
         mixup_p: float = 0.5,
@@ -81,8 +87,12 @@ class SegmTrainer(BaseTrainer):
         self.lambda_time = lambda_time
         self.eval_lambda_time = lambda_time if eval_lambda_time is None else eval_lambda_time
         self.lambda_ce = lambda_ce
+        self.eval_lambda_ce = eval_lambda_ce
+        self.lambda_event_nll = lambda_event_nll
+        self.eval_lambda_event_nll = lambda_event_nll if eval_lambda_event_nll is None else eval_lambda_event_nll
         self.lambda_kl = lambda_kl
         self.lambda_wass = lambda_wass
+        self.eval_lambda_wass = eval_lambda_wass
         self.lambda_entropy = lambda_entropy
         self.lambda_focal = lambda_focal
         self.mixup_p = mixup_p
@@ -106,13 +116,15 @@ class SegmTrainer(BaseTrainer):
             "default_rmse": self.default_rmse_for(split),
             "total_loss": 0.0,
             "total_ce": 0.0,
+            "total_event_nll": 0.0,
             "total_rmse": 0.0,
+            "total_wass": 0.0,
             "n_batches": 0,
             "sse": 0.0,
             "n_samples": 0,
         }
         if train:
-            state.update({"total_kl": 0.0, "total_wass": 0.0, "sum_y": 0.0, "sum_y2": 0.0})
+            state.update({"total_kl": 0.0, "sum_y": 0.0, "sum_y2": 0.0})
         else:
             state["preds_abs"] = []
             state["logits"] = []
@@ -160,6 +172,7 @@ class SegmTrainer(BaseTrainer):
 
         state["total_loss"] += float(loss_for_backward.detach())
         state["total_ce"] += float(losses["ce"].detach())
+        state["total_event_nll"] += float(losses["event_nll"].detach())
         state["total_rmse"] += float(losses["rmse"].detach())
         state["total_kl"] += float(losses["kl"].detach())
         state["total_wass"] += float(losses["wass"].detach())
@@ -169,6 +182,7 @@ class SegmTrainer(BaseTrainer):
             {
                 "loss": float(loss_for_backward.detach()),
                 "ce": float(losses["ce"].detach()),
+                "event_nll": float(losses["event_nll"].detach()),
                 "rmse": float(losses["rmse"].detach()),
                 "kl": float(losses["kl"].detach()),
                 "wass": float(losses["wass"].detach()),
@@ -202,20 +216,32 @@ class SegmTrainer(BaseTrainer):
         z = self.model(X).squeeze(1)
         log_p = F.log_softmax(z / self.eval_temperature, dim=-1)
         ce = -(q * log_p).sum(dim=-1).mean()
+        t_grid = (torch.arange(T, device=self.device, dtype=z.dtype) * dt)[None, :]
+        event_nll = self._event_nll(log_p, y_rel, t_grid) if self.eval_lambda_event_nll else torch.tensor(0.0, device=self.device)
+        p = torch.softmax(z / self.eval_temperature, dim=-1)
+        if self.eval_lambda_wass > 0:
+            wass = (torch.abs(torch.cumsum(p, -1) - torch.cumsum(q, -1)).sum(-1).mean()) * dt
+        else:
+            wass = torch.tensor(0.0, device=self.device)
 
         if self.use_soft_argmax:
-            t_grid = (torch.arange(T, device=self.device, dtype=z.dtype) * dt)[None, :]
-            p = torch.softmax(z / self.eval_temperature, dim=-1)
             t_hat_abs = (p * t_grid).sum(dim=-1) + self.win_offset
         else:
             t_hat_abs = z.argmax(dim=-1) * dt + self.win_offset
 
         rmse_time = F.mse_loss(t_hat_abs, y).sqrt()
-        loss = ce + self.eval_lambda_time * rmse_time
+        loss = (
+            self.eval_lambda_ce * ce
+            + self.eval_lambda_event_nll * event_nll
+            + self.eval_lambda_time * rmse_time
+            + self.eval_lambda_wass * wass
+        )
 
         state["total_loss"] += float(loss.detach())
         state["total_ce"] += float(ce.detach())
+        state["total_event_nll"] += float(event_nll.detach())
         state["total_rmse"] += float(rmse_time.detach())
+        state["total_wass"] += float(wass.detach())
         state["n_batches"] += 1
 
         diff_abs = (t_hat_abs - y).detach()
@@ -239,6 +265,10 @@ class SegmTrainer(BaseTrainer):
 
         metrics = self._running_eval_metrics(state)
         metrics.update({"loss": float(loss.detach()), "ce": float(ce.detach()), "rmse": float(rmse_time.detach())})
+        if self.eval_lambda_event_nll:
+            metrics["event_nll"] = float(event_nll.detach())
+        if self.eval_lambda_wass:
+            metrics["wass"] = float(wass.detach())
         return metrics
 
     def finalize_epoch(self, state: dict[str, Any], *, train: bool) -> dict[str, Any]:
@@ -255,6 +285,8 @@ class SegmTrainer(BaseTrainer):
                     "wass": state["total_wass"] / n_batches,
                 }
             )
+            if self.lambda_event_nll:
+                metrics["event_nll"] = state["total_event_nll"] / n_batches
             return metrics
 
         metrics = self._running_eval_metrics(state)
@@ -267,6 +299,10 @@ class SegmTrainer(BaseTrainer):
                 "logits": np.concatenate(state["logits"], axis=0) if state["logits"] else np.empty((0, 0), dtype=np.float32),
             }
         )
+        if self.eval_lambda_event_nll:
+            metrics["event_nll"] = state["total_event_nll"] / n_batches
+        if self.eval_lambda_wass:
+            metrics["wass"] = state["total_wass"] / n_batches
         if self.plot_last_batch and state["last_batch"] is not None:
             from benchmarks.pkg.training.visualization import draw_batch
 
@@ -295,6 +331,8 @@ class SegmTrainer(BaseTrainer):
             parts = [f"Epoch {epoch} [{batch_idx + 1}/{n_batches}]", f"Loss {metrics['loss']:.4f}"]
             if self.lambda_ce:
                 parts.append(f"CE {metrics['ce']:.4f}")
+            if self.lambda_event_nll:
+                parts.append(f"EventNLL {metrics['event_nll']:.4f}")
             if self.lambda_time:
                 parts.append(f"RMSE {metrics['rmse']:.4f}")
             if self.lambda_kl:
@@ -307,7 +345,10 @@ class SegmTrainer(BaseTrainer):
             return " ".join(parts)
         return (
             f"Val [{batch_idx + 1}/{n_batches}] Loss {metrics['loss']:.4f} "
-            f"CE {metrics['ce']:.4f} RMSE {metrics['rmse']:.4f} NRMSE {metrics['nrmse']:.4f}"
+            f"CE {metrics['ce']:.4f} "
+            f"{'EventNLL ' + format(metrics['event_nll'], '.4f') + ' ' if self.eval_lambda_event_nll else ''}"
+            f"{'WASS ' + format(metrics['wass'], '.4f') + ' ' if self.eval_lambda_wass else ''}"
+            f"RMSE {metrics['rmse']:.4f} NRMSE {metrics['nrmse']:.4f}"
         )
 
     def _mixup(self, X, q, y_rel, T: int, dt: float, batch_size: int):
@@ -346,14 +387,38 @@ class SegmTrainer(BaseTrainer):
         t_grid = (torch.arange(T, device=self.device, dtype=z.dtype) * dt)[None, :]
         t_hat = (p * t_grid).sum(dim=-1)
         rmse = F.mse_loss(t_hat, y_rel).sqrt()
+        event_nll = self._event_nll(log_p, y_rel, t_grid) if self.lambda_event_nll else torch.tensor(0.0, device=self.device)
         kl = (q * (torch.log(q + 1e-8) - log_p)).sum(dim=-1).mean() if self.lambda_kl else torch.tensor(0.0, device=self.device)
         if self.lambda_wass > 0:
             wass = (torch.abs(torch.cumsum(p, -1) - torch.cumsum(q, -1)).sum(-1).mean()) * dt
         else:
             wass = torch.tensor(0.0, device=self.device)
 
-        total = self.lambda_ce * ce + self.lambda_time * rmse + self.lambda_kl * kl + self.lambda_wass * wass + self.lambda_entropy * entropy
-        return {"total": total, "ce": ce, "rmse": rmse, "kl": kl, "wass": wass, "entropy": entropy, "t_hat": t_hat}
+        total = (
+            self.lambda_ce * ce
+            + self.lambda_event_nll * event_nll
+            + self.lambda_time * rmse
+            + self.lambda_kl * kl
+            + self.lambda_wass * wass
+            + self.lambda_entropy * entropy
+        )
+        return {
+            "total": total,
+            "ce": ce,
+            "event_nll": event_nll,
+            "rmse": rmse,
+            "kl": kl,
+            "wass": wass,
+            "entropy": entropy,
+            "t_hat": t_hat,
+        }
+
+    def _event_nll(self, log_p, y_rel, t_grid) -> torch.Tensor:
+        """Return Gaussian event-time mixture negative log-likelihood."""
+        sigma = torch.tensor(max(float(self.sigma), 1e-8), device=log_p.device, dtype=log_p.dtype)
+        log_kernel = -0.5 * ((t_grid - y_rel[:, None]) / sigma).pow(2)
+        log_kernel = log_kernel - sigma.log() - 0.5 * np.log(2.0 * np.pi)
+        return -torch.logsumexp(log_p + log_kernel, dim=-1).mean()
 
     def _running_train_metrics(self, state: dict[str, Any]) -> dict[str, float]:
         rmse_ds = (state["sse"] / max(state["n_samples"], 1)) ** 0.5

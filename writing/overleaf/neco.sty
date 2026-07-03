@@ -1,0 +1,24 @@
+% neco.sty — Neural Computation style tweaks
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{neco}
+
+% Paragraph formatting
+\setlength{\parindent}{1.5em}
+\setlength{\parskip}{0pt}
+
+% Abstract styling
+\renewenvironment{abstract}
+  {\small
+   \begin{center}
+   \bfseries Abstract
+   \end{center}
+   \quotation}
+  {\endquotation}
+
+% Appendix formatting
+\renewcommand{\appendixname}{Appendix}
+
+% Tighten lists
+\usepackage{enumitem}
+\setlist{itemsep=0pt, topsep=3pt}

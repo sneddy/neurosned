@@ -209,6 +209,77 @@ class ArtefactsManager:
         manager.save_summary(status="created")
         return manager
 
+    @classmethod
+    def open_existing(
+        cls,
+        *,
+        run_dir: str | Path,
+        config: ExperimentConfig,
+        project_root: str | Path,
+        config_path: str | Path | None = None,
+        input_checkpoint_path: str | Path | None = None,
+        data_paths: dict[str, Path | None] | None = None,
+        root_dir: str | Path | None = None,
+    ) -> "ArtefactsManager":
+        """Open an existing run directory for post-training updates."""
+        project_root = Path(project_root).resolve()
+        run_dir = resolve_path(run_dir, project_root)
+        if run_dir is None:
+            raise ValueError("run_dir cannot be None.")
+        run_dir = run_dir.resolve()
+        if root_dir is None:
+            root = run_dir.parents[1]
+        else:
+            root = resolve_path(root_dir, project_root)
+            if root is None:
+                raise ValueError("root_dir cannot be None.")
+            root = root.resolve()
+
+        paths = ArtefactPaths(
+            root=root,
+            run_dir=run_dir,
+            checkpoint=run_dir / "best_model.pth",
+            config_snapshot=run_dir / "config.yaml",
+            run_summary=run_dir / "summary.json",
+            metrics=run_dir / "metrics.csv",
+            model_summary=run_dir / "model.txt",
+            monitoring_dir=run_dir / "monitoring",
+            gpu_metrics=run_dir / "monitoring" / "gpu.csv",
+            gpu_plot=run_dir / "figures" / "gpu_usage.png",
+            logs_dir=run_dir / "logs",
+            run_log=run_dir / "logs" / "run.log",
+            predictions_dir=run_dir / "predictions",
+            figures_dir=run_dir / "figures",
+            summary_jsonl=root / "summary.jsonl",
+            summary_csv=root / "summary.csv",
+            summary_md=root / "summary.md",
+        )
+        paths.monitoring_dir.mkdir(parents=True, exist_ok=True)
+        paths.logs_dir.mkdir(parents=True, exist_ok=True)
+        paths.predictions_dir.mkdir(parents=True, exist_ok=True)
+        paths.figures_dir.mkdir(parents=True, exist_ok=True)
+
+        summary = None
+        created_at = now_utc_iso()
+        if paths.run_summary.exists():
+            with paths.run_summary.open("r", encoding="utf-8") as f:
+                summary = json.load(f)
+            created_at = summary.get("created_at", created_at)
+
+        manager = cls(
+            config=config,
+            project_root=project_root,
+            paths=paths,
+            run_name=run_dir.name,
+            created_at=created_at,
+            config_path=Path(config_path).resolve() if config_path is not None else None,
+            input_checkpoint_path=Path(input_checkpoint_path).resolve() if input_checkpoint_path is not None else None,
+            data_paths=data_paths,
+        )
+        if summary is not None:
+            manager.summary = summary
+        return manager
+
     @staticmethod
     def build_run_name(config: ExperimentConfig, created_at: str | None = None) -> str:
         """Build a readable run directory name."""
@@ -426,6 +497,27 @@ class ArtefactsManager:
         self.save_summary(**summary_updates)
         return metrics_path
 
+    def save_temperature_calibration(self, calibration: dict[str, Any]) -> Path:
+        """Save post-hoc temperature calibration details."""
+        calibration_dir = self.paths.run_dir / "calibration"
+        calibration_dir.mkdir(parents=True, exist_ok=True)
+        path = calibration_dir / "temperature.json"
+        with path.open("w", encoding="utf-8") as f:
+            json.dump(calibration, f, indent=2, default=_json_default)
+        self.save_summary(
+            calibration_temperature=float(calibration["best_temperature"]),
+            calibration_temperature_valid_nrmse=float(calibration["best_nrmse"]),
+            calibration_temperature_metrics=_relative(path, self.project_root),
+        )
+        return path
+
+    def clear_evaluation_summary(self, *, splits: tuple[str, ...] = ("test", "test_tau")) -> None:
+        """Remove stale evaluation and calibration fields from the run summary."""
+        prefixes = tuple(f"{split}_" for split in splits) + ("calibration_",)
+        for key in list(self.summary):
+            if key.startswith(prefixes) or key in {"error", "reevaluated_at"}:
+                self.summary.pop(key, None)
+
     def save_gpu_monitoring(self, summary: dict[str, Any] | None) -> None:
         """Save GPU monitoring aggregate fields in summary.json."""
         if not summary:
@@ -549,6 +641,11 @@ class ArtefactsManager:
             "test_nrmse",
             "test_nrmse_ci_low",
             "test_nrmse_ci_high",
+            "calibration_temperature",
+            "calibration_temperature_valid_nrmse",
+            "test_tau_nrmse",
+            "test_tau_nrmse_ci_low",
+            "test_tau_nrmse_ci_high",
             "last_epoch",
             "training_wall_seconds",
             "time_to_best_seconds",

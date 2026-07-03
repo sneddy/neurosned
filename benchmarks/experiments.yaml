@@ -16,10 +16,15 @@ experiments:
     artifacts: benchmarks/experiments/02_regression_vs_segmentation
     comment: Compare direct scalar regression with temporal segmentation under the same split.
 
+  - name: 02_segmentation_ablations
+    configs: benchmarks/configs/02_segmentation_ablations
+    artifacts: benchmarks/experiments/02_segmentation_ablations
+    comment: Clean one-factor SneddyUNet ablations under the frozen segmentation protocol.
+
   - name: 03_component_ablations
     configs: benchmarks/configs/03_component_ablations
     artifacts: benchmarks/experiments/03_component_ablations
-    comment: Clean one-factor SneddyUNet ablations under the frozen protocol.
+    comment: Legacy placeholder for broader component ablations; prefer 02_segmentation_ablations for segmentation-specific runs.
 
   - name: 04_advanced_training_protocol
     configs: benchmarks/configs/04_advanced_training_protocol

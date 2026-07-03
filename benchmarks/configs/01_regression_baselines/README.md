@@ -44,7 +44,7 @@ override is incompatible with its positional assumptions.
 Single seed:
 
 ```bash
-python benchmarks/run.py benchmarks/configs/01_regression_baselines/sneddy_net.yaml
+python benchmarks/scripts/run.py benchmarks/configs/01_regression_baselines/sneddy_net.yaml
 ```
 
 Repeated seeds are listed in the YAML files but disabled by default for the
@@ -52,7 +52,7 @@ first production pass. Enable `evaluation.repeated_runs.enabled` before running
 the repeated launcher:
 
 ```bash
-python benchmarks/run_repeated.py benchmarks/configs/01_regression_baselines/sneddy_net.yaml
+python benchmarks/scripts/run_repeated.py benchmarks/configs/01_regression_baselines/sneddy_net.yaml
 ```
 
 `run_repeated.py` reuses the normal runner for each seed and then writes a

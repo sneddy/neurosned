@@ -13,7 +13,7 @@ os.environ["MNE_DONTWRITE_HOME"] = "true"
 os.environ["NUMBA_DISABLE_JIT"] = "1"
 os.environ["MPLCONFIGDIR"] = "/tmp/neurosned-matplotlib"
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 DEFAULT_OUTPUT_DIR = Path("benchmarks/experiments")
@@ -26,6 +26,8 @@ from torch.utils.data import DataLoader
 
 from benchmarks.pkg.artefacts_manager import ArtefactsManager
 from benchmarks.pkg.config import load_experiment_config, resolve_path
+from benchmarks.pkg.evaluation.metrics import nrmse, rmse
+from benchmarks.pkg.evaluation.temperature import apply_temperature, fit_temperature
 from benchmarks.pkg.gpu import GpuMonitor
 from benchmarks.pkg.training import ReloadBestOnPlateau
 from benchmarks.pkg.utils import set_seed
@@ -276,10 +278,12 @@ def run_holdout_evaluation(
     trainer,
     model,
     channels_list,
+    valid_metadata,
     output_checkpoint_path: Path,
     default_rmse_by_split: dict[str, float],
     artefacts: ArtefactsManager,
     device,
+    verbose: bool = True,
 ):
     """Run optional post-training holdout evaluation."""
     evaluation = config.evaluation
@@ -287,7 +291,8 @@ def run_holdout_evaluation(
         return None
 
     split = evaluation.holdout_split
-    print(f"Holdout evaluation: split={split}")
+    if verbose:
+        print(f"Holdout evaluation: split={split}")
     holdout_dataset = config.build_dataset(split, PROJECT_ROOT)
     holdout_metadata = holdout_dataset.get_metadata()
     holdout_std = float(holdout_metadata["target"].std())
@@ -297,18 +302,21 @@ def run_holdout_evaluation(
 
     holdout_dataset_for_loader = build_eval_dataset(config, holdout_dataset, channels_list)
     holdout_loader = DataLoader(holdout_dataset_for_loader, **config.loaders.valid.to_kwargs())
-    print(
-        f"Holdout loader: rows={len(holdout_dataset_for_loader):,}, "
-        f"batches={len(holdout_loader):,}, denominator={holdout_std:.4f}"
-    )
+    if verbose:
+        print(
+            f"Holdout loader: rows={len(holdout_dataset_for_loader):,}, "
+            f"batches={len(holdout_loader):,}, denominator={holdout_std:.4f}"
+        )
 
     checkpoint_loaded = False
     if output_checkpoint_path.exists():
         model.load_state_dict(torch.load(output_checkpoint_path, map_location=device))
         checkpoint_loaded = True
-        print(f"Loaded best checkpoint for holdout: {path_text(output_checkpoint_path)}")
+        if verbose:
+            print(f"Loaded best checkpoint for holdout: {path_text(output_checkpoint_path)}")
     else:
-        print("Best checkpoint is missing; evaluating current model state.")
+        if verbose:
+            print("Best checkpoint is missing; evaluating current model state.")
 
     metrics = trainer.run_eval_epoch(holdout_loader, split=split, epoch=0)
     artefacts.save_holdout_evaluation(
@@ -318,10 +326,98 @@ def run_holdout_evaluation(
         evaluation=evaluation,
         checkpoint_loaded=checkpoint_loaded,
     )
+    run_temperature_calibration(
+        config=config,
+        trainer=trainer,
+        holdout_metrics=metrics,
+        valid_metadata=valid_metadata,
+        holdout_metadata=holdout_metadata,
+        split=split,
+        artefacts=artefacts,
+        checkpoint_loaded=checkpoint_loaded,
+        verbose=verbose,
+    )
     monitor_value = metrics.get(config.trainer.monitor)
-    if monitor_value is not None:
+    if verbose and monitor_value is not None:
         print(f"Holdout {config.trainer.monitor}: {monitor_value:.6f}")
     return metrics
+
+
+def run_temperature_calibration(
+    *,
+    config,
+    trainer,
+    holdout_metrics: dict,
+    valid_metadata,
+    holdout_metadata,
+    split: str,
+    artefacts: ArtefactsManager,
+    checkpoint_loaded: bool,
+    verbose: bool = True,
+) -> dict | None:
+    """Fit validation temperature and apply it to holdout logits."""
+    temperature_config = config.calibration.temperature
+    if not temperature_config.enabled:
+        return None
+    if config.task != "segmentation":
+        raise RuntimeError("Temperature calibration requires segmentation logits.")
+
+    best_valid_metrics = trainer.best_valid_metrics or {}
+    valid_logits = best_valid_metrics.get("logits")
+    holdout_logits = holdout_metrics.get("logits")
+    if valid_logits is None:
+        raise RuntimeError("Temperature calibration is enabled, but best validation logits are missing.")
+    if holdout_logits is None:
+        raise RuntimeError("Temperature calibration is enabled, but holdout logits are missing.")
+
+    sfreq = float(getattr(trainer.model, "sfreq", 100.0))
+    win_offset = float(getattr(trainer, "win_offset", 0.5))
+    valid_targets = valid_metadata["target"].to_numpy()
+    holdout_targets = holdout_metadata["target"].to_numpy()
+
+    calibration = fit_temperature(
+        valid_logits,
+        valid_targets,
+        min_value=temperature_config.min,
+        max_value=temperature_config.max,
+        step=temperature_config.step,
+        sfreq=sfreq,
+        win_offset=win_offset,
+    )
+    calibration.update(
+        {
+            "selection_split": "valid",
+            "holdout_split": split,
+            "metric": "nrmse",
+            "sfreq": sfreq,
+            "win_offset": win_offset,
+        }
+    )
+    calibration_path = artefacts.save_temperature_calibration(calibration)
+
+    temperature = calibration["best_temperature"]
+    predictions = apply_temperature(holdout_logits, temperature, sfreq=sfreq, win_offset=win_offset)
+    calibrated_metrics = {
+        "rmse": rmse(predictions, holdout_targets),
+        "nrmse": nrmse(predictions, holdout_targets),
+        "temperature": temperature,
+        "preds_abs": predictions,
+    }
+    artefacts.save_holdout_evaluation(
+        split=f"{split}_tau",
+        metrics=calibrated_metrics,
+        metadata=holdout_metadata,
+        evaluation=config.evaluation,
+        checkpoint_loaded=checkpoint_loaded,
+    )
+    if verbose:
+        print(
+            f"Temperature calibration: tau={temperature:.4f}, "
+            f"valid_nrmse={calibration['best_nrmse']:.6f}, "
+            f"{split}_tau_nrmse={calibrated_metrics['nrmse']:.6f}"
+        )
+        print(f"Saved temperature calibration: {path_text(calibration_path)}")
+    return calibrated_metrics
 
 
 def run_config(
@@ -551,6 +647,7 @@ def run_config(
                 trainer=trainer,
                 model=model,
                 channels_list=channels_list,
+                valid_metadata=meta_information_valid,
                 output_checkpoint_path=output_checkpoint_path,
                 default_rmse_by_split=default_rmse_by_split,
                 artefacts=artefacts,

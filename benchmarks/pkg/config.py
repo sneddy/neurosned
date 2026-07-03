@@ -185,6 +185,21 @@ class ConfidenceIntervalConfig(StrictConfig):
     resampling_seed: int = 2025
 
 
+class TemperatureCalibrationConfig(StrictConfig):
+    """Post-hoc temperature calibration for segmentation logits."""
+
+    enabled: bool = False
+    min: float = 0.4
+    max: float = 1.8
+    step: float = 0.05
+
+
+class CalibrationConfig(StrictConfig):
+    """Post-training calibration settings."""
+
+    temperature: TemperatureCalibrationConfig = Field(default_factory=TemperatureCalibrationConfig)
+
+
 class EvaluationConfig(StrictConfig):
     """Explicit holdout-evaluation settings.
 
@@ -221,6 +236,7 @@ class ExperimentConfig(StrictConfig):
     optimizer: OptimizerConfig
     trainer: TrainerConfig
     evaluation: EvaluationConfig = Field(default_factory=EvaluationConfig)
+    calibration: CalibrationConfig = Field(default_factory=CalibrationConfig)
 
     def build_datasets(self, project_root: str | Path):
         """Load train and validation pickle datasets."""

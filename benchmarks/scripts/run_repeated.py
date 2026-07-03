@@ -15,14 +15,14 @@ os.environ["MNE_DONTWRITE_HOME"] = "true"
 os.environ["NUMBA_DISABLE_JIT"] = "1"
 os.environ["MPLCONFIGDIR"] = "/tmp/neurosned-matplotlib"
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 import pandas as pd
 
 from benchmarks.pkg.config import load_experiment_config, resolve_path
-from benchmarks.run import DEFAULT_OUTPUT_DIR, choose_device, path_text, run_config
+from benchmarks.scripts.run import DEFAULT_OUTPUT_DIR, choose_device, path_text, run_config
 
 
 def build_parser() -> argparse.ArgumentParser:

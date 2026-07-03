@@ -8,13 +8,19 @@ from notebooks into YAML configs.
 Run one config from the command line:
 
 ```bash
-python benchmarks/run.py benchmarks/configs/segmentation/unet_deeper_demo.yaml
+python benchmarks/scripts/run.py benchmarks/configs/0_demo/unet_deeper_demo.yaml
 ```
 
 Use a different artefact root when needed:
 
 ```bash
-python benchmarks/run.py benchmarks/configs/segmentation/unet_deeper_demo.yaml --output-dir /tmp/neurosned-runs
+python benchmarks/scripts/run.py benchmarks/configs/0_demo/unet_deeper_demo.yaml --output-dir /tmp/neurosned-runs
+```
+
+Refresh holdout metrics for an existing run from its best checkpoint:
+
+```bash
+python benchmarks/scripts/reeval.py benchmarks/experiments/<experiment>/<run_name> --device cuda --enable-temperature
 ```
 
 For interactive inspection, open `benchmarks/prod.ipynb` and choose one config:
@@ -177,7 +183,9 @@ choice.
 
 ## Code Map
 
-- `benchmarks/run.py`: command-line entrypoint mirroring `prod.ipynb`.
+- `benchmarks/scripts/run.py`: command-line entrypoint mirroring `prod.ipynb`.
+- `benchmarks/scripts/reeval.py`: post-training holdout/calibration refresh from `best_model.pth`.
+- `benchmarks/scripts/run_repeated.py`: repeated-seed runner for final evaluation.
 - `benchmarks/pkg/config.py`: typed YAML schema and builders.
 - `benchmarks/pkg/artefacts_manager.py`: run directories, summaries and saved outputs.
 - `benchmarks/pkg/multiseed.py`: sweep/final/multiseed YAML variant helpers.
