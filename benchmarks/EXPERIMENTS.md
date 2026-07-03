@@ -41,6 +41,19 @@ and moderate Gaussian noise. The older strong augmentation remains an ablation
 because channel dropout up to 50% and 1 s cutout on a 2 s window are hard to
 defend as the default baseline protocol.
 
+We use one mild augmentation recipe for all direct-regression comparisons so
+that regularization is part of the protocol rather than a model-specific tuning
+degree of freedom. For each training window, channel dropout is applied with
+probability 0.25 and removes at most 30% of channels; temporal cutout is applied
+with probability 0.25 and masks a contiguous 10-50 sample interval, i.e. at most
+0.5 s in a 2 s, 100 Hz window; Gaussian noise is applied with probability 0.3
+with standard deviation `0.01 + U(0, 0.01)`. These perturbations are intended to
+represent plausible electrode loss, brief local signal corruption, and
+measurement noise while preserving the window-level RT label. We deliberately
+avoid mixup and the earlier stronger recipe, which allowed up to 50% channel
+dropout and 1 s cutout, because those perturbations are harder to justify as a
+default benchmark protocol for trial-wise RT regression.
+
 The development split R9-R10 was used for model checkpointing, calibration, and
 for fitting a prespecified stacking procedure. To avoid within-subject leakage
 in the stacking analysis, meta-model performance on R9-R10 was estimated using
@@ -49,99 +62,104 @@ diagnostics rather than final generalization estimates. All main performance
 claims are based on R11, which was not used for base-model training,
 checkpointing, calibration, stacking design, or hyperparameter selection.
 
-## 00 Protocol Calibration
+## Reader Notes
 
-### Designs
+`00_protocol_calibration` is a draft area, not a paper-facing table. It mixes
+segmentation and regression checks, old scale-fix runs, and negative/sanity
+experiments. Current clean regression baselines are in
+`01_regression_baselines`.
 
-| name | date | notes |
-| --- | --- | --- |
-| unet_deeper_default | 2026-06-29 12:29 UTC | Simple segmentation baseline: Adam lr=1e-3, no plateau reload, sigma=0.15. Stored before the NRMSE scale fix, so raw score is divided by 1000 for comparison. |
-| unet_deeper_lr2e4 | 2026-06-29 13:22 UTC | Same as default, only Adam lr reduced to 2e-4. Stored before the NRMSE scale fix. |
-| unet_deeper_sgd | 2026-06-29 14:18 UTC | Same as default, only optimizer changed to SGD lr=1e-3. Stored before the NRMSE scale fix and affected by old best-metric scale mismatch. |
-| unet_deeper_adamw | 2026-06-29 14:50 UTC | Same as default, optimizer changed to AdamW lr=1e-3 with weight_decay=0. Rerun after the NRMSE scale fix. |
-| unet_deeper_sigma012 | 2026-06-29 15:48 UTC | Same as default, only soft-label sigma reduced from 0.15 to 0.12. |
-| unet_deeper_sigma018 | 2026-06-29 20:13 UTC | Same as default, only soft-label sigma increased from 0.15 to 0.18. |
-| unet_deeper_default_bs128 | 2026-06-30 13:01 UTC | Same as default, only train batch size reduced from 2000 to 128. Tests whether more optimizer steps improve the segmentation protocol. |
-| unet_deeper_default_bs512 | 2026-06-30 13:19 UTC | Same as default, only train batch size reduced from 2000 to 512. Follow-up to separate the batch-size effect from the very small-bs setting. |
-| unet_deeper_default_bs128_aug_v2 | 2026-06-30 14:50 UTC | Same as `unet_deeper_default_bs128`, but with explicit mild v2 augmentation: dropout range 0.3, 0.5 s max cutout, noise probability 0.3 and lower random noise. |
+The current direct-regression story is that `sneddy_rt_net` is slightly best,
+`sneddy_net` is nearly tied, and the strongest external baseline so far is
+`tidnet_wrapped`. `wrapped` means that the external model receives the same
+per-window standardization used by our models; this is the stronger and fairer
+baseline than the unwrapped sanity checks.
 
-### Results
+Foundation-style architectures are evaluated as architectures, not as pretrained
+models: pretrained weights are not used. We also avoid models that require
+explicit montage/channel-position plumbing, because that would change the
+benchmark setup rather than only the architecture.
 
-| name | epoch | valid_nrmse | result note |
-| --- | ---: | ---: | --- |
-| unet_deeper_default | 21 | 0.930441 | Original large-batch simple-protocol baseline; validation worsened after epoch 21 while train kept improving. |
-| unet_deeper_lr2e4 | 12 | 0.949753 | Worse than default; lr=2e-4 looks too conservative. |
-| unet_deeper_sgd | 10 | 1.048704 | Clearly worse early trajectory than Adam. |
-| unet_deeper_adamw | 21 | 0.930456 | Essentially tied with Adam. With weight_decay=0, this is not a meaningful decoupled-weight-decay ablation. |
-| unet_deeper_sigma012 | 15 | 0.931072 | Slightly worse than sigma=0.15; sharper labels do not help this simple protocol. |
-| unet_deeper_sigma018 | 21 | 0.934803 | Worse than sigma=0.15; smoother labels also do not help. |
-| unet_deeper_default_bs128 | 14 | 0.927352 | Batch-size pivot improved the original large-batch baseline; later improved by the mild v2 augmentation variant. |
-| unet_deeper_default_bs512 | 10 | 0.935622 | Worse than both bs128 and the original large-batch baseline; intermediate batch size does not explain the bs128 gain. |
-| unet_deeper_default_bs128_aug_v2 | 17 | 0.923423 | Current best segmentation calibration result and preferred pivot for subsequent segmentation ablations. |
+Older sigma and learning-rate ablations were run before the current segmentation
+pivot was fixed. Paper-grade segmentation ablations should be repeated from
+`unet_deeper_default_bs128_aug_v2`.
+
+Paper names should describe mechanisms rather than internal nicknames:
+`SneddyNet` is MSP-CNN (multiscale segment pooling CNN), `SneddyRTNet` is ETR-CNN
+(event-time readout CNN), and `SneddyUNet` is ETS-U-Net (event-time segmentation
+U-Net).
 
 ## 01 Regression Baselines
 
-### Designs
+Clean regression baselines live under
+`benchmarks/configs/01_regression_baselines/`. These runs use the frozen
+direct-regression protocol: fixed 2 s windows, no mixup, batch size 128,
+patience 20, the same train/development/holdout releases, and R11 subject
+bootstrap confidence intervals when holdout evaluation is enabled.
 
-| name | date | notes |
-| --- | --- | --- |
-| sneddy_net_default | 2026-06-29 20:43 UTC | First direct SneddyNet regression baseline on fixed 2 s windows. Uses the earlier notebook-like regression protocol with mixup. |
-| sneddy_net_stable | 2026-06-29 20:53 UTC | Same architecture with mixup disabled. This is a cleaner direct-regression point than `sneddy_net_default`. |
-| sneddy_net_stable_bs512 | 2026-06-30 12:25 UTC | Same as `sneddy_net_stable`, but train batch size reduced from 2000 to 512. |
-| sneddy_net_stable_bs128 | 2026-06-30 12:45 UTC | Same strong augmentation as `sneddy_net_stable`, but train batch size reduced to 128. |
-| sneddy_net_stable_bs128_noaug | 2026-06-30 13:58 UTC | Same as `sneddy_net_stable_bs128`, but train augmentation disabled. |
-| sneddy_net_other_aug_bs128 | 2026-06-30 14:16 UTC | SneddyNet bs128 with the first mild augmentation recipe: lower channel dropout, shorter cutout, and lower noise than the old strong augmentation. |
-| sneddy_net_other_aug_bs128_v2 | 2026-06-30 14:32 UTC | SneddyNet bs128 with the current mild v2 augmentation candidate: channel dropout proba 0.25, max ratio 0.3, 0.5 s max cutout, and moderate noise. |
-| sneddy_net_other_aug_bs128_v2_wd1e6 | 2026-07-01 | Same as `sneddy_net_other_aug_bs128_v2`, but Adam weight_decay increased from 0 to 1e-6. |
-| eegnet_default | 2026-06-30 07:37 UTC | Direct Braindecode EEGNet without per-sample standardization wrapper, Adam lr=1e-3. Kept as an exploratory pre-rename run with an archived config. |
-| eegnet_default_bs128 | 2026-06-30 13:34 UTC | Direct EEGNet with restored default lr=1e-3 recipe, train batch size 128, and patience 20. |
-| eegnet_wrapped | 2026-06-30 08:45 UTC | EEGNet wrapped with per-sample standardization, Adam lr=1e-3, strong augmentation. The global summary has this run, but the local artefact directory is not currently present. |
-| eegnet_wrapped | 2026-06-30 09:01 UTC | Same named protocol, Adam lr=1e-3. Did not beat NRMSE=1 baseline. |
-| eegnet_wrapped_lr1e2 | 2026-06-30 09:09 UTC | Same as wrapped EEGNet, but Adam lr=1e-2. Postfactum renamed because this LR change materially affected the result. |
-| eegnet_wrapped_bs128 | 2026-06-30 13:43 UTC | Wrapped EEGNet with restored default lr=1e-3 recipe, train batch size 128, and patience 20. |
-| eegnet_lr1e2 | 2026-06-30 09:27 UTC | Pure EEGNet without wrapper, Adam lr=1e-2, strong augmentation. Tests whether the LR gain depends on per-sample standardization. |
-| eegnet_lr1e2_noaug | 2026-06-30 09:35 UTC | Pure EEGNet without wrapper, Adam lr=1e-2, no augmentation. This is the preferred paper-facing simple EEGNet baseline. |
-| labram_default | 2026-06-30 11:25 UTC | Braindecode LaBraM trained from scratch on fixed 2 s windows, AdamW lr=3e-4, weight_decay=1e-2, no augmentation. Large-model baseline; not a pretrained-model claim. |
+### Current Runs
 
-### Results
+| name | role | valid_nrmse | R11 nrmse | note |
+| --- | --- | ---: | ---: | --- |
+| sneddy_net | MSP-CNN direct regression | 0.933637 | 0.946269 [0.931609, 0.962943] | Main compact direct-regression baseline. |
+| sneddy_rt_net | ETR-CNN direct regression | 0.932577 | 0.945938 [0.930153, 0.963795] | Current best direct-regression candidate; explicit temporal readout helps slightly. |
+| sneddy_rt_net_larger | larger ETR-CNN | 0.939308 | 0.951909 [0.936078, 0.969803] | More capacity did not improve the explicit temporal-readout model. |
+| eegnet | EEGNet sanity check | 1.000000 | 1.002046 [0.999718, 1.007253] | Unwrapped EEGNet does not beat the target-std baseline. |
+| eegnet_wrapped | EEGNet + per-window standardization | 0.957877 | 0.965041 [0.954684, 0.977111] | Standardization makes EEGNet train, but it remains well behind the Sneddy models. |
+| eegconformer | EEGConformer sanity check | 1.000000 | 1.000413 [0.999906, 1.003179] | Unwrapped transformer baseline does not train usefully under this protocol. |
+| eegconformer_wrapped | EEGConformer + per-window standardization | 0.957968 | 0.962802 [0.951634, 0.975382] | Modern supervised Braindecode baseline; competitive with EEGNet but not with Sneddy models. |
+| deep4net_wrapped | Deep4Net + per-window standardization | 0.955678 | 0.971619 [0.956680, 0.989067] | Classical conv baseline; validation is reasonable, R11 generalization is weaker. |
+| tidnet_wrapped | TIDNet + per-window standardization | 0.957974 | 0.959004 [0.948507, 0.970822] | Strongest external baseline on R11 so far, still behind Sneddy models. |
+| labram | LaBraM from scratch sanity check | 1.000000 | 1.000711 [0.998638, 1.004512] | From-scratch unwrapped LaBraM does not train usefully. |
+| labram_wrapped | LaBraM from scratch + per-window standardization | 0.958254 | 0.965382 [0.952576, 0.979330] | Large architecture baseline without pretrained weights; weaker than compact Sneddy models. |
 
-| name | epoch | valid_nrmse | result note |
-| --- | ---: | ---: | --- |
-| sneddy_net_default | 11 | 0.997383 | Barely improves over target-std baseline; mixup likely destabilizes direct scalar regression. |
-| sneddy_net_stable | 78 | 0.948825 | Disabling mixup substantially improves direct regression, but it still trails the segmentation baseline. |
-| sneddy_net_stable_bs512 | 58 | 0.938593 | Smaller batch size helped relative to bs2000, but it was later improved by bs128 runs. |
-| sneddy_net_stable_bs128 | 25 | 0.936467 | Strong augmentation plus bs128 improved SneddyNet further, but the augmentation is aggressive for a paper-facing default. |
-| sneddy_net_stable_bs128_noaug | 13 | 0.944461 | No-augmentation bs128 is worse than augmented bs128, showing that some regularization helps direct regression. |
-| sneddy_net_other_aug_bs128 | 16 | 0.938723 | Mild v1 nearly recovers the strong-augmentation gain while being more defensible. |
-| sneddy_net_other_aug_bs128_v2 | 22 | 0.933637 | Current best direct-regression result and preferred paper-facing augmentation candidate. |
-| sneddy_net_other_aug_bs128_v2_wd1e6 | 22 | 0.936081 | Adam weight_decay=1e-6 is slightly worse than the wd=0 mild v2 pivot, so weight decay should not become the default from this run. |
-| eegnet_default |  | 1.000000 | Direct EEGNet with lr=1e-3 did not beat the NRMSE=1 baseline. |
-| eegnet_default_bs128 |  | 1.000000 | Reducing batch size and increasing patience did not make unwrapped EEGNet beat the baseline. |
-| eegnet_wrapped |  | 1.000000 | Per-sample standardization wrapper alone did not help under lr=1e-3 and strong augmentation. |
-| eegnet_wrapped |  | 1.000000 | Repeat lr=1e-3 wrapped run also did not beat baseline. |
-| eegnet_wrapped_lr1e2 | 36 | 0.960001 | Higher lr makes wrapped EEGNet train meaningfully, but it remains weaker than `sneddy_net_stable`. |
-| eegnet_wrapped_bs128 | 55 | 0.956806 | Wrapped EEGNet benefits from bs128/patience20, but remains clearly behind SneddyNet. |
-| eegnet_lr1e2 |  | 1.000000 | Pure EEGNet with lr=1e-2 and strong augmentation still did not beat the NRMSE=1 baseline. The LR benefit seen in `eegnet_wrapped_lr1e2` appears to depend on per-sample standardization. |
-| eegnet_lr1e2_noaug |  | 1.000000 | Pure EEGNet with lr=1e-2 and no augmentation also did not beat baseline. This supports keeping no-augmentation as the defensible simple protocol, while reporting that EEGNet itself remains weak here. |
-| labram_default | 12 | 0.952806 | From-scratch LaBraM is competitive with the direct-regression baselines, but does not beat `sneddy_net_stable` and is still behind the segmentation protocol. |
+### Open Regression Runs
+
+| name | purpose |
+| --- | --- |
+| sneddy_net_larger | Check the older larger MSP-CNN setting as a capacity ablation before deciding whether to include it. |
+| repeated seeds for best Sneddy model | Estimate seed variability for the final direct-regression claim. |
+| repeated seeds for best external baseline | Estimate whether the Sneddy-vs-external gap is robust to seed variance. |
 
 ## Experiment Design Draft
 
+### Data Protocol
+
 ```mermaid
 flowchart TD
-    A[Scope revision: focus paper on reaction-time prediction] --> B[Data protocol]
-    B --> B1[R1-R8: base-model training]
-    B --> B2[R9-R10: checkpointing, calibration, stacking diagnostics]
-    B --> B3[R11: untouched held-out report]
-    B2 --> C[Protocol calibration: simple Sneddy-UNet recipe]
-    C --> D[Direct regression baselines: SneddyNet, EEGNet, EEGConformer or TIDNet, LaBraM from scratch]
-    C --> E[Core segmentation ablations: jitter, sigma, temperature, loss terms]
-    C --> F[Architecture ablations: default, wider/deeper, recurrent or factorized or attention variant]
-    D --> G[Main comparison: best scalar regression vs best event-time segmentation]
-    E --> G
-    F --> G
-    G --> H[Stacking add-on: subject-disjoint OOF on R9-R10]
-    H --> I[Final R11 table: NRMSE with subject bootstrap CI and seed variability]
+    A["All releases are split before model selection"] --> B["R1-R8"]
+    A --> C["R9-R10"]
+    A --> D["R11"]
+
+    B --> B1["Base-model training only"]
+    C --> C1["Development: checkpointing and calibration"]
+    C --> C2["Stacking diagnostics with subject-disjoint OOF"]
+    D --> D1["Untouched local holdout"]
+    D --> D2["Final NRMSE with subject-bootstrap CI"]
+```
+
+### Model Protocol
+
+```mermaid
+flowchart LR
+    A["Direct scalar regression"] --> A1["Ours: MSP-CNN and ETR-CNN"]
+    A --> A2["External wrapped baselines: EEGNet, EEGConformer, Deep4Net, TIDNet, LaBraM from scratch"]
+    A --> A3["Pending: SneddyNet-large and repeated seeds for finalists"]
+
+    B["Event-time segmentation"] --> B1["Pivot: unet_deeper_default_bs128_aug_v2"]
+    B --> B2["Core ablations: sigma, crop jitter, temperature, loss terms"]
+    B --> B3["Architecture variants: attention, factorization, recurrence, capacity"]
+
+    A1 --> C["Main comparison"]
+    A2 --> C
+    B1 --> C
+    C --> C1["Best scalar regression vs best event-time segmentation"]
+    C1 --> D["Repeated seeds for finalists"]
+
+    C1 --> E["Stacking add-on"]
+    E --> E1["Use saved event-time distributions/logits"]
+    E --> E2["Subject-disjoint OOF meta-learning"]
+    E --> E3["Prespecified final stacker"]
 ```
 
 ### Reviewer-Facing Table Plan
@@ -211,3 +229,33 @@ the referenced baseline and changing only the listed fields.
 3. Add one or two segmentation architecture variants only after the core method table is stable.
 4. Save logits/predictions for the best candidates and run stacking as a separate add-on analysis.
 5. Compute subject-level bootstrap CIs on R11 for the final table.
+
+## 00 Protocol Calibration
+
+### Designs
+
+| name | date | notes |
+| --- | --- | --- |
+| unet_deeper_default | 2026-06-29 12:29 UTC | Simple segmentation baseline: Adam lr=1e-3, no plateau reload, sigma=0.15. Stored before the NRMSE scale fix, so raw score is divided by 1000 for comparison. |
+| unet_deeper_lr2e4 | 2026-06-29 13:22 UTC | Same as default, only Adam lr reduced to 2e-4. Stored before the NRMSE scale fix. |
+| unet_deeper_sgd | 2026-06-29 14:18 UTC | Same as default, only optimizer changed to SGD lr=1e-3. Stored before the NRMSE scale fix and affected by old best-metric scale mismatch. |
+| unet_deeper_adamw | 2026-06-29 14:50 UTC | Same as default, optimizer changed to AdamW lr=1e-3 with weight_decay=0. Rerun after the NRMSE scale fix. |
+| unet_deeper_sigma012 | 2026-06-29 15:48 UTC | Same as default, only soft-label sigma reduced from 0.15 to 0.12. |
+| unet_deeper_sigma018 | 2026-06-29 20:13 UTC | Same as default, only soft-label sigma increased from 0.15 to 0.18. |
+| unet_deeper_default_bs128 | 2026-06-30 13:01 UTC | Same as default, only train batch size reduced from 2000 to 128. Tests whether more optimizer steps improve the segmentation protocol. |
+| unet_deeper_default_bs512 | 2026-06-30 13:19 UTC | Same as default, only train batch size reduced from 2000 to 512. Follow-up to separate the batch-size effect from the very small-bs setting. |
+| unet_deeper_default_bs128_aug_v2 | 2026-06-30 14:50 UTC | Same as `unet_deeper_default_bs128`, but with explicit mild v2 augmentation: dropout range 0.3, 0.5 s max cutout, noise probability 0.3 and lower random noise. |
+
+### Results
+
+| name | epoch | valid_nrmse | result note |
+| --- | ---: | ---: | --- |
+| unet_deeper_default | 21 | 0.930441 | Original large-batch simple-protocol baseline; validation worsened after epoch 21 while train kept improving. |
+| unet_deeper_lr2e4 | 12 | 0.949753 | Worse than default; lr=2e-4 looks too conservative. |
+| unet_deeper_sgd | 10 | 1.048704 | Clearly worse early trajectory than Adam. |
+| unet_deeper_adamw | 21 | 0.930456 | Essentially tied with Adam. With weight_decay=0, this is not a meaningful decoupled-weight-decay ablation. |
+| unet_deeper_sigma012 | 15 | 0.931072 | Slightly worse than sigma=0.15; sharper labels do not help this simple protocol. |
+| unet_deeper_sigma018 | 21 | 0.934803 | Worse than sigma=0.15; smoother labels also do not help. |
+| unet_deeper_default_bs128 | 14 | 0.927352 | Batch-size pivot improved the original large-batch baseline; later improved by the mild v2 augmentation variant. |
+| unet_deeper_default_bs512 | 10 | 0.935622 | Worse than both bs128 and the original large-batch baseline; intermediate batch size does not explain the bs128 gain. |
+| unet_deeper_default_bs128_aug_v2 | 17 | 0.923423 | Current best segmentation calibration result and preferred pivot for subsequent segmentation ablations. |

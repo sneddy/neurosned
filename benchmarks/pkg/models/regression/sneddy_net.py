@@ -21,6 +21,7 @@ class SneddyNet(nn.Module):
         dropout: float = 0.1,
         k: int = 7,
         use_norm: bool = True,
+        segments=(2, 4),
     ):
         super().__init__()
         self.n_chans = n_chans
@@ -46,7 +47,7 @@ class SneddyNet(nn.Module):
             in_ch = out_ch
         self.backbone = nn.Sequential(*stages)
 
-        self.segpool = SegmentStatPool(segments=(2, 4))
+        self.segpool = SegmentStatPool(segments=segments)
 
         with torch.no_grad():
             dummy = torch.zeros(1, n_chans, n_times)

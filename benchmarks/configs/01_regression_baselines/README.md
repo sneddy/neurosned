@@ -9,9 +9,24 @@ should be copied in only after the protocol is frozen.
 | config | model | role |
 | --- | --- | --- |
 | `sneddy_net.yaml` | SneddyNet | Main direct-regression baseline from our model family. |
+| `sneddy_net_larger.yaml` | SneddyNet larger | Larger SneddyNet draft variant from the original regression notes. |
+| `sneddy_rt_net.yaml` | SneddyRTNet | RT-oriented direct-regression model with temporal-distribution readout. |
+| `sneddy_rt_net_larger.yaml` | SneddyRTNet larger | Larger RT-oriented variant from the previous best regression draft. |
 | `eegnet.yaml` | Braindecode EEGNet | Canonical compact EEG baseline. |
 | `eegnet_wrapped.yaml` | Braindecode EEGNet + per-sample standardization | Same EEGNet architecture with the input normalization used by our models. |
+| `eegconformer.yaml` | Braindecode EEGConformer | Modern supervised conv-transformer EEG baseline. |
+| `eegconformer_wrapped.yaml` | Braindecode EEGConformer + per-sample standardization | EEGConformer with the input normalization used by our models. |
+| `deep4net.yaml` | Braindecode Deep4Net | Classic deeper convolutional EEG baseline. |
+| `deep4net_wrapped.yaml` | Braindecode Deep4Net + per-sample standardization | Deep4Net with the input normalization used by our models. |
+| `tidnet.yaml` | Braindecode TIDNet | Lightweight convolutional EEG baseline. |
+| `tidnet_wrapped.yaml` | Braindecode TIDNet + per-sample standardization | TIDNet with the input normalization used by our models. |
 | `labram.yaml` | Braindecode LaBraM from scratch | Larger modern baseline without pretrained weights. |
+| `labram_wrapped.yaml` | Braindecode LaBraM + per-sample standardization | LaBraM from scratch with the same input normalization used by our models. |
+
+Braindecode emits two useful caveats for the added supervised baselines:
+`EEGConformer` is documented as tested on up to 64 channels, while our input has
+128 channels; `Deep4Net` automatically scales kernel/pooling parameters because
+our 2 s windows are shorter than its default minimum input length.
 
 ## Running
 

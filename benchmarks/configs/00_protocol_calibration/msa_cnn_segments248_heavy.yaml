@@ -1,0 +1,100 @@
+experiment: 00_protocol_calibration
+name: msa_cnn_segments248_heavy
+task: regression
+seed: 2025
+
+evaluation:
+  holdout_eval: false
+  holdout_split: test
+  save_predictions: true
+  save_logits: false
+  repeated_runs:
+    enabled: false
+    seeds: [2025, 2026, 2027, 2028, 2029]
+  confidence_interval:
+    enabled: false
+    method: subject_bootstrap
+    n_samples: 1000
+    resampling_seed: 2025
+
+data:
+  train: data/new_validation/r1_r8_train.pkl
+  valid: data/new_validation/r9_r10_val.pkl
+  test: data/new_validation/r11_test.pkl
+  train_dataset:
+    module_name: benchmarks.data.regression
+    class_name: FixedWindowDataset
+    params:
+      use_augmentation: true
+      channel_dropout_proba: 0.25
+      channel_dropout_max_ratio: 0.3
+      cutout_proba: 0.25
+      cutout_min_len: 10
+      cutout_max_len: 50
+      noise_proba: 0.3
+      noise_base_std: 0.01
+      noise_random_std: 0.01
+  valid_dataset:
+    module_name: benchmarks.data.regression
+    class_name: FixedWindowDataset
+    params:
+      use_augmentation: false
+
+loaders:
+  train:
+    batch_size: 128
+    shuffle: true
+    num_workers: 6
+  valid:
+    batch_size: 256
+    shuffle: false
+    num_workers: 6
+
+model:
+  module_name: benchmarks.pkg.models.regression.msa_cnn
+  class_name: MSACNN
+  params:
+    n_chans: 128
+    n_times: 200
+    sfreq: 100
+    n_outputs: 1
+    c0: 48
+    widen: 2
+    depth_per_stage: 3
+    dropout: 0.05
+    k: 15
+    segments: [2, 4, 8]
+    attn_dim: 512
+    head_hidden: 256
+    head_dropout: 0.1
+    pooling: query
+    num_heads: 4
+    attn_layers: 1
+    attn_ff_dim: 1024
+    attn_dropout: 0.1
+    pool_queries: 1
+    use_segment_embeddings: true
+
+optimizer:
+  module_name: torch.optim
+  class_name: Adam
+  params:
+    lr: 0.001
+    weight_decay: 0
+
+trainer:
+  module_name: benchmarks.pkg.training.trainers
+  class_name: RegrTrainer
+  n_epochs: 100
+  checkpoint:
+    input: null
+  monitor: nrmse
+  minimize: true
+  early_stopping_patience: 20
+  print_batch_stats: true
+  plateau:
+    enabled: false
+    factor: 0.5
+  params:
+    mixup_p: 0.0
+    mixup_alpha: 0.4
