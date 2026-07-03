@@ -54,12 +54,18 @@ avoid mixup and the earlier stronger recipe, which allowed up to 50% channel
 dropout and 1 s cutout, because those perturbations are harder to justify as a
 default benchmark protocol for trial-wise RT regression.
 
-The development split R9-R10 was used for model checkpointing, calibration, and
-for fitting a prespecified stacking procedure. To avoid within-subject leakage
-in the stacking analysis, meta-model performance on R9-R10 was estimated using
-subject-disjoint out-of-fold predictions. We treat R9-R10 results as development
-diagnostics rather than final generalization estimates. All main performance
-claims are based on R11, which was not used for base-model training,
+The development split R9-R10 is used only as a development resource: base-model
+checkpointing, calibration, protocol diagnostics, and fitting the prespecified
+stacking procedure can all use this split, but R9-R10 performance is not treated
+as a final generalization estimate. For stacking, meta-model inputs on R9-R10
+are generated with subject-disjoint out-of-fold predictions so that the
+meta-model never sees in-fold predictions for the same subject. The final
+stacking comparison is then made on R11 only: best single model, simple
+averaging, scalar-only stacking, and distribution-aware stacking are compared on
+the same held-out release. The purpose of this analysis is to test whether
+event-time distributions/logits carry reusable information beyond scalar RT
+predictions, not to select a model based on R9-R10 validation gains. All main
+performance claims are based on R11, which was not used for base-model training,
 checkpointing, calibration, stacking design, or hyperparameter selection.
 
 ## Reader Notes
@@ -74,6 +80,33 @@ The current direct-regression story is that `sneddy_rt_net` is slightly best,
 `tidnet_wrapped`. `wrapped` means that the external model receives the same
 per-window standardization used by our models; this is the stronger and fairer
 baseline than the unwrapped sanity checks.
+
+Per-window standardization is part of the fixed neural input preprocessing
+protocol, not a model-specific tuning trick. For each trial window and channel,
+we subtract that channel's temporal mean and divide by its temporal standard
+deviation within the same 2 s input window. This uses no label, subject-level,
+train-set, validation-set, or holdout aggregate statistics, so it does not
+introduce leakage. Main paper comparisons should use the standardized/wrapped
+external baselines because our own models use the same normalization internally.
+Unwrapped external runs are useful as sanity checks and appendix evidence that
+off-the-shelf architectures are scale-sensitive under this benchmark, but they
+should not be treated as the fairest external baseline.
+
+Writer-facing guidance for the manuscript:
+- In Methods, say explicitly: "All neural models receive the same input
+  normalization: each channel in each 2 s trial window is centered and scaled by
+  its own temporal mean and standard deviation."
+- In main result tables, show the wrapped/standardized external models as the
+  primary baselines. These are the fair architecture comparisons under the
+  fixed preprocessing protocol.
+- Move unwrapped external models to an appendix or sanity-check table. Their
+  purpose is to show that, without the fixed benchmark normalization, some
+  off-the-shelf instantiations are sensitive to amplitude scale and can collapse
+  toward mean-like predictions.
+- Avoid writing that "vanilla EEGNet/EEGConformer failed" without
+  qualification. Prefer wording such as: "without the fixed benchmark
+  normalization, off-the-shelf instantiations were scale-sensitive and often
+  collapsed toward mean predictions."
 
 Foundation-style architectures are evaluated as architectures, not as pretrained
 models: pretrained weights are not used. We also avoid models that require
@@ -98,6 +131,29 @@ predicts temporal logits before converting them back to scalar RT. The goal is
 not to rebrand the implementation, but to make the scientific comparison read
 as pooling-based direct regression, event-time direct regression, and
 event-time segmentation.
+
+Conceptual framing for the manuscript: the main contribution should be
+formulation-first, not "we built another EEG CNN." Many neurophysiological
+analyses are already organized around events: stimulus onset, response
+execution, error commission, attentional shifts, sleep transients,
+epileptiform discharges, movement onset, and ERP component latencies. The
+event-time segmentation formulation follows this tradition from a supervised
+learning perspective. Instead of treating RT as a static scalar attached to an
+entire window, it asks the model to localize when the task-relevant event occurs
+and then derives the scalar prediction from the event-time distribution. This
+makes time-locking, latency variability, label-consistent crop jitter, and
+uncertainty estimation explicit in the learning objective.
+
+Useful wording for the broader claim: "Although we study reaction-time
+prediction, the same event-time view can apply whenever the target is tied to a
+temporally localized or latency-varying neural/behavioral process, such as ERP
+latency estimation, error-related potentials, sleep spindle or K-complex
+detection, epileptiform spike/seizure detection, movement onset decoding, and
+brain-state transitions." Keep the caveat explicit: the claim is not that every
+EEG target should be segmented, but that when a behavioral or neural label has
+an event-time interpretation, representing it as a distribution over time can
+make the supervision better aligned with the way neuroscientists already
+analyze the signal.
 
 ## 01 Regression Baselines
 

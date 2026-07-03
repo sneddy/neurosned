@@ -24,13 +24,20 @@ should be copied in only after the protocol is frozen.
 | `atcnet_wrapped.yaml` | Braindecode ATCNet + per-sample standardization | Modern convolutional/attention/TCN EEG baseline with the input normalization used by our models. |
 | `labram.yaml` | Braindecode LaBraM from scratch | Larger modern baseline without pretrained weights. |
 | `labram_wrapped.yaml` | Braindecode LaBraM + per-sample standardization | LaBraM from scratch with the same input normalization used by our models. |
+| `biot_wrapped.yaml` | Braindecode BIOT + per-sample standardization | Biosignal transformer architecture baseline trained from scratch. |
+| `eegpt_wrapped.yaml` | Braindecode EEGPT + per-sample standardization | EEG foundation-style architecture baseline trained from scratch. |
+| `medformer_wrapped.yaml` | Braindecode MEDFormer + per-sample standardization | Larger transformer/time-series architecture baseline trained from scratch. |
 
 Braindecode emits two useful caveats for the added supervised baselines:
 `EEGConformer` is documented as tested on up to 64 channels, while our input has
 128 channels; `Deep4Net` automatically scales kernel/pooling parameters because
 our 2 s windows are shorter than its default minimum input length. `ATCNet`
 similarly adapts its default kernel and pooling sizes to the 200-sample input
-window.
+window. `BIOT`, `EEGPT`, and `MEDFormer` are included only as from-scratch
+architecture baselines; no pretrained weights are used. `BIOT` warns that its
+defaults were trained at 200 Hz, while this benchmark uses 100 Hz, and `EEGPT`
+keeps its default internal channel projection because the 128-target-channel
+override is incompatible with its positional assumptions.
 
 ## Running
 
