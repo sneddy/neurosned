@@ -20,13 +20,17 @@ should be copied in only after the protocol is frozen.
 | `deep4net_wrapped.yaml` | Braindecode Deep4Net + per-sample standardization | Deep4Net with the input normalization used by our models. |
 | `tidnet.yaml` | Braindecode TIDNet | Lightweight convolutional EEG baseline. |
 | `tidnet_wrapped.yaml` | Braindecode TIDNet + per-sample standardization | TIDNet with the input normalization used by our models. |
+| `shallowfbcspnet_wrapped.yaml` | Braindecode ShallowFBCSPNet + per-sample standardization | Classic shallow FBCSP-style EEG baseline with the input normalization used by our models. |
+| `atcnet_wrapped.yaml` | Braindecode ATCNet + per-sample standardization | Modern convolutional/attention/TCN EEG baseline with the input normalization used by our models. |
 | `labram.yaml` | Braindecode LaBraM from scratch | Larger modern baseline without pretrained weights. |
 | `labram_wrapped.yaml` | Braindecode LaBraM + per-sample standardization | LaBraM from scratch with the same input normalization used by our models. |
 
 Braindecode emits two useful caveats for the added supervised baselines:
 `EEGConformer` is documented as tested on up to 64 channels, while our input has
 128 channels; `Deep4Net` automatically scales kernel/pooling parameters because
-our 2 s windows are shorter than its default minimum input length.
+our 2 s windows are shorter than its default minimum input length. `ATCNet`
+similarly adapts its default kernel and pooling sizes to the 200-sample input
+window.
 
 ## Running
 

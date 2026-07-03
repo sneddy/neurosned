@@ -89,6 +89,16 @@ Paper names should describe mechanisms rather than internal nicknames:
 (event-time readout CNN), and `SneddyUNet` is ETS-U-Net (event-time segmentation
 U-Net).
 
+This renaming is optional for code, but useful for the manuscript. It turns
+internal model names into mechanism-level names that are easier for reviewers to
+evaluate: MSP-CNN is named after its multiscale segment-statistic pooling over
+fixed EEG windows, ETR-CNN after its explicit event-time/readout-oriented RT
+architecture, and ETS-U-Net after the event-time segmentation formulation that
+predicts temporal logits before converting them back to scalar RT. The goal is
+not to rebrand the implementation, but to make the scientific comparison read
+as pooling-based direct regression, event-time direct regression, and
+event-time segmentation.
+
 ## 01 Regression Baselines
 
 Clean regression baselines live under
