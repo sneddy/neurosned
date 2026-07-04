@@ -202,7 +202,7 @@ methodological difference at a time relative to the segmentation pivot.
 
 ### Current Runs
 
-`include`: ✓ = include in final paper-facing tables; ✗ = keep as a sanity/internal run unless space or reviewer requests require an appendix.
+`include`: ✓ = include in the core paper-facing segmentation-loss study; ✗ = keep as a sanity/internal run unless space or reviewer requests require an appendix.
 
 | include | name | role | readout | temperature | valid_nrmse | R11 nrmse | note |
 | :---: | --- | --- | --- | ---: | ---: | ---: | --- |
@@ -212,6 +212,9 @@ methodological difference at a time relative to the segmentation pivot.
 | ✓ | unet_deeper_comboloss | hybrid event-time segmentation: soft-label CE + soft-argmax time loss | calibrated tau | 0.80 | 0.924544 | 0.935573 [0.918136, 0.954309] | Same checkpoint with post-hoc temperature selected on validation logits. |
 | ✓ | unet_deeper_event_nll | continuous event-time mixture likelihood | base | 0.65 | 0.923948 | 0.942698 [0.924651, 0.962530] | Single probabilistic event-time objective: the temporal softmax defines mixture weights over latent event times and observed RT is modeled with Gaussian temporal noise. Nearly matches CE/hybrid without a hand-weighted CE+time cocktail. |
 | ✓ | unet_deeper_event_nll | continuous event-time mixture likelihood | calibrated tau | 0.70 | 0.923619 | 0.940947 [0.923160, 0.960322] | Same checkpoint with post-hoc temperature selected on validation logits. |
+| ✗ | unet_deeper_student_t_event_nll | robust continuous event-time mixture likelihood with Student-t observation kernel | base | 0.65 | 0.926036 | 0.946590 [0.927653, 0.967181] | Robust heavy-tailed observation kernel did not improve the Gaussian EventNLL. Keep as an appendix/internal statistical probe, not a core loss ablation. |
+| ✗ | unet_deeper_student_t_event_nll | robust continuous event-time mixture likelihood with Student-t observation kernel | calibrated tau | 0.80 | 0.923259 | 0.941127 [0.923382, 0.960687] | Post-hoc temperature recovers much of the validation gap, but R11 remains essentially tied with or weaker than Gaussian EventNLL and below the best CE/combo calibrated readouts. |
+| ✗ | unet_deeper_event_nll_heteroscedastic | EventNLL with trial-wise learned observation scale `sigma(x)` | base | 0.65 | 0.923056 | 0.942343 [0.923630, 0.962703] | Trial-wise sigma slightly improves validation relative to fixed Gaussian EventNLL, but does not improve R11 enough to justify inclusion in the main loss table. R11 mean predicted `event_sigma` is 0.110943 s. |
 | ✓ | unet_deeper_time_only | soft-argmax time loss only | base | 0.65 | 0.938750 | 0.951797 [0.937201, 0.967933] | Directly optimizes the scalar soft-argmax error but removes distributional supervision. Weaker than the distributional losses, supporting the claim that event-time distribution learning matters beyond scalar readout alone. |
 | ✓ | unet_deeper_time_only | soft-argmax time loss only | calibrated tau | 0.85 | 0.935298 | 0.944578 [0.930935, 0.959775] | Same checkpoint with post-hoc temperature selected on validation logits. |
 | ✓ | unet_deeper_wass_only | event-time Wasserstein/CDF distance only | base | 0.65 | 0.943597 | 0.960514 [0.944301, 0.978722] | Pure CDF-distance matching is the weakest completed segmentation loss ablation so far. It is useful as a negative control: not every distributional distance recovers the segmentation gain. |

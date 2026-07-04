@@ -2,6 +2,8 @@
 data/*
 !data/new_validation/
 !data/new_validation/**
+data/new_validation/*.pkl
+data/new_validation/prepare_manifest.json
 release_data/
 experiments/
 artefacts

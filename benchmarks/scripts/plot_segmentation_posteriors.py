@@ -566,6 +566,52 @@ def add_jittered_points(ax, values: list[np.ndarray], positions: np.ndarray, col
         )
 
 
+def add_clipped_jittered_points(
+    ax,
+    values: list[np.ndarray],
+    positions: np.ndarray,
+    colors: list,
+    *,
+    y_max: float,
+    seed: int = 2026,
+) -> int:
+    """Overlay jittered points and mark values above y_max with triangles."""
+    rng = np.random.default_rng(seed)
+    n_clipped = 0
+    for pos, vals, color in zip(positions, values, colors, strict=True):
+        if len(vals) == 0:
+            continue
+        vals = np.asarray(vals, dtype=np.float64)
+        jitter = rng.uniform(-0.11, 0.11, size=len(vals))
+        x_pos = np.full(len(vals), pos) + jitter
+        in_range = vals <= y_max
+        if np.any(in_range):
+            ax.scatter(
+                x_pos[in_range],
+                vals[in_range],
+                s=8,
+                color=color,
+                alpha=0.22,
+                linewidths=0,
+                zorder=1,
+            )
+        clipped = ~in_range
+        if np.any(clipped):
+            n_clipped += int(np.sum(clipped))
+            ax.scatter(
+                x_pos[clipped],
+                np.full(int(np.sum(clipped)), y_max),
+                s=16,
+                color=color,
+                marker="^",
+                alpha=0.55,
+                linewidths=0,
+                zorder=3,
+                clip_on=False,
+            )
+    return n_clipped
+
+
 def save_figure(fig, output_dir: Path, stem: str, formats: list[str], *, dpi: int) -> list[Path]:
     """Save one matplotlib figure in all requested formats."""
     paths = []
@@ -658,10 +704,23 @@ def plot_main_figure(runs: list[RunPosterior], output_dir: Path, *, formats: lis
     for patch, run in zip(box["boxes"], runs, strict=True):
         patch.set_facecolor(color_map[run.name])
         patch.set_alpha(0.55)
-    add_jittered_points(ax_gap, gap_values, x + 1, point_colors)
+    gap_ymax = 300.0
+    n_clipped_gap = add_clipped_jittered_points(ax_gap, gap_values, x + 1, point_colors, y_max=gap_ymax)
     ax_gap.set_xticks(x + 1, labels, rotation=25, ha="right")
     ax_gap.set_ylabel("|mode - mean| (ms)")
     ax_gap.set_title("E. Mode-mean gap")
+    ax_gap.set_ylim(0.0, gap_ymax)
+    if n_clipped_gap:
+        ax_gap.text(
+            0.98,
+            0.96,
+            f"triangles: >{gap_ymax:.0f} ms",
+            transform=ax_gap.transAxes,
+            ha="right",
+            va="top",
+            fontsize=7,
+            color="#555555",
+        )
     style_axes(ax_gap)
 
     ax_coverage.plot([0, 1], [0, 1], color="#777777", linestyle="--", linewidth=1.0, label="ideal")
@@ -923,7 +982,7 @@ def main_figure_caption(
 
 ## Draft Caption
 
-Output geometry of event-time posteriors learned by matched segmentation losses. All panels use the `{readout}` readout from saved temporal logits. (A) R11 scalar NRMSE anchors the comparison and shows that several losses have similar scalar RT error. (B) Predicted posterior distributions are aligned to each trial's observed RT and averaged, so zero on the x-axis denotes the true RT. (C-E) Subject-level distributions of posterior width, near-target mass, and mode-mean gap summarize whether the scalar prediction is supported by a localized temporal event distribution. (F) Empirical coverage of central posterior intervals evaluates whether posterior concentration should be interpreted as calibrated uncertainty. {event_note}
+Output geometry of event-time posteriors learned by matched segmentation losses. All panels use the `{readout}` readout from saved temporal logits. (A) R11 scalar NRMSE anchors the comparison and shows that several losses have similar scalar RT error. (B) Predicted posterior distributions are aligned to each trial's observed RT and averaged, so zero on the x-axis denotes the true RT. (C-E) Subject-level distributions of posterior width, near-target mass, and mode-mean gap summarize whether the scalar prediction is supported by a localized temporal event distribution. In panel E, triangles at the upper axis boundary mark subject-level mode-mean gaps above 300 ms, clipped for readability. (F) Empirical coverage of central posterior intervals evaluates whether posterior concentration should be interpreted as calibrated uncertainty. {event_note}
 
 ## Analysis Notes
 
