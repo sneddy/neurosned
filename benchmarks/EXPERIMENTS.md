@@ -215,7 +215,7 @@ methodological difference at a time relative to the segmentation pivot.
 | ✓ | unet_deeper_time_only | soft-argmax time loss only | base | 0.65 | 0.938750 | 0.951797 [0.937201, 0.967933] | Directly optimizes the scalar soft-argmax error but removes distributional supervision. Weaker than the distributional losses, supporting the claim that event-time distribution learning matters beyond scalar readout alone. |
 | ✓ | unet_deeper_time_only | soft-argmax time loss only | calibrated tau | 0.85 | 0.935298 | 0.944578 [0.930935, 0.959775] | Same checkpoint with post-hoc temperature selected on validation logits. |
 | ✓ | unet_deeper_wass_only | event-time Wasserstein/CDF distance only | base | 0.65 | 0.943597 | 0.960514 [0.944301, 0.978722] | Pure CDF-distance matching is the weakest completed segmentation loss ablation so far. It is useful as a negative control: not every distributional distance recovers the segmentation gain. |
-| ✓ | unet_deeper_wass_only | event-time Wasserstein/CDF distance only | calibrated tau | 1.80 | 0.939296 | 0.955115 [0.939171, 0.973002] | Same checkpoint with post-hoc temperature selected on validation logits. |
+| ✓ | unet_deeper_wass_only | event-time Wasserstein/CDF distance only | calibrated tau | 2.95 | 0.936941 | 0.949716 [0.934666, 0.966443] | Same checkpoint with post-hoc temperature selected on validation logits using the expanded 0.2-3.5 grid. The wider calibration range improves the readout but Wasserstein remains weaker than the CE/EventNLL losses. |
 
 ### Open Segmentation Runs
 

@@ -1,0 +1,6 @@
+name,label,color
+unet_deeper_ce_only,CE,#1f77b4
+unet_deeper_comboloss,CE+time,#ff7f0e
+unet_deeper_event_nll,EventNLL,#2ca02c
+unet_deeper_time_only,Time-only,#d62728
+unet_deeper_wass_only,Wasserstein,#9467bd

@@ -1,0 +1,10 @@
+{
+  "method": "subject_bootstrap",
+  "n_samples": 1000,
+  "resampling_seed": 2025,
+  "n_subjects": 292,
+  "n_rows": 15751,
+  "nrmse_mean": 0.9448160434102693,
+  "nrmse_ci_low": 0.9309348755814659,
+  "nrmse_ci_high": 0.9597746151967785
+}

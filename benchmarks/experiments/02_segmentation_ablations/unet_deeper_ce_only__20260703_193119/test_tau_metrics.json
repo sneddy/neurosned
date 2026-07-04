@@ -1,0 +1,21 @@
+{
+  "split": "test_tau",
+  "checkpoint_loaded": true,
+  "metrics": {
+    "rmse": 0.4025993062078405,
+    "nrmse": 0.9369417393176702,
+    "temperature": 0.7
+  },
+  "predictions": "benchmarks/experiments/02_segmentation_ablations/unet_deeper_ce_only__20260703_193119/predictions/test_tau_predictions.csv",
+  "logits": null,
+  "confidence_interval": {
+    "method": "subject_bootstrap",
+    "n_samples": 1000,
+    "resampling_seed": 2025,
+    "n_subjects": 292,
+    "n_rows": 15751,
+    "nrmse_mean": 0.9371408928186304,
+    "nrmse_ci_low": 0.9203288811836139,
+    "nrmse_ci_high": 0.9557041334238796
+  }
+}

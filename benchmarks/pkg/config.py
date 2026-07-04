@@ -189,8 +189,8 @@ class TemperatureCalibrationConfig(StrictConfig):
     """Post-hoc temperature calibration for segmentation logits."""
 
     enabled: bool = False
-    min: float = 0.4
-    max: float = 1.8
+    min: float = 0.2
+    max: float = 3.5
     step: float = 0.05
 
 
