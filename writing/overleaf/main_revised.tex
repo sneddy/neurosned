@@ -141,7 +141,7 @@ out-of-fold stacking over distributional meta-features.
 This framing is useful for brain-behavior decoding when targets are inherently temporal. It aligns supervision with latency variability, enables latent-consistent jittered cropping, and provides an uncertainty signal for more robust ensembling under cross-subject or session shift. We also report competitive lightweight regression baselines under the same subject-disjoint protocol as reference points for ablations. In our experiments, improvements were more sensitive to objective design and distribution-aware ensembling than to moderate increases in model capacity within the tested regime.
 
 
-
+\textcolor{red}{We evaluate the method under a release-separated protocol using HBN releases R1--R8 for model fitting, R9--R10 for development-stage calibration and meta-learning, and R11 as an untouched labeled test release. The original hidden-release CodaBench evaluation is retained only as a secondary benchmark comparison. Under this protocol, [METHOD] achieves [R11 nRMSE, CI], compared with [BASELINE nRMSE, CI] for the strongest direct-regression baseline.}
 
 
 
@@ -149,30 +149,36 @@ This framing is useful for brain-behavior decoding when targets are inherently t
 
 
 \section{Introduction}
-Electroencephalography (EEG) is one of the most widely used techniques for measuring human brain activity, largely because it is noninvasive, comparatively inexpensive, and offers millisecond-scale temporal resolution. These properties make EEG a natural sensing modality for closed-loop and interactive systems, including brain--computer interfaces (BCIs), where decisions must be made real-time based on ongoing neural dynamics.
-EEG-driven BCIs have been investigated for decades, from early communication systems \citep{FarwellDonchin1988P300Speller}
-to applications in neurorehabilitation \citep{Hamedi2016BCIRehabReview}, real-time neuromodulation
-\citep{Zrenner2018EEGStateDependentTMS}, and interactive entertainment \citep{Lecuyer2008BCIVRVideogames}.
+
+Electroencephalography (EEG) is widely used for measuring human brain activity because it is noninvasive, comparatively inexpensive, and provides millisecond-scale temporal resolution. This temporal resolution makes EEG especially attractive for decoding behavioral variables that unfold over time, including reaction times, response preparation, and event-related dynamics. At the same time, EEG decoding remains difficult in heterogeneous datasets because task-relevant signals are low-SNR and vary substantially across subjects, sessions, and recording conditions.
 
 Motivated by the success of foundation models in language and vision, the EEG community has recently seen a rapid growth of large-scale pretrained backbones that aim to learn transferable, task-agnostic representations from heterogeneous EEG corpora. Examples include transformer-based pretraining such as EEGPT \citep{wang2024eegpt}, large multi-dataset tokenization and masking strategies such as LaBraM \citep{Jiang2024LaBraM} and EEGFormer \citep{Chen2024EEGFormer}, state-space model backbones such as EEGMamba \citep{Wang2025EEGMamba}, and large-scale cross-setup pretraining explicitly targeting montage and recording variability such as REVE \citep{ElOuahidi2025REVE}. Autoregressive pretraining has also been explored for generalist EEG modeling \citep{Yue2024BrainGPT}. Overall, these efforts suggest that large-scale self-supervised pretraining can reduce reliance on task-specific labels and improve performance.
 
 Despite this progress, robust EEG decoding remains challenging in practice due to low signal-to-noise ratio (SNR) and strong distribution shifts. EEG recordings reflect mixtures of neural sources through volume conduction and are easily contaminated by non-neural artifacts such as eye movements, facial and neck muscle activities, cardiac signals, and environmental noise. EEG is also highly nonstationary across time and context: changes in alertness, movement, task engagement, and electrode impedance can substantially shift the data distribution even within a single session. Crucially for machine learning, there is substantial inter-subject variability driven by anatomy, development, cognitive strategy, and recording conditions. Together, these factors often yield models that perform well within-subject or within-session but degrade sharply when evaluated across subjects, sites, or dataset releases.
 
-In this work, we argue that a practical route to robustness under such heterogeneity is to make temporal structure explicit, rather than treating each example as a static input-output regression problem.
-We study two complementary settings where supervision is weak and SNR is low, and where temporal structure is naturally informative. 
-First, we consider behavioral decoding: trial-wise reaction time prediction, where behavior is expressed through event timing within a stimulus-locked window. 
-Second, we consider trait prediction: a stable, participant-level externalizing psychopathology factor from short segments, where the label signal is even weaker and must be captured through consistent temporal coupling patterns. 
-Given the low-SNR and cross-subject/cross-release shift, we deliberately prioritize lightweight models and low-dimensional descriptors, focusing on inductive bias (explicit temporal structure) and robust combination strategies rather than scaling model size.
 
-We evaluate these ideas using the EEG Foundation Challenge benchmark \citep{EEGFoundationChallengeArxiv2025}, which stress-tests generalization under cross-subject and cross-release shift. The benchmark is built on the Healthy Brain Network EEG dataset spanning thousands of pediatric and adolescent participants and multiple experimental paradigms \citep{Shirazi2024HBNEEG}. We focus on the Contrast Change Detection (CCD) paradigm and its two associated prediction problems: trial-wise reaction time and subject-level externalizing.
+In this work, we argue that a practical route to robustness under EEG heterogeneity is to make the temporal structure of the prediction target explicit. We focus on trial-wise reaction-time prediction from stimulus-locked EEG. Reaction time is not merely a scalar label attached to an entire window; it is the latency of a behavioral event following stimulus onset. Treating this latency as ordinary scalar regression discards temporal structure that is naturally present in the task. We therefore reformulate reaction-time prediction as event-time distribution modeling. Given the low-SNR and cross-subject/cross-release shift, we deliberately prioritize lightweight models and controlled objective-design comparisons rather than introducing a larger backbone.
 
-For reaction-time decoding, we reframe scalar regression as temporal segmentation: instead of predicting a single reaction-time value directly, we supervise models to produce an event-time distribution over the response window using Gaussian-smoothed targets and distribution-matching losses. This formulation supports temporally consistent augmentation, yields uncertainty signals useful for calibration and ensembling, and improves robustness under jitter and distribution shift. For externalizing prediction, we propose a complementary and interpretable lagged dynamics descriptor pipeline based on multi-lag correlations and ridge-stabilized transition operators, making temporal coupling explicit in a low-dimensional representation. Together, these methods operationalize a shared principle: explicitly modeling temporal structure, either event timing for behavior or lagged coupling for traits, can stabilize learning under low SNR and heterogeneous EEGs.
 
-Finally, in this benchmark setting we observe that strong held-out performance can be achieved with lightweight models and lightweight descriptors. While this is not a controlled scaling analysis, it is consistent with the view that under heterogeneous EEG and cross-release shift, objective design and distribution-aware ensembling can be more influential than moderate increases in model capacity within the tested regime.
+We evaluate this formulation on the reaction-time prediction task introduced by the EEG Foundation Challenge \citep{EEGFoundationChallengeArxiv2025, EEGChallengeWebsite2025,}, using curated releases of the Healthy Brain Network EEG dataset \citep{Shirazi2024HBNEEG}. The task is based on the contrast change detection (CCD) paradigm and requires predicting trial-wise response time from 2~s stimulus-locked EEG windows. We use the reaction-time task introduced by the EEG Foundation Challenge as a standardized large-scale setting, while basing the main analysis on a labeled release-separated protocol over HBN releases.
+
+
+
+For reaction-time decoding, we replace direct scalar regression with event-time distribution modeling. Models predict a probability distribution over possible response times within the post-stimulus window, are supervised using Gaussian-smoothed temporal targets and distribution-matching losses, and are converted back to scalar RT predictions through a temperature-scaled soft-argmax readout. This formulation supports label-consistent temporal jitter, yields uncertainty-sensitive distributional summaries, and enables distribution-aware stacking as a separate add-on analysis. The goal is formulation-first rather than architecture-first: we ask whether aligning the objective with the event-time nature of RT improves robustness even when the underlying EEG models remain lightweight.
+
+Our experiments compare the event-time formulation against compact direct-regression models and standardized external EEG architectures under the same release-separated protocol. The obtained results support the idea that for low-SNR EEG reaction-time prediction, objective design and temporal inductive bias can be at least as important as moderate increases in model capacity within the tested regime.
+
+Our contributions are:
+\begin{enumerate}
+    \item We reformulate EEG-based reaction-time prediction as event-time distribution modeling rather than ordinary scalar regression.
+    \item We combine Gaussian-smoothed temporal targets, distribution-matching losses, label-consistent temporal jitter, and temperature-scaled soft-argmax readout for trial-wise RT decoding.
+    \item We evaluate compact direct-regression baselines, event-time segmentation models, and standardized external EEG architectures under a release-separated HBN protocol with R11 subject-bootstrap confidence intervals.
+    \item We analyze calibration, stacking, and core ablations of the event-time pipeline, while reporting the original hidden challenge results as a secondary evidence.
+\end{enumerate}
 
 \section{Related Work}
 
-\subsection{Robust EEG Decoding under Shift}
+\subsection{Robust EEG Decoding under Distribution Shift}
 A central obstacle for EEG decoding is that the data distribution changes substantially across subjects, sessions, and
 recording setups. Long before the current wave of large pretrained EEG backbones, the BCI community developed methods
 explicitly aimed at mitigating this shift through feature spaces and normalization procedures designed to be more stable
@@ -184,161 +190,97 @@ subject-specific calibration \citep{Jayaram2016TransferLearningBCI,Zanini2018Rie
 These approaches underscore a recurring theme: robustness often benefits from inductive biases (e.g., geometry-aware
 representations, explicit alignment) that reduce nuisance variability before or during learning.
 
+
 More recently, deep-learning approaches to robustness have imported ideas from domain adaptation, including learning
 domain-invariant representations by adversarial objectives \citep{Ganin2016DANN} or by matching second-order statistics
 across domains \citep{SunSaenko2016DeepCORAL}. In EEG, these ideas are typically instantiated as subject- or session-level
 alignment modules, discrepancy losses, or adversarial heads that encourage invariance to subject identity while retaining
 task-relevant information. In parallel, self-supervised and large-scale pretraining has emerged as another route to transferability: contrastive or masked objectives can learn reusable representations across tasks and hardware
-\citep{Kostas2021BENDR}, and this direction has expanded rapidly into multi-dataset EEG foundation models
+\citep{Kostas2021BENDR}, and this direction has recently expanded into multi-dataset EEG foundation models
 \citep{wang2024eegpt,Jiang2024LaBraM,Chen2024EEGFormer,Wang2025EEGMamba,ElOuahidi2025REVE,Yue2024BrainGPT}.
 
-Our work is complementary to both alignment-centric transfer learning and large-scale pretraining. Rather than proposing
-a new invariant backbone or an explicit domain-matching loss, we focus on a task-driven principle: \emph{make
-task-relevant temporal structure explicit}. The NeurIPS EEG Foundation Challenge defines two complementary tasks (\citep{EEGChallengeWebsite2025, EEGFoundationChallengeArxiv2025}). For Challenge~1, this means explicitly modeling \emph{when} the behavioral
-event occurs within the stimulus-locked window; for Challenge~2, it means explicitly summarizing \emph{lagged coupling}
-patterns that are plausibly more stable across heterogeneous recordings than instantaneous sensor values. In this sense,
-we aim to obtain robustness from objective/representation design that exposes temporally meaningful structure, while
-keeping the core models lightweight.
 
-\subsection{Behavioral Decoding as Event Timing / Time-to-Event}
-Reaction time (RT) and related behavioral measures are inherently temporal: even when evaluation uses a single scalar per
-trial, the latent object of interest is an \emph{event time} within a post-stimulus window. Cognitive neuroscience has a
-long tradition of modeling response times as distributions governed by latent decision processes (e.g., accumulation-to-bound
-models), and EEG analyses often distinguish stimulus-locked from response-locked components, where response-related
-dynamics can shift in latency across trials. Early work on single-trial ERP analysis and visualization emphasized this
-point by sorting trials by RT and revealing response-locked structure that is blurred by averaging \citep{Jung1998SingleTrialERP}.
+Our work is complementary to both alignment-centric transfer learning and large-scale pretraining. Rather than proposing a new invariant backbone or an explicit domain-matching loss, we focus on a task-driven principle: \emph{make the task-relevant temporal structure of the behavioral target explicit}. Reaction time is not merely a scalar label attached to an EEG window; it is the latency of a behavioral event following stimulus onset. Treating this target as ordinary scalar regression discards temporal structure that is naturally present in the problem. We therefore reformulate reaction-time prediction as event-time distribution modeling, in which the model predicts a distribution over possible response times within the post-stimulus window and the scalar prediction is obtained by a calibrated soft-argmax readout.
+
+
+The reaction-time task introduced by the EEG Foundation Challenge provides a large-scale setting for studying this problem under cross-subject and cross-release shift \citep{EEGChallengeWebsite2025,EEGFoundationChallengeArxiv2025}. We use this task as a standardized test bed, but our methodological focus is not on challenge-specific engineering or leaderboard optimization. Instead, we ask whether objective design and temporal inductive bias can improve robustness when the underlying EEG models remain lightweight. The main experiments in this manuscript use a labeled release-separated protocol with R11 as an untouched local holdout; \textcolor{red}{the original hidden challenge results are reported separately in the Appendix as secondary benchmark context.}
+
+
+
+
+
+\subsection{Reaction-Time Decoding as Event-Time Prediction}
+Reaction time (RT) is inherently temporal: even when evaluation uses a single scalar per trial, the supervised quantity corresponds to an \emph{event time} within a post-stimulus window. Cognitive neuroscience has a long tradition of modeling response times as distributions governed by latent decision processes (e.g., accumulation-to-bound models), and EEG analyses often distinguish stimulus-locked from response-locked components, where response-related dynamics can shift in latency across trials. Early work on single-trial ERP analysis and visualization emphasized this point by sorting trials by RT and revealing response-locked structure that is blurred by averaging \citep{Jung1998SingleTrialERP}.
+
 In parallel, supervised RT prediction from single-trial EEG has been explored using classical features or deep models,
 typically treating RT as direct regression or coarse discretized classification \citep{Chowdhury2020RTSensors}.
 
-From a machine-learning perspective, reframing scalar regression as distributional prediction has several precedents.
-Label distribution learning (LDL) treats supervision as a distribution over labels rather than a single point value,
-providing a natural language for ``soft'' targets and distribution-matching losses \citep{Geng2016LabelDistributionLearning}.
-Time-to-event (survival) modeling similarly targets the distribution of event times, classically via hazard-based models
-\citep{Cox1972CoxPH} and more recently via deep models that directly parameterize discrete-time event distributions
-\citep{Lee2018DeepHit}. Although our RT setting is not survival analysis in the clinical sense (there is no censoring
-mechanism in the benchmark protocol), the conceptual alignment is useful: predicting an event-time distribution makes
-timing explicit, supports calibration/uncertainty analysis, and can be more compatible with temporal jitter and
-cropping than point regression.
+From a machine-learning perspective, reframing scalar regression as distributional prediction has several precedents. Label distribution learning (LDL) treats supervision as a distribution over labels rather than a single point value, providing a natural language for ``soft'' targets and distribution-matching losses \citep{Geng2016LabelDistributionLearning}. Time-to-event (survival) modeling similarly targets the distribution of event times, classically via hazard-based models \citep{Cox1972CoxPH} and more recently via deep models that directly parameterize discrete-time event distributions \citep{Lee2018DeepHit}. Although our RT setting is not survival analysis in the clinical sense (there is no censoring mechanism in the benchmark protocol), the conceptual alignment is useful: predicting an event-time distribution makes timing explicit, supports calibration/uncertainty analysis, and can be more compatible with temporal jitter and cropping than point regression.
 
-Our segmentation formulation adopts this perspective in a minimal way tailored to short EEG windows: we supervise a
-probability mass function over discretized post-stimulus time bins using smoothed targets and distributional losses, then
-extract RT via a differentiable readout. This bridges single-trial EEG traditions that highlight response-locked latency
-variability \citep{Jung1998SingleTrialERP} with modern distributional supervision frameworks \citep{Geng2016LabelDistributionLearning,Lee2018DeepHit},
-while remaining computationally lightweight.
+Our event-time formulation adopts this perspective in a direct way tailored to short EEG windows: we supervise a probability mass function over discretized post-stimulus time bins using smoothed targets and distributional losses, then extract RT via a differentiable readout. This bridges single-trial EEG traditions that highlight response-locked latency variability \citep{Jung1998SingleTrialERP} with modern distributional supervision frameworks \citep{Geng2016LabelDistributionLearning,Lee2018DeepHit}, while remaining computationally lightweight.
 
-\subsection{Trait Prediction from Temporal Coupling / Connectivity Descriptors}
-Predicting stable traits or psychopathology dimensions from short, weakly labeled EEG segments is challenging because the
-label signal is not tied to a specific within-window event. One influential line of work links externalizing-related
-psychopathology to reliable EEG/ERP markers, especially reduced P300 amplitude and related time--frequency signatures.
-A substantial literature supports P3 amplitude reduction as an endophenotype indexing risk for substance use and related
-externalizing outcomes \citep{Iacono2003P300Externalizing,IaconoMalone2011P300Endophenotype,Patrick2006P300Externalizing,Hicks2007GenesP3Externalizing}.
-These findings suggest that trait-relevant information can be expressed through stable dynamical properties (e.g., how
-neural populations coordinate over time), not only through transient event-locked responses.
 
-A natural way to operationalize such dynamical information is through measures of functional and directed connectivity.
-Functional connectivity metrics (coherence, phase synchronization, phase-slope index, etc.) are widely used but come with
-well-known interpretational pitfalls in EEG, including volume conduction, common reference effects, and sample-size bias;
-tutorial reviews emphasize careful choice of metrics and controls \citep{BastosSchoffelen2015ConnectivityTutorial}. To
-mitigate spurious ``zero-lag'' coupling due to mixing, measures such as imaginary coherency and phase-lag index (PLI)
-down-weight instantaneous correlations that can arise from common sources \citep{Nolte2004ImaginaryCoherency,Stam2007PLI}.
-For directed dependencies, autoregressive modeling and Granger-style predictability provide a statistical notion of
-directed influence \citep{Granger1969,BarnettSeth2014MVGC,Seth2015GrangerNeuro}, though their assumptions and sensitivity
-to preprocessing must be respected in neurophysiological settings.
 
-Our externalizing pipeline sits in this connectivity tradition but is deliberately constrained for robustness and
-interpretability under short windows and cross-release shift. Instead of estimating high-variance spectral connectivity or
-full multivariate causal graphs, we summarize lagged temporal coupling using (i) multi-lag cross-correlations and (ii)
-ridge-stabilized transition operators that capture predictable lag structure in a low-dimensional form. The goal is not
-to claim mechanistic connectivity, but to extract coupling descriptors that are stable enough to generalize across
-heterogeneous recordings and informative for subject-level traits that have known EEG correlates
-\citep{Iacono2003P300Externalizing,IaconoMalone2011P300Endophenotype}.
+\section{HBN-EEG Reaction-Time Dataset and Evaluation Protocol}
 
-\section{Dataset and Benchmark Tracks}
 
-We use the NeurIPS EEG Foundation Challenge benchmark \citep{EEGChallengeWebsite2025}, based on curated releases of the HBN-EEG dataset \citep{Shirazi2024HBNEEG}, to evaluate robustness under cross-subject and cross-release distribution shift. The benchmark provides a labeled \emph{development} release and a fully hidden \emph{held-out} release, for which inference and scoring are performed server-side on the challenge platform. We consider two benchmark tracks: (i) trial-wise reaction time prediction (Challenge~1; behavioral decoding) and (ii) subject-level psychopathology factor prediction (Challenge~2; trait prediction). The releases comprise recordings from more than 3{,}000 participants aged 5--21 collected across a standardized battery of six EEG tasks spanning both passive and active paradigms \citep{Shirazi2024HBNEEG,EEGChallengeWebsite2025}.
+We use the reaction-time prediction task introduced by the NeurIPS EEG Foundation Challenge \citep{EEGChallengeWebsite2025,EEGFoundationChallengeArxiv2025}, based on curated releases of the HBN-EEG dataset \citep{Shirazi2024HBNEEG}. Our focus is trial-wise reaction-time prediction from the contrast change detection (CCD) paradigm. The challenge setting provides a useful standardized task definition, but the main evaluation in this manuscript uses labeled HBN releases rather than the original leaderboard score. Specifically, we use releases R1-R8 for model fitting, R9-R10 as a development partition, and R11 as an untouched local holdout for final reporting. The releases comprise recordings from more than 3{,}000 participants aged 5-21 collected across a standardized battery of six EEG tasks spanning both passive and active paradigms \citep{Shirazi2024HBNEEG,EEGChallengeWebsite2025}.
 
-HBN-EEG is distributed in a Brain Imaging Data Structure (BIDS)-compatible format with detailed event annotations using Hierarchical Event Descriptors (HED), enabling reproducible
-preprocessing and time-locked analyses \citep{Shirazi2024HBNEEG}. In the original acquisition, EEG was recorded in a
-sound-shielded environment using a high-density 128-channel EGI Geodesic HydroCel system at 500~Hz
-(online 0.1--100~Hz bandpass), referenced at Cz, with electrode impedances maintained below 40~k$\Omega$.
-For the challenge, the organizers provide a harmonized derivative of these recordings that is band-pass filtered
-(0.5--50~Hz) and downsampled to 100~Hz to standardize modeling across releases \citep{EEGChallengeWebsite2025}.
-In the released derivatives, a total of 129 channels are included (128 EEG channels plus a reference); throughout this
-work we train models on the 128 EEG channels and exclude the reference channel from the learnable input.
+HBN-EEG is distributed in a Brain Imaging Data Structure (BIDS)-compatible format with detailed event annotations using Hierarchical Event Descriptors (HED), enabling reproducible preprocessing and time-locked analyses \citep{Shirazi2024HBNEEG}. In the original acquisition, EEG was recorded in a sound-shielded environment using a high-density 128-channel EGI Geodesic HydroCel system at 500~Hz (online 0.1-100~Hz bandpass), referenced at Cz, with electrode impedances maintained below 40~k$\Omega$. For the benchmark derivative, recordings are band-pass filtered (0.5-50~Hz) and downsampled to 100~Hz to standardize modeling across releases \citep{EEGChallengeWebsite2025}. In the released derivatives, a total of 129 channels are included (128 EEG channels plus a reference); throughout this work we train models on the 128 EEG channels and exclude the reference channel from the learnable input.
 
-In addition to EEG and demographics, the releases include continuous psychopathology dimensions derived from parent-reported
-Child Behavior Checklist (CBCL) data via a confirmatory bifactor model: a general \emph{p}-factor alongside orthogonal
-specific factors for internalizing, externalizing, and attention-hyperactivity \citep{HBN_Factsheet_EEGChallenge}.
-In this work, we focus on the externalizing factor, which captures variance related to behavioral dysregulation
-(e.g., rule-breaking/aggressive and conduct-like problems) \citep{HBN_Factsheet_EEGChallenge}.
 
-One of the active paradigms in HBN-EEG and the focus of both benchmark tracks is the contrast change detection (CCD) task.
-In each CCD trial, participants viewed two concentric, flickering grating stimuli (one left-tilted and one right-tilted).
-After a variable delay, the contrast of one stimulus increased, making it perceptually dominant. Participants were
-instructed to respond as quickly as possible to indicate whether the dominant grating was left or right-tilted, after which
-they received immediate accuracy feedback (smiley for correct, sad face for incorrect). The CCD recordings support two
-complementary prediction settings that emphasize different temporal structure: event-locked response timing for trial-wise
-behavior and segment-level temporal coupling for subject-level traits.
+The contrast change detection (CCD) task is the active HBN-EEG paradigm used in this study. In each CCD trial, participants viewed two concentric, flickering grating stimuli, one left-tilted and one right-tilted. After a variable delay, the contrast of one stimulus increased, making it perceptually dominant. Participants were instructed to respond as quickly as possible to indicate whether the dominant grating was left- or right-tilted, after which they received immediate accuracy feedback. This paradigm provides a natural setting for event-time modeling because the behavioral target is the latency of a response following a well-defined stimulus event.
 
-\subsection{Challenge 1: Reaction Time Prediction in CCD}
-The goal of Challenge~1 is behavioral decoding via prediction of the reaction time (RT) of the participant's button press
-on each CCD trial. The model is provided with a fixed-length 2~s EEG segment (128 channels at 100~Hz)
-time-locked to the stimulus event. In the competition's official inference setup (including the held-out release), the
-2~s input window corresponds to the interval from 0.5~s to 2.5~s after stimulus onset (Figure~\ref{fig:tasks});
-trials whose responses fall outside this interval are excluded by the benchmark construction.
-The target is a single scalar RT per trial, and performance is evaluated using normalized RMSE (nRMSE), defined as RMSE
-divided by the standard deviation of the true targets \citep{EEGChallengeWebsite2025}. Because the label reflects when a
-response occurs within the post-stimulus interval, this prediction problem naturally motivates modeling RT as an event-time
-quantity rather than a static scalar regression target.
+
+\subsection{Trial-Wise Reaction-Time Prediction}
+
+The task is trial-wise behavioral decoding via prediction of RT of the participant's button press on each CCD trial. Each input is a fixed-length 2~s EEG segment, represented as 128 EEG channels sampled at 100~Hz and time-locked to the stimulus event. Following the task definition, the input window corresponds to the interval from 0.5~s to 2.5~s after stimulus onset(Figure~\ref{fig:tasks}); trials whose responses fall outside this interval are excluded. The target is a single scalar RT per trial, and performance is evaluated using normalized RMSE (nRMSE), defined as RMSE divided by the standard deviation of the true targets \citep{EEGChallengeWebsite2025}. Because the label reflects when a response occurs within the post-stimulus interval, this prediction problem naturally motivates modeling RT as an event-time quantity rather than as a static scalar regression target.
+
 
 \begin{figure}[!t]
     \centering
-    \includegraphics[width=0.9\linewidth]{img/challenge_tasks.png}
-    \caption{EEG Foundation Challenge tracks. Both tracks use 2~s EEG window (100~Hz, 128-channel) from CCD. Challenge~1 predicts
-    trial-wise response time from a stimulus-locked 0.5--2.5\,s window, while Challenge~2 predicts subject-level psychopathology factors (externalizing) from 2~s CCD segments that are not event-locked.}
+    \includegraphics[width=0.9\linewidth]{img/challenge_task.png}
+    \caption{Reaction-time prediction as event-time modeling. Each trial provides a 2~s stimulus-locked EEG window from the CCD paradigm (0.5--2.5~s after stimulus onset; 128 EEG channels at 100~Hz). The observed RT is represented as a smoothed distribution over post-stimulus time bins. The model predicts an event-time distribution, which is converted to a scalar RT prediction using a temperature-scaled soft-argmax readout.}
     \label{fig:tasks}
 \end{figure}
 
-\subsection{Challenge 2: Externalizing Factor Prediction}
-Challenge~2 targets trait prediction through the participant-level psychopathology dimension given by the externalizing
-factor score derived from questionnaire measures using a bifactor model (privacy-preserving, orthogonal factor scores)
-\citep{EEGChallengeWebsite2025}. The input is a 2~s EEG segment from the CCD recordings of a participant (i.e., not
-necessarily stimulus-locked to a specific event). The benchmark construction yields a set of 2~s segments per participant; during training we treat these segments as a pool and sample segments stochastically to reduce redundancy while preserving the same supervision signal (all segments from a participant share the same target). The model must map these short windows to the participant's externalizing score. Since many segments share the same subject label, supervision at the 2~s segment level is weak, which motivates
-descriptors that capture consistent coupling patterns rather than event-locked responses. The primary difficulty is
-out-of-distribution robustness: models must generalize across unseen participants and across releases with potential shifts
-in recording conditions and subject composition.
 
-\section{Behavioral Decoding: Reaction Time Prediction}
-\label{sec:behavioral_decoding_RT}
-\subsection{Evaluation Protocol and Data Partitions}
-Within the labeled development release, we create a fixed subject-disjoint split into a training partition
-$\mathcal{D}_{\text{train}}$ and a held-out validation partition $\mathcal{D}_{\text{val}}$ (80/20 by subjects) and keep
-it fixed across all experiments (see Table~\ref{tab:protocol}). Base models are trained on $\mathcal{D}_{\text{train}}$ only. $\mathcal{D}_{\text{val}}$
-is used for checkpoint selection / early stopping, selecting per-model temperature $\tau^\star$ (Eq.~\ref{eq:rt_tau_tuning}, Sec.~\ref{sec:rt_segmentation}),
-and training the stacking meta-learner via subject-disjoint cross-validation (Section~\ref{sec:rt_stacking}). 
-Final reported benchmark scores are computed on the fully hidden held-out release $\mathcal{D}_{\text{holdout}}$ (evaluated server-side).
+\subsection{Release-Separated Evaluation Protocol}
 
-\begin{table}[h]
-\centering
-\small
-\setlength{\tabcolsep}{6pt}
-\renewcommand{\arraystretch}{1.15}
-\begin{tabularx}{\linewidth}{@{} l X @{}}
-\toprule
-\textbf{Partition} & \textbf{Role (who sees what)} \\
-\midrule
-$\mathcal{D}_{\text{train}}$ (dev, 80\% subjects) &
-Train base models. \\
-$\mathcal{D}_{\text{val}}$ (dev, 20\% subjects) &
-Early stopping / checkpoint selection; select per-model $\tau^\star$; train stacker via 5-fold subject-disjoint CV
-( Out-of-Fold (OOF) evaluation on $\mathcal{D}_{\text{val}}$). \\
-$\mathcal{D}_{\text{holdout}}$ (held-out release, labels hidden) &
-Organizer scoring / reporting only; no training or tuning. \\
-\bottomrule
-\end{tabularx}
-\caption{Evaluation protocol and data partitions.}
-\label{tab:protocol}
-\end{table}
+\textcolor{red}{To reduce optimistic bias from validation reuse, we use a release-separated protocol over HBN releases. Releases R1-R8 are used for fitting the base EEG models. Releases R9-R10 are treated as a development partition for checkpointing, calibration, protocol diagnostics, and fitting a prespecified stacking procedure. We do not treat R9-R10 performance as a final estimate of generalization. For stacking analyses, meta-model inputs on R9-R10 are generated using subject-disjoint out-of-fold predictions so that the meta-model never receives in-fold predictions for the same subject.}
+
+\textcolor{red}{Release R11 is held out as an untouched local test release. No R11 labels or metrics are used for base-model training, checkpointing, calibration, stacking design, hyperparameter selection, or model selection. All main performance claims are based on R11 and are reported with subject-level bootstrap confidence intervals. The original hidden CodaBench evaluation from the EEG Foundation Challenge is reported separately in the Appendix as secondary benchmark context.}
+
+
+\textcolor{red}{All neural models receive the same input normalization. For each 2~s trial window and each EEG channel, we subtract that channel's temporal mean within the window and divide by its temporal standard deviation within the same window. This per-window standardization uses no label information, no subject-level statistics, and no train-, validation-, or test-set aggregate statistics. It is therefore part of the fixed input preprocessing protocol rather than a model-specific tuning procedure.}
+
+\textcolor{red}{Unless otherwise stated, training uses a fixed mild augmentation recipe. Channel dropout is applied with probability 0.25 and removes at most 30\% of channels. Temporal cutout is applied with probability 0.25 and masks a contiguous 10-50 sample interval, corresponding to at most 0.5~s in a 2~s, 100~Hz window. Gaussian noise is applied with probability 0.3 with standard deviation sampled as $0.01 + U(0,0.01)$. We avoid mixup and stronger corruption recipes in the default protocol because such perturbations are harder to justify as label-preserving for trial-wise RT prediction.}
+
+
+
+
+%%%_____ methods revision start___%
+
+\section{Methods}  % or maybe \section{Event-Time Distribution Modeling for Reaction-Time Prediction}
+\subsection{Direct Scalar-Regression Baselines}
+
+\subsection{Direct Scalar-Regression Baselines}
+
+We compare event-time modeling against compact direct-regression baselines and standardized external EEG architectures trained under the same input preprocessing and release-separated protocol. All direct-regression models receive fixed 2~s stimulus-locked windows and are trained without mixup using the fixed mild augmentation recipe described below. The baselines are intended to test whether improvements arise from the event-time objective rather than from generic capacity increases or architecture-specific tuning.
+
+For clarity, we use mechanism-level model names rather than internal implementation names. MSP-CNN denotes a multiscale segment-pooling CNN that maps the 2~s EEG window to scalar RT through temporal segment statistics and an MLP head. ETR-CNN denotes a compact event-time-readout CNN that predicts an RT-oriented temporal distribution but is still supervised as a direct regression/readout baseline rather than through full event-time segmentation.
+
+External architectures are evaluated as supervised architectures trained from scratch under the same fixed preprocessing protocol. Pretrained weights are not used.
+
+
+\subsection{Reaction Time as Event-Time Distribution Modeling}
+\subsection{ETS-U-Net Architecture}
+\subsection{Calibration and Distribution-Aware Stacking}
+
+
+%%%_____ revision end___%
+
+
 
 \subsection{Baseline: Lightweight Temporal ConvNet for Direct RT Regression}
 
