@@ -22,7 +22,8 @@ if str(PROJECT_ROOT) not in sys.path:
 import pandas as pd
 
 from benchmarks.pkg.config import load_experiment_config, resolve_path
-from benchmarks.scripts.run import DEFAULT_OUTPUT_DIR, choose_device, path_text, run_config
+from benchmarks.pkg.runtime import choose_device, path_text
+from benchmarks.scripts.run import DEFAULT_OUTPUT_DIR, run_config
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -69,6 +70,13 @@ def run_record(seed: int, manager) -> dict[str, Any]:
         "test_nrmse": summary.get("test_nrmse"),
         "test_nrmse_ci_low": summary.get("test_nrmse_ci_low"),
         "test_nrmse_ci_high": summary.get("test_nrmse_ci_high"),
+        "test_posterior_crps": summary.get("test_posterior_crps"),
+        "test_posterior_fixed_kernel_event_nll": summary.get("test_posterior_fixed_kernel_event_nll"),
+        "test_tau_nrmse": summary.get("test_tau_nrmse"),
+        "test_tau_nrmse_ci_low": summary.get("test_tau_nrmse_ci_low"),
+        "test_tau_nrmse_ci_high": summary.get("test_tau_nrmse_ci_high"),
+        "test_tau_posterior_crps": summary.get("test_tau_posterior_crps"),
+        "test_tau_posterior_fixed_kernel_event_nll": summary.get("test_tau_posterior_fixed_kernel_event_nll"),
     }
 
 
@@ -82,6 +90,18 @@ def save_repeated_summary(aggregate_dir: Path, *, config_path: Path, config, rec
 
     valid = numeric_summary(frame["best_metric"]) if "best_metric" in frame else {"mean": None, "std": None}
     test = numeric_summary(frame["test_nrmse"]) if "test_nrmse" in frame else {"mean": None, "std": None}
+    aggregate_metrics = {}
+    for column in (
+        "test_posterior_crps",
+        "test_posterior_fixed_kernel_event_nll",
+        "test_tau_nrmse",
+        "test_tau_posterior_crps",
+        "test_tau_posterior_fixed_kernel_event_nll",
+    ):
+        if column in frame:
+            stats = numeric_summary(frame[column])
+            aggregate_metrics[f"{column}_mean"] = stats["mean"]
+            aggregate_metrics[f"{column}_std"] = stats["std"]
     summary = {
         "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "config_path": path_text(config_path),
@@ -93,6 +113,7 @@ def save_repeated_summary(aggregate_dir: Path, *, config_path: Path, config, rec
         "valid_nrmse_std": valid["std"],
         "test_nrmse_mean": test["mean"],
         "test_nrmse_std": test["std"],
+        **aggregate_metrics,
         "runs": records,
     }
     with json_path.open("w", encoding="utf-8") as f:

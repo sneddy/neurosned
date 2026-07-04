@@ -13,6 +13,12 @@ def logits_to_probabilities(logits, *, temperature: float):
     return F.softmax(z / float(temperature), dim=-1)
 
 
+def softmax_probabilities(logits, *, temperature: float):
+    """Return temperature-scaled softmax probabilities as a NumPy array."""
+    probabilities = logits_to_probabilities(logits, temperature=temperature)
+    return probabilities.detach().cpu().numpy().astype(np.float32, copy=False)
+
+
 def soft_argmax_predictions(logits, *, temperature: float, sfreq: float = 100.0, win_offset: float = 0.5):
     """Read scalar event times from temporal logits via soft-argmax."""
     z = torch.as_tensor(logits, dtype=torch.float32)

@@ -1,11 +1,17 @@
-"""Post-hoc temperature calibration for temporal logits."""
+"""Temperature calibration for temporal readouts."""
 
 from __future__ import annotations
+
+from collections.abc import Callable
+from typing import Any
 
 import numpy as np
 
 from benchmarks.pkg.evaluation.metrics import nrmse, rmse
 from benchmarks.pkg.evaluation.readout import soft_argmax_predictions
+
+
+PredictionFn = Callable[[Any, float], np.ndarray]
 
 
 def make_temperature_grid(min_value: float = 0.4, max_value: float = 1.8, step: float = 0.05) -> np.ndarray:
@@ -22,9 +28,51 @@ def make_temperature_grid(min_value: float = 0.4, max_value: float = 1.8, step: 
     return np.round(values, 10)
 
 
-def apply_temperature(logits, temperature: float, *, sfreq: float = 100.0, win_offset: float = 0.5) -> np.ndarray:
-    """Return soft-argmax predictions at one temperature."""
+def softmax_temperature_predictions(
+    logits,
+    temperature: float,
+    *,
+    sfreq: float = 100.0,
+    win_offset: float = 0.5,
+) -> np.ndarray:
+    """Return soft-argmax predictions from temperature-scaled softmax logits."""
     return soft_argmax_predictions(logits, temperature=temperature, sfreq=sfreq, win_offset=win_offset)
+
+
+def make_temperature_prediction_fn(
+    *,
+    readout: str = "softmax",
+    sfreq: float = 100.0,
+    win_offset: float = 0.5,
+) -> PredictionFn:
+    """Return a prediction function for one temperature-scaled readout."""
+    readout_name = str(readout).lower().replace("-", "_")
+    if readout_name in {"softmax", "soft_argmax", "event_softmax"}:
+        return lambda logits, temperature: softmax_temperature_predictions(
+            logits,
+            temperature,
+            sfreq=sfreq,
+            win_offset=win_offset,
+        )
+    raise ValueError(f"Unknown temperature readout: {readout!r}")
+
+
+def apply_temperature(
+    logits,
+    temperature: float,
+    *,
+    sfreq: float = 100.0,
+    win_offset: float = 0.5,
+    readout: str = "softmax",
+    prediction_fn: PredictionFn | None = None,
+) -> np.ndarray:
+    """Return predictions at one temperature for a configured readout."""
+    fn = prediction_fn or make_temperature_prediction_fn(
+        readout=readout,
+        sfreq=sfreq,
+        win_offset=win_offset,
+    )
+    return fn(logits, float(temperature))
 
 
 def fit_temperature(
@@ -36,14 +84,21 @@ def fit_temperature(
     step: float = 0.05,
     sfreq: float = 100.0,
     win_offset: float = 0.5,
+    readout: str = "softmax",
+    prediction_fn: PredictionFn | None = None,
 ) -> dict:
     """Select the temperature with the lowest validation NRMSE."""
     target = np.asarray(targets, dtype=np.float32)
     grid = make_temperature_grid(min_value, max_value, step)
+    fn = prediction_fn or make_temperature_prediction_fn(
+        readout=readout,
+        sfreq=sfreq,
+        win_offset=win_offset,
+    )
     rows = []
     best = None
     for temperature in grid:
-        predictions = apply_temperature(logits, float(temperature), sfreq=sfreq, win_offset=win_offset)
+        predictions = fn(logits, float(temperature))
         row = {
             "temperature": float(temperature),
             "rmse": rmse(predictions, target),

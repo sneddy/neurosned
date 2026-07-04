@@ -22,13 +22,9 @@ from torch.utils.data import DataLoader
 
 from benchmarks.pkg.artefacts_manager import ArtefactsManager, now_utc_iso
 from benchmarks.pkg.config import ExperimentConfig, resolve_path
-from benchmarks.scripts.run import (
-    build_eval_dataset,
-    choose_device,
-    path_text,
-    run_holdout_evaluation,
-    tee_output,
-)
+from benchmarks.pkg.evaluation.factory import build_eval_dataset
+from benchmarks.pkg.evaluation.runner import run_holdout_evaluation
+from benchmarks.pkg.runtime import choose_device, path_text, tee_output
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -264,16 +260,25 @@ def reeval_run(run_dir: Path, *, device: torch.device, args: argparse.Namespace)
             print(metric_change("tau", configured_eval_temperature(config), artefacts.summary.get("calibration_temperature"), digits=4))
             print(metric_change("valid_nrmse", valid_metrics.get("nrmse"), artefacts.summary.get("calibration_temperature_valid_nrmse")))
             print(metric_change(f"{split}_nrmse", holdout_metrics.get("nrmse") if holdout_metrics is not None else None, artefacts.summary.get(f"{split}_tau_nrmse")))
+            print(metric_change(f"{split}_tau_crps_ms", _ms(previous_summary.get(f"{split}_tau_posterior_crps")), _ms(artefacts.summary.get(f"{split}_tau_posterior_crps")), digits=1))
+            print(metric_change(f"{split}_tau_fixed_event_nll", previous_summary.get(f"{split}_tau_posterior_fixed_kernel_event_nll"), artefacts.summary.get(f"{split}_tau_posterior_fixed_kernel_event_nll"), digits=4))
         else:
             print("\nBase metrics")
             print(f"valid_nrmse: {format_value(valid_metrics.get('nrmse'))}")
             if holdout_metrics is not None:
                 print(f"{split}_nrmse: {format_value(holdout_metrics.get('nrmse'))}")
+                print(f"{split}_crps_ms: {format_value(_ms(holdout_metrics.get('posterior_crps')), digits=1)}")
+                print(f"{split}_fixed_event_nll: {format_value(holdout_metrics.get('posterior_fixed_kernel_event_nll'), digits=4)}")
         print(f"Updated config snapshot: {path_text(artefacts.paths.config_snapshot)}")
         print(f"Updated run summary: {path_text(artefacts.paths.run_summary)}")
         print(f"Global summary: {path_text(artefacts.paths.summary_md)}")
 
     return artefacts
+
+
+def _ms(value):
+    """Convert seconds to milliseconds for optional display."""
+    return None if value is None else float(value) * 1000.0
 
 
 def main(argv: list[str] | None = None) -> int:

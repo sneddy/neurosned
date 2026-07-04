@@ -1,0 +1,7 @@
+label,group,nrmse,nrmse_ci_low,nrmse_ci_high,source,color
+Best direct regression SneddyRTNet,Direct,0.9459376353498512,0.9301527780230314,0.9637950592402704,benchmarks/experiments/01_regression_baselines/sneddy_rt_net__20260701_140357,#555555
+CE,Event-time,0.9387378111693996,0.9216958933912958,0.9580150657081341,benchmarks/experiments/02_segmentation_ablations/unet_deeper_ce_only__20260703_193119,#1f77b4
+CE+time,Event-time,0.9400064724839319,0.9212425993751616,0.9600197118684298,benchmarks/experiments/02_segmentation_ablations/unet_deeper_comboloss__20260703_183526,#ff7f0e
+EventNLL,Event-time,0.9426984243052214,0.9246505662643246,0.9625295896651767,benchmarks/experiments/02_segmentation_ablations/unet_deeper_event_nll__20260703_191318,#2ca02c
+Time-only,Event-time,0.9517972984238939,0.9372005517992716,0.9679334569861693,benchmarks/experiments/02_segmentation_ablations/unet_deeper_time_only__20260703_185528,#d62728
+Wasserstein,Event-time,0.9605136662574439,0.9443012204423852,0.9787217276557265,benchmarks/experiments/02_segmentation_ablations/unet_deeper_wass_only__20260703_195219,#9467bd

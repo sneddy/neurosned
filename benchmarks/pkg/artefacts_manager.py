@@ -62,42 +62,6 @@ def _prediction_key(metrics: dict[str, Any]) -> str | None:
     return None
 
 
-def _subject_bootstrap_nrmse(predictions, metadata, *, n_samples: int, resampling_seed: int) -> dict[str, Any]:
-    """Return a subject-level bootstrap interval for NRMSE."""
-    frame = pd.DataFrame(
-        {
-            "subject": metadata["subject"].to_numpy() if "subject" in metadata else np.arange(len(metadata)),
-            "target": metadata["target"].to_numpy(),
-            "prediction": np.asarray(predictions),
-        }
-    )
-    subjects = frame["subject"].drop_duplicates().to_numpy()
-    rng = np.random.default_rng(resampling_seed)
-    values = []
-    grouped = {subject: group for subject, group in frame.groupby("subject", sort=False)}
-
-    for _ in range(n_samples):
-        sampled_subjects = rng.choice(subjects, size=len(subjects), replace=True)
-        sample = pd.concat([grouped[subject] for subject in sampled_subjects], ignore_index=True)
-        target = sample["target"].to_numpy()
-        prediction = sample["prediction"].to_numpy()
-        rmse = float(np.sqrt(np.mean((prediction - target) ** 2)))
-        denominator = float(np.std(target, ddof=1)) if len(target) > 1 else 0.0
-        values.append(rmse / denominator if denominator else rmse)
-
-    values = np.asarray(values)
-    return {
-        "method": "subject_bootstrap",
-        "n_samples": int(n_samples),
-        "resampling_seed": int(resampling_seed),
-        "n_subjects": int(len(subjects)),
-        "n_rows": int(len(frame)),
-        "nrmse_mean": float(np.mean(values)),
-        "nrmse_ci_low": float(np.quantile(values, 0.025)),
-        "nrmse_ci_high": float(np.quantile(values, 0.975)),
-    }
-
-
 @dataclass(frozen=True)
 class ArtefactPaths:
     """Filesystem paths owned by one experiment run."""
@@ -436,6 +400,7 @@ class ArtefactsManager:
         metadata,
         evaluation,
         checkpoint_loaded: bool,
+        confidence_interval: dict[str, Any] | None = None,
     ) -> Path:
         """Save holdout metrics, predictions and optional confidence interval."""
         scalar_metrics = _scalar_metrics(metrics)
@@ -443,7 +408,7 @@ class ArtefactsManager:
         prediction_path = None
         logits_path = None
         ci_path = None
-        ci_metrics = None
+        ci_metrics = confidence_interval
 
         prediction_key = _prediction_key(metrics)
         if evaluation.save_predictions and prediction_key is not None:
@@ -452,14 +417,7 @@ class ArtefactsManager:
         if evaluation.save_logits and "logits" in metrics:
             logits_path = self.save_logits(f"{split}_logits", metrics["logits"])
 
-        ci_config = evaluation.confidence_interval
-        if ci_config.enabled and prediction_key is not None:
-            ci_metrics = _subject_bootstrap_nrmse(
-                metrics[prediction_key],
-                metadata,
-                n_samples=ci_config.n_samples,
-                resampling_seed=ci_config.resampling_seed,
-            )
+        if ci_metrics is not None:
             ci_path = self.paths.run_dir / f"{_safe_slug(split)}_ci.json"
             with ci_path.open("w", encoding="utf-8") as f:
                 json.dump(ci_metrics, f, indent=2, default=_json_default)
@@ -641,11 +599,15 @@ class ArtefactsManager:
             "test_nrmse",
             "test_nrmse_ci_low",
             "test_nrmse_ci_high",
+            "test_posterior_crps",
+            "test_posterior_fixed_kernel_event_nll",
             "calibration_temperature",
             "calibration_temperature_valid_nrmse",
             "test_tau_nrmse",
             "test_tau_nrmse_ci_low",
             "test_tau_nrmse_ci_high",
+            "test_tau_posterior_crps",
+            "test_tau_posterior_fixed_kernel_event_nll",
             "last_epoch",
             "training_wall_seconds",
             "time_to_best_seconds",

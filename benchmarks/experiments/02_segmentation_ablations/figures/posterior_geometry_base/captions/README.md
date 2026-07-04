@@ -13,5 +13,6 @@ The fixed color palette is saved as `posterior_color_palette.csv` in the same di
 Files:
 
 - `posterior_geometry_main.md`: main multi-panel output-geometry caption.
+- `quantitative_posterior_geometry_table.md`: compact paper-facing posterior-geometry table and summary.
 - `representative_posteriors.md`: qualitative posterior overlay caption.
 - `temperature_sensitivity.md`: calibration-temperature diagnostic caption.

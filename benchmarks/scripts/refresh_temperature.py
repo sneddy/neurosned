@@ -21,9 +21,10 @@ import yaml
 
 from benchmarks.pkg.artefacts_manager import ArtefactsManager, now_utc_iso
 from benchmarks.pkg.config import ExperimentConfig, resolve_path
+from benchmarks.pkg.evaluation.calibration import apply_temperature, fit_temperature
+from benchmarks.pkg.evaluation.factory import build_confidence_interval, build_temperature_readout
 from benchmarks.pkg.evaluation.metrics import nrmse, rmse
-from benchmarks.pkg.evaluation.temperature import apply_temperature, fit_temperature
-from benchmarks.scripts.run import path_text
+from benchmarks.pkg.runtime import path_text
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -164,6 +165,7 @@ def refresh_run(
     valid_targets = valid_metadata["target"].to_numpy()
     holdout_targets = holdout_metadata["target"].to_numpy()
     sfreq, win_offset = read_time_grid(config, holdout_logits)
+    readout = build_temperature_readout(config, sfreq=sfreq, win_offset=win_offset)
 
     calibration = fit_temperature(
         valid_logits,
@@ -171,8 +173,7 @@ def refresh_run(
         min_value=min_value,
         max_value=max_value,
         step=step,
-        sfreq=sfreq,
-        win_offset=win_offset,
+        prediction_fn=readout.prediction_fn,
     )
     calibration.update(
         {
@@ -181,12 +182,17 @@ def refresh_run(
             "metric": "nrmse",
             "sfreq": sfreq,
             "win_offset": win_offset,
+            **readout.metadata,
         }
     )
     calibration_path = artefacts.save_temperature_calibration(calibration)
 
     temperature = float(calibration["best_temperature"])
-    predictions = apply_temperature(holdout_logits, temperature, sfreq=sfreq, win_offset=win_offset)
+    predictions = apply_temperature(
+        holdout_logits,
+        temperature,
+        prediction_fn=readout.prediction_fn,
+    )
     metrics = {
         "rmse": rmse(predictions, holdout_targets),
         "nrmse": nrmse(predictions, holdout_targets),
@@ -199,6 +205,7 @@ def refresh_run(
         metadata=holdout_metadata,
         evaluation=config.evaluation,
         checkpoint_loaded=True,
+        confidence_interval=build_confidence_interval(metrics, holdout_metadata, config.evaluation),
     )
     artefacts.save_summary(status="temperature_refreshed", temperature_refreshed_at=now_utc_iso())
     return {

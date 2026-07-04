@@ -28,7 +28,7 @@ import pandas as pd
 import yaml
 
 from benchmarks.pkg.config import resolve_path
-from benchmarks.pkg.evaluation.metrics import nrmse, rmse
+from benchmarks.pkg.evaluation.metrics import crps_discrete, fixed_kernel_event_nll, nrmse, rmse
 
 
 ORDER_HINTS = {
@@ -95,6 +95,9 @@ class RunPosterior:
     mass_near: np.ndarray
     mode_mean_gap: np.ndarray
     abs_error: np.ndarray
+    crps: np.ndarray
+    fixed_kernel_event_nll: np.ndarray
+    fixed_kernel_event_nll_sigma: float
     nrmse_value: float
     rmse_value: float
     ci_low: float | None
@@ -129,6 +132,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Rows used for posterior-geometry summaries.",
     )
     parser.add_argument("--near-ms", type=float, default=150.0, help="Mass-near-target half-window in milliseconds.")
+    parser.add_argument(
+        "--score-sigma",
+        type=float,
+        default=0.15,
+        help="Gaussian sigma in seconds for fixed-kernel EventNLL scoring.",
+    )
     parser.add_argument(
         "--align-window-ms",
         type=float,
@@ -354,6 +363,7 @@ def load_run_posterior(
     temperature_override: float | None,
     target_filter: str,
     near_ms: float,
+    score_sigma: float,
     coverage_levels: list[float],
 ) -> RunPosterior:
     """Load saved logits and compute posterior geometry for one run."""
@@ -379,6 +389,14 @@ def load_run_posterior(
     mass_near = np.sum(probabilities * (np.abs(grid[None, :] - targets[:, None]) <= near_sec), axis=1)
     mode_mean_gap = np.abs(modes - predictions)
     abs_error = np.abs(predictions - targets)
+    crps = crps_discrete(probabilities, grid, targets, reduction="none")
+    scored_event_nll = fixed_kernel_event_nll(
+        probabilities,
+        grid,
+        targets,
+        sigma=score_sigma,
+        reduction="none",
+    )
 
     saved_nrmse, ci_low, ci_high = read_saved_metrics(run_dir, split, readout)
     nrmse_value = saved_nrmse if saved_nrmse is not None else nrmse(predictions, targets)
@@ -405,6 +423,9 @@ def load_run_posterior(
         mass_near=mass_near,
         mode_mean_gap=mode_mean_gap,
         abs_error=abs_error,
+        crps=crps,
+        fixed_kernel_event_nll=scored_event_nll,
+        fixed_kernel_event_nll_sigma=float(score_sigma),
         nrmse_value=float(nrmse_value),
         rmse_value=float(rmse_value),
         ci_low=ci_low,
@@ -474,6 +495,12 @@ def summary_frame(runs: list[RunPosterior], near_ms: float) -> pd.DataFrame:
     rows = []
     for run in runs:
         mask = run.mask
+        coverage_mae = np.nan
+        coverage80 = np.nan
+        if run.coverage is not None and not run.coverage.empty:
+            coverage_mae = float(np.mean(np.abs(run.coverage["coverage"] - run.coverage["nominal"])))
+            closest80 = run.coverage.loc[(run.coverage["nominal"] - 0.80).abs().idxmin()]
+            coverage80 = float(closest80["coverage"])
         rows.append(
             {
                 "name": run.name,
@@ -498,6 +525,12 @@ def summary_frame(runs: list[RunPosterior], near_ms: float) -> pd.DataFrame:
                 "mode_mean_gap_median_ms": float(np.median(run.mode_mean_gap[mask]) * 1000.0),
                 "uncertainty_error_corr": float(np.corrcoef(run.std[mask], run.abs_error[mask])[0, 1]),
                 "entropy_median": float(np.median(run.entropy[mask])),
+                "crps_mean": float(np.mean(run.crps[mask])),
+                "crps_mean_ms": float(np.mean(run.crps[mask]) * 1000.0),
+                "fixed_kernel_event_nll_mean": float(np.mean(run.fixed_kernel_event_nll[mask])),
+                "fixed_kernel_event_nll_sigma_s": run.fixed_kernel_event_nll_sigma,
+                "coverage80": coverage80,
+                "coverage_mae": coverage_mae,
             }
         )
     return pd.DataFrame(rows)
@@ -522,6 +555,8 @@ def trial_metrics_frame(runs: list[RunPosterior]) -> pd.DataFrame:
         frame["mass_near"] = run.mass_near
         frame["mode_mean_gap"] = run.mode_mean_gap
         frame["entropy"] = run.entropy
+        frame["crps"] = run.crps
+        frame["fixed_kernel_event_nll"] = run.fixed_kernel_event_nll
         frames.append(frame)
     return pd.concat(frames, ignore_index=True)
 
@@ -920,6 +955,99 @@ def caption_metric_line(row: pd.Series, near_ms: float) -> str:
     )
 
 
+def quantitative_table_frame(summary: pd.DataFrame, near_ms: float) -> pd.DataFrame:
+    """Return a compact paper-facing posterior-geometry table."""
+    mass_col = f"mass_within_{near_ms:g}ms_mean"
+    columns = [
+        "label",
+        "nrmse",
+        "mae_ms",
+        "crps_mean_ms",
+        "fixed_kernel_event_nll_mean",
+        "width80_median_ms",
+        mass_col,
+        "mode_mean_gap_median_ms",
+        "coverage80",
+        "coverage_mae",
+    ]
+    available = [column for column in columns if column in summary]
+    table = summary.loc[:, available].copy()
+    return table.rename(
+        columns={
+            "label": "Model",
+            "nrmse": "nRMSE",
+            "mae_ms": "MAE ms",
+            "crps_mean_ms": "CRPS ms",
+            "fixed_kernel_event_nll_mean": "Fixed-kernel EventNLL",
+            "width80_median_ms": "Width80 ms",
+            mass_col: f"Mass +/-{near_ms:g} ms",
+            "mode_mean_gap_median_ms": "Mode-mean gap ms",
+            "coverage80": "Coverage80",
+            "coverage_mae": "Coverage MAE",
+        }
+    )
+
+
+def write_csv_and_markdown_table(
+    table: pd.DataFrame,
+    output_dir: Path,
+    *,
+    score_sigma: float,
+    write_markdown: bool,
+) -> tuple[Path, Path | None]:
+    """Save the quantitative posterior-geometry table as CSV and Markdown."""
+    csv_path = output_dir / "quantitative_posterior_geometry_table.csv"
+    table.to_csv(csv_path, index=False)
+    md_path = None
+    if write_markdown:
+        md_path = output_dir / "captions" / "quantitative_posterior_geometry_table.md"
+        write_text(md_path, quantitative_table_caption(table, score_sigma=score_sigma))
+    return csv_path, md_path
+
+
+def markdown_table(table: pd.DataFrame) -> str:
+    """Render a small DataFrame as a GitHub-flavored Markdown table."""
+    headers = [str(column) for column in table.columns]
+    rows = []
+    for _, row in table.iterrows():
+        rendered = []
+        for column in table.columns:
+            value = row[column]
+            if column == "Model":
+                rendered.append(str(value))
+            elif column == "nRMSE" or column.startswith("Mass +/-") or column in {"Coverage80", "Coverage MAE"}:
+                rendered.append(format_float(value, 3))
+            elif column == "Fixed-kernel EventNLL":
+                rendered.append(format_float(value, 3))
+            else:
+                rendered.append(format_float(value, 0))
+        rows.append(rendered)
+
+    lines = [
+        "| " + " | ".join(headers) + " |",
+        "| " + " | ".join([":---" if header == "Model" else "---:" for header in headers]) + " |",
+    ]
+    lines.extend("| " + " | ".join(row) + " |" for row in rows)
+    return "\n".join(lines)
+
+
+def quantitative_table_caption(table: pd.DataFrame, *, score_sigma: float) -> str:
+    """Return the markdown caption and paper-ready summary for the quantitative table."""
+    table_text = markdown_table(table)
+    return f"""# quantitative_posterior_geometry_table
+
+## Draft Caption
+
+Quantitative posterior geometry on R11 for matched event-time segmentation losses. Scalar nRMSE and MAE summarize point-readout accuracy; CRPS and fixed-kernel EventNLL are proper distributional scores computed from the full posterior; width, near-target mass, mode-mean gap, and empirical coverage quantify posterior concentration and calibration. CRPS is reported in milliseconds. Fixed-kernel EventNLL uses the same Gaussian observation kernel for all models (`sigma={score_sigma:.2f} s`), so lower values indicate that the observed RT has higher likelihood under the predicted event-time mixture.
+
+{table_text}
+
+## Camera-Ready Summary
+
+EventNLL produces the sharpest and most target-concentrated event-time posteriors, but these posteriors are under-calibrated as uncertainty estimates. Thus, EventNLL is better interpreted as a localization objective, whereas coverage-based metrics quantify whether posterior concentration corresponds to calibrated uncertainty.
+"""
+
+
 def write_text(path: Path, text: str) -> None:
     """Write one UTF-8 text file."""
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -1080,6 +1208,7 @@ The fixed color palette is saved as `posterior_color_palette.csv` in the same di
 Files:
 
 - `posterior_geometry_main.md`: main multi-panel output-geometry caption.
+- `quantitative_posterior_geometry_table.md`: compact paper-facing posterior-geometry table and summary.
 - `representative_posteriors.md`: qualitative posterior overlay caption.
 - `temperature_sensitivity.md`: calibration-temperature diagnostic caption.
 """
@@ -1163,6 +1292,7 @@ def run_cli(args: argparse.Namespace) -> list[RunPosterior]:
             temperature_override=args.temperature,
             target_filter=args.target_filter,
             near_ms=args.near_ms,
+            score_sigma=args.score_sigma,
             coverage_levels=args.coverage_levels,
         )
         compute_aligned_posterior(run, align_window_ms=args.align_window_ms)
@@ -1178,6 +1308,14 @@ def run_cli(args: argparse.Namespace) -> list[RunPosterior]:
     summary.to_csv(summary_path, index=False)
 
     data_paths = [summary_path]
+    quantitative_table = quantitative_table_frame(summary, args.near_ms)
+    table_csv_path, table_caption_path = write_csv_and_markdown_table(
+        quantitative_table,
+        output_dir,
+        score_sigma=args.score_sigma,
+        write_markdown=not args.skip_captions,
+    )
+    data_paths.append(table_csv_path)
     palette_path = output_dir / "posterior_color_palette.csv"
     palette_frame(runs).to_csv(palette_path, index=False)
     data_paths.append(palette_path)
@@ -1231,6 +1369,8 @@ def run_cli(args: argparse.Namespace) -> list[RunPosterior]:
             near_ms=args.near_ms,
             formats=args.formats,
         )
+        if table_caption_path is not None:
+            caption_paths.append(table_caption_path)
 
     print("\nSaved data")
     for path in data_paths:

@@ -204,6 +204,13 @@ methodological difference at a time relative to the segmentation pivot.
 
 `include`: ✓ = include in the core paper-facing segmentation-loss study; ✗ = keep as a sanity/internal run unless space or reviewer requests require an appendix.
 
+Status rationale: the main table should stay focused on the event-time
+formulation rather than becoming a catalogue of kernels. I keep a run as ✓ when
+it either supports the central claim directly, provides a necessary negative
+control, or gives a compact probabilistic extension worth discussing. Kernel
+variants that do not improve R11 or clarify the story stay ✗ and can be moved to
+an appendix if a reviewer asks for robustness checks.
+
 | include | name | role | readout | temperature | valid_nrmse | R11 nrmse | note |
 | :---: | --- | --- | --- | ---: | ---: | ---: | --- |
 | ✓ | unet_deeper_ce_only | soft-label event-time CE only | base | 0.65 | 0.922529 | 0.938738 [0.921696, 0.958015] | Best completed matched ablation so far. Distributional event-time supervision alone is sufficient here; the explicit scalar time-loss term is not required to recover the segmentation gain. |
@@ -212,13 +219,50 @@ methodological difference at a time relative to the segmentation pivot.
 | ✓ | unet_deeper_comboloss | hybrid event-time segmentation: soft-label CE + soft-argmax time loss | calibrated tau | 0.80 | 0.924544 | 0.935573 [0.918136, 0.954309] | Same checkpoint with post-hoc temperature selected on validation logits. |
 | ✓ | unet_deeper_event_nll | continuous event-time mixture likelihood | base | 0.65 | 0.923948 | 0.942698 [0.924651, 0.962530] | Single probabilistic event-time objective: the temporal softmax defines mixture weights over latent event times and observed RT is modeled with Gaussian temporal noise. Nearly matches CE/hybrid without a hand-weighted CE+time cocktail. |
 | ✓ | unet_deeper_event_nll | continuous event-time mixture likelihood | calibrated tau | 0.70 | 0.923619 | 0.940947 [0.923160, 0.960322] | Same checkpoint with post-hoc temperature selected on validation logits. |
+| ✓ | unet_deeper_gaussian_mixture_event_nll | continuous event-time likelihood with narrow/wide Gaussian observation mixture | base | 0.65 | 0.922677 | 0.942161 [0.923619, 0.962018] | Paper-facing probabilistic extension: a two-scale observation kernel is a more realistic RT readout than a single Gaussian and improves validation and calibrated R11 relative to fixed Gaussian EventNLL. Include as a compact kernel-extension row, not as a new main architecture. |
+| ✓ | unet_deeper_gaussian_mixture_event_nll | continuous event-time likelihood with narrow/wide Gaussian observation mixture | calibrated tau | 0.75 | 0.921676 | 0.939267 [0.921864, 0.958291] | Same checkpoint with post-hoc temperature selected on validation logits. This is the strongest EventNLL-family scalar readout so far, while the main novelty remains the latent event-time formulation. |
+| ✗ | unet_deeper_laplace_event_nll | continuous event-time likelihood with Laplace observation kernel | base | 0.65 | 0.927877 | 0.943389 [0.925730, 0.962596] | Completed kernel robustness probe. It does not improve over Gaussian EventNLL on validation or R11, so it weakens the main story if placed in the core table. |
+| ✗ | unet_deeper_laplace_event_nll | continuous event-time likelihood with Laplace observation kernel | calibrated tau | 0.75 | 0.926636 | 0.940696 [0.923718, 0.959285] | Calibration recovers some scalar R11 score, but the kernel is still not better than the cleaner Gaussian/mixture likelihood variants. Keep for appendix/internal robustness. |
 | ✗ | unet_deeper_student_t_event_nll | robust continuous event-time mixture likelihood with Student-t observation kernel | base | 0.65 | 0.926036 | 0.946590 [0.927653, 0.967181] | Robust heavy-tailed observation kernel did not improve the Gaussian EventNLL. Keep as an appendix/internal statistical probe, not a core loss ablation. |
 | ✗ | unet_deeper_student_t_event_nll | robust continuous event-time mixture likelihood with Student-t observation kernel | calibrated tau | 0.80 | 0.923259 | 0.941127 [0.923382, 0.960687] | Post-hoc temperature recovers much of the validation gap, but R11 remains essentially tied with or weaker than Gaussian EventNLL and below the best CE/combo calibrated readouts. |
 | ✗ | unet_deeper_event_nll_heteroscedastic | EventNLL with trial-wise learned observation scale `sigma(x)` | base | 0.65 | 0.923056 | 0.942343 [0.923630, 0.962703] | Trial-wise sigma slightly improves validation relative to fixed Gaussian EventNLL, but does not improve R11 enough to justify inclusion in the main loss table. R11 mean predicted `event_sigma` is 0.110943 s. |
+| ✓ | unet_deeper_hazard_event_nll | hazard-parameterized event-time posterior with continuous Gaussian EventNLL | base | 0.65 | 0.924318 | 0.937332 [0.920594, 0.955704] | Paper-facing alternative parameterization: a survival/hazard PMF reaches CE-level R11 without reverting to scalar regression. This strengthens the claim that the event-time formulation is not tied to one softmax implementation. |
+| ✓ | unet_deeper_hazard_event_nll | hazard-parameterized event-time posterior with continuous Gaussian EventNLL | calibrated tau | 0.65 | 0.924318 | 0.937332 [0.920594, 0.955704] | Temperature selection leaves the base readout unchanged, suggesting the hazard EventNLL logits are already near their validation-optimal scale. Include as a secondary method row or compact supplement, not as a replacement for the matched softmax loss ablation. |
+| ✗ | unet_deeper_hazard_discrete_nll | hazard-parameterized event-time posterior with exact-bin survival NLL | base | 0.65 | 0.926288 | 0.946823 [0.928204, 0.967220] | Useful negative control for the hazard family: exact-bin discrete survival NLL is weaker than continuous EventNLL, supporting the noisy-observation RT model. Too niche for the core table. |
+| ✗ | unet_deeper_hazard_discrete_nll | hazard-parameterized event-time posterior with exact-bin survival NLL | calibrated tau | 0.65 | 0.926288 | 0.946823 [0.928204, 0.967220] | Calibration does not change the readout. Keep as internal/appendix evidence that the continuous observation model matters. |
 | ✓ | unet_deeper_time_only | soft-argmax time loss only | base | 0.65 | 0.938750 | 0.951797 [0.937201, 0.967933] | Directly optimizes the scalar soft-argmax error but removes distributional supervision. Weaker than the distributional losses, supporting the claim that event-time distribution learning matters beyond scalar readout alone. |
 | ✓ | unet_deeper_time_only | soft-argmax time loss only | calibrated tau | 0.85 | 0.935298 | 0.944578 [0.930935, 0.959775] | Same checkpoint with post-hoc temperature selected on validation logits. |
 | ✓ | unet_deeper_wass_only | event-time Wasserstein/CDF distance only | base | 0.65 | 0.943597 | 0.960514 [0.944301, 0.978722] | Pure CDF-distance matching is the weakest completed segmentation loss ablation so far. It is useful as a negative control: not every distributional distance recovers the segmentation gain. |
 | ✓ | unet_deeper_wass_only | event-time Wasserstein/CDF distance only | calibrated tau | 2.95 | 0.936941 | 0.949716 [0.934666, 0.966443] | Same checkpoint with post-hoc temperature selected on validation logits using the expanded 0.2-3.5 grid. The wider calibration range improves the readout but Wasserstein remains weaker than the CE/EventNLL losses. |
+
+### Quantitative Posterior Geometry on R11
+
+Generated by `benchmarks/scripts/plot_segmentation_posteriors.py` from saved
+R11 logits. The paper-facing calibrated table is stored at
+`benchmarks/experiments/02_segmentation_ablations/figures/posterior_geometry_calibrated/quantitative_posterior_geometry_table.csv`;
+the matching caption draft is
+`benchmarks/experiments/02_segmentation_ablations/figures/posterior_geometry_calibrated/captions/quantitative_posterior_geometry_table.md`.
+The base-readout counterpart is stored under `posterior_geometry_base/`.
+
+All posterior-geometry rows use the representable R11 target subset
+(`15,164/15,751` trials inside the event-time support). CRPS is reported in
+milliseconds. Fixed-kernel EventNLL uses the same Gaussian observation kernel
+for every model (`sigma=0.15 s`), so it evaluates the posterior as an event-time
+mixture likelihood rather than as the training loss of any one run.
+
+| model | nRMSE | MAE ms | CRPS ms | fixed-kernel EventNLL | width80 ms | mass +/-150 ms | mode-mean gap ms | coverage80 | coverage MAE |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| CE | 0.937 | 216 | 155 | 0.115 | 820 | 0.328 | 57 | 0.895 | 0.113 |
+| CE+time | 0.936 | 219 | 157 | 0.144 | 860 | 0.311 | 57 | 0.899 | 0.116 |
+| EventNLL | 0.941 | 216 | 162 | -0.027 | 450 | 0.487 | 72 | 0.480 | 0.290 |
+| Time-only | 0.945 | 228 | 167 | 0.203 | 1070 | 0.311 | 129 | 0.913 | 0.113 |
+| Wasserstein | 0.950 | 222 | 165 | 0.219 | 740 | 0.296 | 50 | 0.812 | 0.053 |
+
+Camera-ready summary: EventNLL produces the sharpest and most
+target-concentrated event-time posteriors, but these posteriors are
+under-calibrated as uncertainty estimates. Thus, EventNLL is better interpreted
+as a localization objective, whereas coverage-based metrics quantify whether
+posterior concentration corresponds to calibrated uncertainty.
 
 ### Open Segmentation Runs
 
@@ -276,6 +320,7 @@ flowchart LR
 | Splits and counts | Document release roles, no subject overlap, and the fact that R11 is untouched. |
 | Direct regression baselines | Show that scalar RT regression is a reasonable baseline but does not explain the segmentation gain. |
 | Core segmentation ablations | Test the method components: event-time formulation, soft-label width, crop jitter, temperature tuning, and loss terms. |
+| Posterior geometry scores | Quantify the output-level claim with CRPS, fixed-kernel EventNLL, posterior width, near-target mass, mode-mean gap, and coverage error on R11. |
 | Architecture variants | Separate formulation effects from model capacity and architectural choices. |
 | Stacking and calibration | Report stacking as a prespecified add-on using subject-disjoint OOF diagnostics on R9-R10, with final application to R11. |
 | Final R11 results | Main paper claims: best regression, best single segmentation model, optional ensemble/stacking, all with subject-level bootstrap CIs. |

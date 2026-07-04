@@ -19,6 +19,8 @@ def draw_batch(
     win_offset,
     q,
     temperature,
+    probabilities=None,
+    readout_label=None,
     n_samples=4,
     rows=2,
     save_path=None,
@@ -31,11 +33,15 @@ def draw_batch(
     cols = int(np.ceil(b / rows))
     fig = plt.figure(figsize=(cols * 5, rows * 2))
     t_grid = (np.arange(T) * dt) + win_offset
+    label = readout_label or "Predicted p(t)"
     for plot_idx, i in enumerate(idxs):
         plt.subplot(rows, cols, plot_idx + 1)
-        p = torch.softmax(z[i] / temperature, dim=-1).cpu().numpy()
+        if probabilities is None:
+            p = torch.softmax(z[i] / temperature, dim=-1).cpu().numpy()
+        else:
+            p = probabilities[i].cpu().numpy()
         qi = q[i].cpu().numpy()
-        plt.plot(t_grid, p, label="Predicted p(t)", color="blue")
+        plt.plot(t_grid, p, label=label, color="blue")
         plt.plot(t_grid, qi, label="Soft label $q(t)$", color="green", linestyle="--", alpha=0.8)
         plt.axvline([t_hat_abs[i].cpu().item()], color="red", label="Predicted time", linestyle="--")
         plt.axvline([y[i].cpu().item()], color="black", label="Actual time", linestyle="--")
