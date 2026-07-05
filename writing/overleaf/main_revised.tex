@@ -4,6 +4,7 @@
 \usepackage{graphicx}
 \usepackage{color}
 \usepackage{multirow}
+\usepackage{placeins}
 \usepackage{mathptmx} % Times-like text + math
 \usepackage[T1]{fontenc}
 \usepackage{hyperref}
@@ -320,6 +321,15 @@ The task is trial-wise behavioral decoding via prediction of RT of the participa
 To reduce optimistic bias from validation reuse, we use a release-separated protocol over HBN releases. Releases R1-R8 are used for fitting the base EEG models. Releases R9-R10 are treated as a development partition for checkpointing, calibration, protocol diagnostics, and fitting a prespecified stacking procedure. We do not treat R9-R10 performance as a final estimate of generalization. For stacking analyses, meta-model inputs on R9-R10 are generated using subject-disjoint out-of-fold predictions so that the meta-model never receives in-fold predictions for the same subject.
 
 Release R11 is held out as an untouched local test release. No R11 labels or metrics are used for base-model training, checkpointing, calibration, stacking design, hyperparameter selection, or model selection. All main performance claims are based on R11 and are reported with subject-level bootstrap confidence intervals. The original hidden CodaBench evaluation from the EEG Foundation Challenge is reported separately in the Appendix as secondary benchmark context.
+
+For posterior-geometry analyses, we distinguish scalar RT evaluation from event-time support diagnostics. Scalar nRMSE is computed on all R11 trials. Posterior-shape summaries are computed only for trials whose observed RT is representable on the modeled event-time grid, which spans 0.50--2.49~s from stimulus onset (Figure~\ref{fig:window_support_diagnostic}). This affects 15{,}164 of 15{,}751 R11 trials; 587 trials fall below the modeled support and are excluded only from posterior-geometry summaries, not from scalar performance reporting.
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=0.92\linewidth]{img/ch1/window_support_diagnostic_calibrated.png}
+    \caption{Observed R11 reaction-time distribution relative to the modeled event-time support. Scalar nRMSE is computed on all R11 trials, whereas posterior-geometry summaries are restricted to trials whose observed RT falls inside the event-time grid.}
+    \label{fig:window_support_diagnostic}
+\end{figure}
 
 \subsection{Fixed Input Normalization and Training Protocol}
 
@@ -762,6 +772,13 @@ The temporal-readout ETR-CNN is only marginally better than the scalar MSP-CNN o
 
 Table~\ref{tab:r11_segmentation_losses} summarizes the current completed event-time segmentation loss ablations. The best calibrated hybrid event-time segmentation model reaches 0.935573 nRMSE on R11, improving over the strongest completed direct-regression baseline. CE-only soft-label supervision is also strong. This is the central empirical step in the narrative: once RT is represented as an event-time posterior, distributional supervision over time becomes more useful than treating RT as a scalar window label.
 
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=\linewidth]{img/ch1/r11_performance_forest_calibrated.png}
+    \caption{R11 scalar readout performance with subject-bootstrap confidence intervals. The dashed vertical line marks the strongest direct-regression baseline. Several event-time losses improve scalar nRMSE while remaining close enough to motivate posterior-level analysis rather than ranking losses only by point-prediction error.}
+    \label{fig:r11_performance_forest}
+\end{figure}
+
 \begin{table}[!t]
 \centering
 \caption{Completed event-time segmentation loss ablations under the release-separated protocol. ``Cal.'' denotes post-hoc temperature selection on R9-R10 and one-shot application to R11.}
@@ -878,7 +895,34 @@ Architecture ablations should be used to separate formulation effects from capac
 
 \section{Additional Posterior Geometry Examples}
 
-Figure~\ref{fig:appendix_representative_posteriors} shows representative trials where models have similar scalar predictions but different posterior widths, large mode-mean gaps, or strong disagreement across losses. Figure~\ref{fig:appendix_temperature_sensitivity} shows the development-split temperature curves used to choose post-hoc readout temperatures.
+Table~\ref{tab:appendix_posterior_geometry_metrics} reports additional distributional metrics behind Figure~\ref{fig:posterior_geometry_main}. Figure~\ref{fig:appendix_posterior_raster} shows trial-sorted event-time posterior maps, Figure~\ref{fig:appendix_representative_posteriors} shows representative trials where models have similar scalar predictions but different posterior widths, large mode-mean gaps, or strong disagreement across losses, and Figure~\ref{fig:appendix_temperature_sensitivity} shows the development-split temperature curves used to choose post-hoc readout temperatures.
+
+\begin{table}[!t]
+\centering
+\caption{Additional calibrated posterior-geometry metrics on representable R11 trials. CRPS is reported in milliseconds. Fixed-kernel EventNLL uses the same Gaussian observation kernel for all models, so lower values indicate higher likelihood of the observed RT under the predicted event-time mixture.}
+\label{tab:appendix_posterior_geometry_metrics}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.12}
+\begin{tabular}{@{} l c c c c c c c @{}}
+\toprule
+\textbf{Model} & \textbf{nRMSE} & \textbf{MAE ms} & \textbf{CRPS ms} & \textbf{NLL} & \textbf{Width80 ms} & \textbf{Mass $\pm$150 ms} & \textbf{Coverage80} \\
+\midrule
+CE & 0.937 & 216 & 155 & 0.115 & 820 & 0.328 & 0.895 \\
+CE+time & 0.936 & 219 & 157 & 0.144 & 860 & 0.311 & 0.899 \\
+EventNLL & 0.941 & 216 & 162 & -0.027 & 450 & 0.487 & 0.480 \\
+Time-only & 0.945 & 228 & 167 & 0.203 & 1070 & 0.311 & 0.913 \\
+Wasserstein & 0.950 & 222 & 165 & 0.219 & 740 & 0.296 & 0.812 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=\linewidth]{img/ch1/trial_sorted_posterior_raster_calibrated.png}
+    \caption{Trial-sorted event-time posterior maps on R11 for matched segmentation losses. Rows are quantile bins of representable R11 trials sorted by observed RT; the x-axis is time from stimulus onset; color shows log-transformed posterior density averaged within each bin. The black curve marks the mean observed RT in each bin.}
+    \label{fig:appendix_posterior_raster}
+\end{figure}
 
 \begin{figure}[!t]
     \centering
@@ -895,6 +939,8 @@ Figure~\ref{fig:appendix_representative_posteriors} shows representative trials 
 \end{figure}
 
 
+\FloatBarrier
+\clearpage
 \bibliography{references}
 
 
