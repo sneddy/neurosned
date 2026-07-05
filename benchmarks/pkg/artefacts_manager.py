@@ -122,16 +122,28 @@ class ArtefactsManager:
         input_checkpoint_path: str | Path | None = None,
         data_paths: dict[str, Path | None] | None = None,
         root_dir: str | Path = "benchmarks/experiments",
+        experiment_root_dir: str | Path | None = None,
+        run_name_prefix: str | None = None,
+        run_name_override: str | None = None,
     ) -> "ArtefactsManager":
         """Create a run directory and write initial output files."""
         project_root = Path(project_root).resolve()
         root = resolve_path(root_dir, project_root)
         root.mkdir(parents=True, exist_ok=True)
-        experiment_root = root / _safe_slug(config.experiment)
+        if experiment_root_dir is None:
+            experiment_root = root / _safe_slug(config.experiment)
+        else:
+            experiment_root = resolve_path(experiment_root_dir, project_root)
+            if experiment_root is None:
+                raise ValueError("experiment_root_dir cannot be None.")
         experiment_root.mkdir(parents=True, exist_ok=True)
 
         created_at = now_utc_iso()
-        run_name = cls.build_run_name(config, created_at)
+        run_name = _safe_slug(run_name_override) if run_name_override is not None else cls.build_run_name(
+            config,
+            created_at,
+            prefix=run_name_prefix,
+        )
         run_dir = cls._unique_run_dir(experiment_root, run_name)
         paths = ArtefactPaths(
             root=root,
@@ -245,13 +257,18 @@ class ArtefactsManager:
         return manager
 
     @staticmethod
-    def build_run_name(config: ExperimentConfig, created_at: str | None = None) -> str:
+    def build_run_name(
+        config: ExperimentConfig,
+        created_at: str | None = None,
+        *,
+        prefix: str | None = None,
+    ) -> str:
         """Build a readable run directory name."""
         created_at = created_at or now_utc_iso()
         timestamp = created_at.replace("-", "").replace(":", "").replace("T", "_").replace("Z", "")
         return "__".join(
             [
-                _safe_slug(config.name),
+                _safe_slug(prefix if prefix is not None else config.name),
                 timestamp,
             ]
         )

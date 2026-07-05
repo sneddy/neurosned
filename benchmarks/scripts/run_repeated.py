@@ -82,7 +82,7 @@ def run_record(seed: int, manager) -> dict[str, Any]:
 
 def save_repeated_summary(aggregate_dir: Path, *, config_path: Path, config, records: list[dict[str, Any]]) -> None:
     """Save repeated-run CSV and aggregate JSON."""
-    aggregate_dir.mkdir(parents=True, exist_ok=False)
+    aggregate_dir.mkdir(parents=True, exist_ok=True)
     frame = pd.DataFrame(records)
     csv_path = aggregate_dir / "repeated_summary.csv"
     json_path = aggregate_dir / "repeated_summary.json"
@@ -148,17 +148,19 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Seeds: {', '.join(str(seed) for seed in repeated.seeds)}")
     print(f"Aggregate directory: {path_text(aggregate_dir)}")
 
+    aggregate_dir.mkdir(parents=True, exist_ok=False)
     records = []
     for seed in repeated.seeds:
         print(f"\n=== Seed {seed} ===")
         manager = run_config(
             config_path,
-            output_dir=args.output_dir,
+            output_dir=aggregate_dir,
             device=device,
             show_plots=args.show_plots,
             skip_initial_validation=args.skip_initial_validation,
             seed_override=seed,
-            name_suffix=f"seed{seed}",
+            experiment_root_dir=aggregate_dir,
+            run_name_override=f"seed{seed}",
         )
         records.append(run_record(seed, manager))
 

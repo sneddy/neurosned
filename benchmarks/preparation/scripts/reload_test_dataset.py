@@ -38,7 +38,11 @@ from benchmarks.preparation.preprocessing import (
 
 RELEASE = "R11"
 SPLIT_NAME = "r11_test"
-WINDOW_KIND = "2sec"
+DEFAULT_WINDOW_KIND = "2sec"
+OUTPUT_FILENAMES = {
+    "2sec": "r11_test.pkl",
+    "5sec": "r11_test_5sec.pkl",
+}
 
 
 def read_json(path: Path) -> dict | None:
@@ -77,8 +81,14 @@ def load_full_test_dataset(input_dir: Path, expected_count: int | None) -> BaseC
     )
 
 
-def reload_test_dataset(input_dir: Path, output_dir: Path) -> dict:
+def reload_test_dataset(input_dir: Path, output_dir: Path, *, window_kind: str = DEFAULT_WINDOW_KIND) -> dict:
     """Rebuild only the R11 test pickle from the existing release cache."""
+    if window_kind not in WINDOW_CONFIGS:
+        expected = ", ".join(sorted(WINDOW_CONFIGS))
+        raise ValueError(f"Unknown window_kind: {window_kind!r}. Expected one of: {expected}.")
+    if window_kind not in OUTPUT_FILENAMES:
+        raise ValueError(f"No output filename configured for window_kind={window_kind!r}.")
+
     expected_count = expected_recording_count(input_dir)
     if expected_count is not None:
         print(f"Expected {RELEASE} recordings from check_manifest: {expected_count:,}")
@@ -89,11 +99,11 @@ def reload_test_dataset(input_dir: Path, output_dir: Path) -> dict:
     dataset, skipped_bad_bdf_headers = drop_bad_cached_bdf_headers(dataset)
     dataset, skipped_preprocessing = preprocess_skip_bad(dataset, offline_preprocessors())
 
-    windows = create_release_windows(dataset, **WINDOW_CONFIGS[WINDOW_KIND])
-    output_path = output_dir / "r11_test.pkl"
+    windows = create_release_windows(dataset, **WINDOW_CONFIGS[window_kind])
+    output_path = output_dir / OUTPUT_FILENAMES[window_kind]
     save_pickle_dataset(windows, output_path, output_dir)
 
-    summary = summarize_windows(windows, SPLIT_NAME, WINDOW_KIND)
+    summary = summarize_windows(windows, SPLIT_NAME, window_kind)
     summary["output_path"] = str(output_path)
 
     manifest = {
@@ -121,7 +131,9 @@ def reload_test_dataset(input_dir: Path, output_dir: Path) -> dict:
         ),
     }
 
-    manifest_path = output_dir / "reload_test_manifest.json"
+    manifest_name = "reload_test_manifest.json" if window_kind == DEFAULT_WINDOW_KIND else f"reload_test_{window_kind}_manifest.json"
+    manifest_path = output_dir / manifest_name
+    manifest["manifest_path"] = str(manifest_path)
     manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
     return manifest
 
@@ -139,6 +151,12 @@ def build_parser() -> argparse.ArgumentParser:
         default=str(DEFAULT_SPLIT_OUTPUT_DIR),
         help="Directory for prepared split pickle files. Defaults to %(default)s.",
     )
+    parser.add_argument(
+        "--window-kind",
+        choices=sorted(OUTPUT_FILENAMES),
+        default=DEFAULT_WINDOW_KIND,
+        help="Prepared R11 window kind to rebuild. Defaults to %(default)s.",
+    )
     return parser
 
 
@@ -151,13 +169,14 @@ def main(argv: list[str] | None = None) -> int:
     output_dir = resolve_output_dir(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    manifest = reload_test_dataset(input_dir, output_dir)
+    manifest = reload_test_dataset(input_dir, output_dir, window_kind=args.window_kind)
     print("Reloaded test dataset:")
+    print(f"- window_kind: {manifest['output']['window_kind']}")
     print(f"- recordings: {manifest['loaded_recordings']:,}")
     print(f"- windows: {manifest['output']['n_windows']:,}")
     print(f"- subjects: {manifest['output']['n_subjects']:,}")
     print(f"- output: {manifest['output']['output_path']}")
-    print(f"- manifest: {output_dir / 'reload_test_manifest.json'}")
+    print(f"- manifest: {manifest['manifest_path']}")
     return 0
 
 

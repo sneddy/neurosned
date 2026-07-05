@@ -208,6 +208,9 @@ def run_config(
     skip_initial_validation: bool,
     seed_override: int | None = None,
     name_suffix: str | None = None,
+    experiment_root_dir: Path | None = None,
+    run_name_prefix: str | None = None,
+    run_name_override: str | None = None,
 ) -> ArtefactsManager:
     """Run one benchmark config and return its artefacts manager."""
     config_path = config_path.resolve()
@@ -256,6 +259,9 @@ def run_config(
         input_checkpoint_path=input_checkpoint_path,
         data_paths=data_paths,
         root_dir=output_dir,
+        experiment_root_dir=experiment_root_dir,
+        run_name_prefix=run_name_prefix,
+        run_name_override=run_name_override,
     )
     output_checkpoint_path = artefacts.checkpoint_path
 

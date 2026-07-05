@@ -105,6 +105,7 @@ def split_configs(output_dir: Path = DEFAULT_SPLIT_OUTPUT_DIR) -> tuple[dict, ..
             "releases": ("R11",),
             "outputs": {
                 "2sec": output_dir / "r11_test.pkl",
+                "5sec": output_dir / "r11_test_5sec.pkl",
             },
         },
     )
