@@ -135,13 +135,18 @@ distribution shift on Healthy Brain Network EEG recordings from the contrast cha
 is that making task-relevant temporal structure explicit improves robustness under EEG heterogeneity, and we apply it to behavioral decoding (trial-wise reaction time, RT) from stimulus-locked 2~s windows.
 
 
-We replace scalar regression with temporal segmentation: models predict an event-time
-distribution using Gaussian-smoothed targets and distribution-matching losses, followed by a soft-argmax readout and
-out-of-fold stacking over distributional meta-features.
-This framing is useful for brain-behavior decoding when targets are inherently temporal. It aligns supervision with latency variability, enables latent-consistent jittered cropping, and provides an uncertainty signal for more robust ensembling under cross-subject or session shift. We also report competitive lightweight regression baselines under the same subject-disjoint protocol as reference points for ablations. In our experiments, improvements were more sensitive to objective design and distribution-aware ensembling than to moderate increases in model capacity within the tested regime.
+We first compare compact scalar-regression models with standardized external EEG backbones, then introduce temporal
+readout baselines that inject timing structure while retaining scalar supervision. Our main reformulation predicts an
+event-time posterior over response latencies and derives scalar RT by expectation. Loss ablations show that distributional
+event-time supervision matters beyond a soft-argmax readout alone: CE and hybrid CE+time objectives outperform a
+time-only readout loss, while a Wasserstein-only objective is a useful negative control. We also evaluate a latent
+event-time likelihood, not as the best scalar-NRMSE model, but as a principled probabilistic objective in which observed
+RT is a noisy realization of a latent event time.
+
+This framing is useful for brain-behavior decoding when targets are inherently temporal. It aligns supervision with latency variability, enables latent-consistent jittered cropping, and makes posterior geometry inspectable. In our experiments, scalar scores alone hide important differences in posterior width, mode-mean disagreement, target-aligned mass, and coverage; we therefore treat temperature calibration and posterior regularization primarily as geometry analysis and control, not as the central method claim.
 
 
-\textcolor{red}{We evaluate the method under a release-separated protocol using HBN releases R1--R8 for model fitting, R9--R10 for development-stage calibration and meta-learning, and R11 as an untouched labeled test release. The original hidden-release CodaBench evaluation is retained only as a secondary benchmark comparison. Under this protocol, [METHOD] achieves [R11 nRMSE, CI], compared with [BASELINE nRMSE, CI] for the strongest direct-regression baseline.}
+We evaluate the method under a release-separated protocol using HBN releases R1--R8 for model fitting, R9--R10 for development-stage calibration and meta-learning, and R11 as an untouched labeled test release. The original hidden-release CodaBench evaluation is retained only as a secondary benchmark comparison. Under this protocol, the current best calibrated event-time segmentation model achieves 0.935573 nRMSE on R11 [0.918136, 0.954309], compared with 0.945938 [0.930153, 0.963795] for the strongest direct-regression baseline.
 
 
 
@@ -160,69 +165,134 @@ Despite this progress, robust EEG decoding remains challenging in practice due t
 In this work, we argue that a practical route to robustness under EEG heterogeneity is to make the temporal structure of the prediction target explicit. We focus on trial-wise reaction-time prediction from stimulus-locked EEG. Reaction time is not merely a scalar label attached to an entire window; it is the latency of a behavioral event following stimulus onset. Treating this latency as ordinary scalar regression discards temporal structure that is naturally present in the task. We therefore reformulate reaction-time prediction as event-time distribution modeling. Given the low-SNR and cross-subject/cross-release shift, we deliberately prioritize lightweight models and controlled objective-design comparisons rather than introducing a larger backbone.
 
 
-We evaluate this formulation on the reaction-time prediction task introduced by the EEG Foundation Challenge \citep{EEGFoundationChallengeArxiv2025, EEGChallengeWebsite2025,}, using curated releases of the Healthy Brain Network EEG dataset \citep{Shirazi2024HBNEEG}. The task is based on the contrast change detection (CCD) paradigm and requires predicting trial-wise response time from 2~s stimulus-locked EEG windows. We use the reaction-time task introduced by the EEG Foundation Challenge as a standardized large-scale setting, while basing the main analysis on a labeled release-separated protocol over HBN releases.
+We evaluate this formulation on the reaction-time prediction task introduced by the EEG Foundation Challenge \citep{EEGFoundationChallengeArxiv2025,EEGChallengeWebsite2025}, using curated releases of the Healthy Brain Network EEG dataset \citep{Shirazi2024HBNEEG}. The task is based on the contrast change detection (CCD) paradigm and requires predicting trial-wise response time from 2~s stimulus-locked EEG windows. We use the reaction-time task introduced by the EEG Foundation Challenge as a standardized large-scale setting, while basing the main analysis on a labeled release-separated protocol over HBN releases.
 
 
 
-For reaction-time decoding, we replace direct scalar regression with event-time distribution modeling. Models predict a probability distribution over possible response times within the post-stimulus window, are supervised using Gaussian-smoothed temporal targets and distribution-matching losses, and are converted back to scalar RT predictions through a temperature-scaled soft-argmax readout. This formulation supports label-consistent temporal jitter, yields uncertainty-sensitive distributional summaries, and enables distribution-aware stacking as a separate add-on analysis. The goal is formulation-first rather than architecture-first: we ask whether aligning the objective with the event-time nature of RT improves robustness even when the underlying EEG models remain lightweight.
+For reaction-time decoding, we replace direct scalar regression with event-time distribution modeling. Models predict a probability distribution over possible response times within the post-stimulus window and are converted back to scalar RT predictions through an expectation readout. We study soft Gaussian-label segmentation losses, scalar readout ablations, Wasserstein/CDF matching, and a latent event-time likelihood in which the observed RT is a noisy observation of an unobserved response-relevant event time. This formulation supports label-consistent temporal jitter, yields uncertainty-sensitive distributional summaries, and enables posterior-geometry analysis and distribution-aware stacking as add-on analyses. The goal is formulation-first rather than architecture-first: we ask whether aligning the objective with the event-time nature of RT improves robustness even when the underlying EEG models remain lightweight.
 
 Our experiments compare the event-time formulation against compact direct-regression models and standardized external EEG architectures under the same release-separated protocol. The obtained results support the idea that for low-SNR EEG reaction-time prediction, objective design and temporal inductive bias can be at least as important as moderate increases in model capacity within the tested regime.
 
 Our contributions are:
 \begin{enumerate}
     \item We reformulate EEG-based reaction-time prediction as event-time distribution modeling rather than ordinary scalar regression.
-    \item We combine Gaussian-smoothed temporal targets, distribution-matching losses, label-consistent temporal jitter, and temperature-scaled soft-argmax readout for trial-wise RT decoding.
-    \item We evaluate compact direct-regression baselines, event-time segmentation models, and standardized external EEG architectures under a release-separated HBN protocol with R11 subject-bootstrap confidence intervals.
-    \item We analyze calibration, stacking, and core ablations of the event-time pipeline, while reporting the original hidden challenge results as a secondary evidence.
+    \item We evaluate compact direct-regression baselines, temporal-readout regression, and standardized external EEG architectures under a release-separated HBN protocol with R11 subject-bootstrap confidence intervals.
+    \item We show through loss ablations that event-time distributional supervision matters beyond scalar soft-argmax regression.
+    \item We formulate EventNLL as a principled latent event-time likelihood for RT, complementing soft Gaussian-label supervision.
+    \item We analyze posterior geometry, temperature calibration, and secondary distribution-aware stacking while reporting the original hidden challenge results only as secondary evidence.
 \end{enumerate}
 
 \section{Related Work}
 
 \subsection{Robust EEG Decoding under Distribution Shift}
-A central obstacle for EEG decoding is that the data distribution changes substantially across subjects, sessions, and
-recording setups. Long before the current wave of large pretrained EEG backbones, the BCI community developed methods
-explicitly aimed at mitigating this shift through feature spaces and normalization procedures designed to be more stable
-than raw sensor-space signals. A prominent line of work represents trials by spatial covariance matrices and performs
-classification using the geometry of symmetric positive definite (SPD) matrices, yielding strong cross-subject and
-cross-session performance in multiple paradigms \citep{Barachant2012RiemannianBCI}. Building on this, transfer learning
-work in EEG-BCIs has emphasized distribution alignment and the reuse of data across subjects/sessions to reduce or avoid
-subject-specific calibration \citep{Jayaram2016TransferLearningBCI,Zanini2018RiemannianTL,HeWu2020EuclideanAlignment}.
-These approaches underscore a recurring theme: robustness often benefits from inductive biases (e.g., geometry-aware
-representations, explicit alignment) that reduce nuisance variability before or during learning.
+A central obstacle for EEG decoding is that the data distribution changes substantially
+across subjects, sessions, and recording setups. Long before the current wave of large
+pretrained EEG backbones, the BCI community developed methods aimed at reducing this
+shift through more stable feature spaces and explicit alignment. A prominent example is
+Riemannian EEG decoding, which represents trials by spatial covariance matrices and
+uses the geometry of symmetric positive definite matrices to improve cross-subject and
+cross-session classification \citep{Barachant2012RiemannianBCI}. Related transfer
+learning work has emphasized distribution alignment and data reuse across subjects or
+sessions to reduce calibration requirements
+\citep{Jayaram2016TransferLearningBCI,Zanini2018RiemannianTL,HeWu2020EuclideanAlignment}.
+Together, these methods highlight a recurring principle: robustness often improves when
+learning is constrained by inductive biases that suppress nuisance variability.
 
-
-More recently, deep-learning approaches to robustness have imported ideas from domain adaptation, including learning
-domain-invariant representations by adversarial objectives \citep{Ganin2016DANN} or by matching second-order statistics
-across domains \citep{SunSaenko2016DeepCORAL}. In EEG, these ideas are typically instantiated as subject- or session-level
-alignment modules, discrepancy losses, or adversarial heads that encourage invariance to subject identity while retaining
-task-relevant information. In parallel, self-supervised and large-scale pretraining has emerged as another route to transferability: contrastive or masked objectives can learn reusable representations across tasks and hardware
-\citep{Kostas2021BENDR}, and this direction has recently expanded into multi-dataset EEG foundation models
+Deep learning approaches to robust EEG decoding have imported similar ideas from
+domain adaptation, including adversarially learned domain-invariant representations
+\citep{Ganin2016DANN} and moment-matching objectives such as correlation alignment
+\citep{SunSaenko2016DeepCORAL}. In parallel, self-supervised and large-scale EEG
+pretraining has emerged as another route to transferability, with contrastive or masked
+objectives used to learn reusable representations across tasks, subjects, and hardware
+\citep{Kostas2021BENDR}. This direction has recently expanded into multi-dataset EEG
+foundation models and generalist backbones
 \citep{wang2024eegpt,Jiang2024LaBraM,Chen2024EEGFormer,Wang2025EEGMamba,ElOuahidi2025REVE,Yue2024BrainGPT}.
 
-
-Our work is complementary to both alignment-centric transfer learning and large-scale pretraining. Rather than proposing a new invariant backbone or an explicit domain-matching loss, we focus on a task-driven principle: \emph{make the task-relevant temporal structure of the behavioral target explicit}. Reaction time is not merely a scalar label attached to an EEG window; it is the latency of a behavioral event following stimulus onset. Treating this target as ordinary scalar regression discards temporal structure that is naturally present in the problem. We therefore reformulate reaction-time prediction as event-time distribution modeling, in which the model predicts a distribution over possible response times within the post-stimulus window and the scalar prediction is obtained by a calibrated soft-argmax readout.
-
-
-The reaction-time task introduced by the EEG Foundation Challenge provides a large-scale setting for studying this problem under cross-subject and cross-release shift \citep{EEGChallengeWebsite2025,EEGFoundationChallengeArxiv2025}. We use this task as a standardized test bed, but our methodological focus is not on challenge-specific engineering or leaderboard optimization. Instead, we ask whether objective design and temporal inductive bias can improve robustness when the underlying EEG models remain lightweight. The main experiments in this manuscript use a labeled release-separated protocol with R11 as an untouched local holdout; \textcolor{red}{the original hidden challenge results are reported separately in the Appendix as secondary benchmark context.}
-
-
-
-
+Our work is complementary to both alignment-centric transfer learning and large-scale
+pretraining. Rather than proposing a new invariant backbone or an explicit
+domain-matching loss, we focus on a task-driven source of structure: the temporal nature
+of the behavioral target. Reaction time is not merely a scalar label attached to an EEG
+window; it is the latency of a behavioral event following stimulus onset. We therefore
+reformulate RT prediction as event-time distribution modeling, in which the model
+predicts a distribution over possible response latencies and the scalar RT estimate is
+obtained by an expectation readout. The reaction-time task introduced by the EEG
+Foundation Challenge provides a standardized large-scale setting for studying this
+question under cross-subject and cross-release shift
+\citep{EEGChallengeWebsite2025,EEGFoundationChallengeArxiv2025}. We use it as a
+test bed for objective design and temporal inductive bias, not as a study of
+pretraining itself: foundation-style architectures in our experiments are trained from
+scratch and should be interpreted as controlled architecture baselines.
 
 \subsection{Reaction-Time Decoding as Event-Time Prediction}
-Reaction time (RT) is inherently temporal: even when evaluation uses a single scalar per trial, the supervised quantity corresponds to an \emph{event time} within a post-stimulus window. Cognitive neuroscience has a long tradition of modeling response times as distributions governed by latent decision processes (e.g., accumulation-to-bound models), and EEG analyses often distinguish stimulus-locked from response-locked components, where response-related dynamics can shift in latency across trials. Early work on single-trial ERP analysis and visualization emphasized this point by sorting trials by RT and revealing response-locked structure that is blurred by averaging \citep{Jung1998SingleTrialERP}.
+Reaction time is inherently temporal: even when evaluation uses a single scalar per
+trial, the supervised quantity is an event time within a post-stimulus window. This view
+is closely related to single-trial EEG and ERP work showing that trial-to-trial latency
+variability can carry behaviorally meaningful structure. ERP-image analyses, for
+example, sort single-trial epochs by reaction time and reveal stimulus-locked and
+response-locked components that can be blurred by conventional averaging
+\citep{Jung1998SingleTrialERP}. Reviews of single-trial ERP latency estimation further
+emphasize that intra-subject latency variability, especially in the P3 range, is linked to
+behavioral variability and can substantially affect averaged ERP morphology
+\citep{Ouyang2017LatencyReview}. This motivates treating the RT label not only as a
+trial-level scalar, but as the latency of a response-relevant event whose timing varies
+across trials.
 
-In parallel, supervised RT prediction from single-trial EEG has been explored using classical features or deep models,
-typically treating RT as direct regression or coarse discretized classification \citep{Chowdhury2020RTSensors}.
+Supervised RT prediction from single-trial EEG has also been studied directly, but is
+usually formulated as scalar regression or coarse discretized classification from
+hand-crafted or learned EEG features \citep{Chowdhury2020RTSensors}. Our formulation
+keeps the same supervised prediction setting while changing the output space: instead of
+directly regressing RT, the model predicts a posterior distribution over candidate
+response times.
 
-From a machine-learning perspective, reframing scalar regression as distributional prediction has several precedents. Label distribution learning (LDL) treats supervision as a distribution over labels rather than a single point value, providing a natural language for ``soft'' targets and distribution-matching losses \citep{Geng2016LabelDistributionLearning}. Time-to-event (survival) modeling similarly targets the distribution of event times, classically via hazard-based models \citep{Cox1972CoxPH} and more recently via deep models that directly parameterize discrete-time event distributions \citep{Lee2018DeepHit}. Although our RT setting is not survival analysis in the clinical sense (there is no censoring mechanism in the benchmark protocol), the conceptual alignment is useful: predicting an event-time distribution makes timing explicit, supports calibration/uncertainty analysis, and can be more compatible with temporal jitter and cropping than point regression.
+This event-time view is also compatible with computational models of decision time.
+Sequential-sampling models, especially the diffusion decision model, explain RT
+distributions through latent evidence accumulation, decision boundaries, and
+non-decision time components \citep{Ratcliff2008Diffusion}. Human EEG studies have
+identified related accumulation-to-bound signals, including centro-parietal dynamics
+whose buildup rate and boundary crossing relate to perceptual decision time
+\citep{OConnell2012Supramodal,Kelly2013Internal}. We do not fit a cognitive process
+model or infer drift-rate parameters; instead, we adopt the weaker premise that observed
+RT is a noisy behavioral realization of a latent response-relevant event time.
 
-Our event-time formulation adopts this perspective in a direct way tailored to short EEG windows: we supervise a probability mass function over discretized post-stimulus time bins using smoothed targets and distributional losses, then extract RT via a differentiable readout. This bridges single-trial EEG traditions that highlight response-locked latency variability \citep{Jung1998SingleTrialERP} with modern distributional supervision frameworks \citep{Geng2016LabelDistributionLearning,Lee2018DeepHit}, while remaining computationally lightweight.
+\subsection{Distributional Supervision, Latent Event Times, and Calibration}
+From a machine-learning perspective, our approach can be viewed as a distributional
+version of scalar RT regression. Label distribution learning replaces point labels with
+soft distributions over labels and is particularly natural when neighboring labels share
+metric structure, as neighboring time bins do in a post-stimulus RT window
+\citep{Geng2016LabelDistributionLearning}. Time-to-event modeling provides a related
+language: classical survival analysis treats event time as the central target
+\citep{Cox1972CoxPH}, and modern deep models can directly parameterize discrete
+event-time distributions \citep{Lee2018DeepHit}. Although our benchmark does not
+involve clinical survival outcomes or censoring, the discrete event-time view is useful
+because it makes timing explicit and supports probabilistic supervision over response
+latency.
+
+Because our model outputs a posterior over response time, calibration and posterior
+geometry are part of the modeling problem rather than only implementation details.
+Recent neural time-to-event work emphasizes calibration and uncertainty for
+event-time distributions \citep{Chapfuwa2023Calibration}, and evaluation frameworks
+for individual survival distributions provide useful terminology for assessing whether
+predicted distributional mass, coverage, and uncertainty are meaningful
+\citep{Haider2020SurvivalDistributions}. In our setting, scalar RT is obtained by the
+posterior expectation, but the full event-time posterior remains available for diagnosis:
+its width, entropy, target-aligned mass, mode-mean disagreement, and coverage can
+distinguish objectives that appear similar under scalar nRMSE.
+
+Our event-time formulation therefore bridges three lines of work: single-trial EEG
+analyses of response-locked latency variability
+\citep{Jung1998SingleTrialERP,Ouyang2017LatencyReview}, computational accounts of
+reaction-time distributions
+\citep{Ratcliff2008Diffusion,OConnell2012Supramodal,Kelly2013Internal}, and modern
+distributional supervision for labels and event times
+\citep{Geng2016LabelDistributionLearning,Lee2018DeepHit,Chapfuwa2023Calibration,Haider2020SurvivalDistributions}.
+The resulting model remains lightweight, but its objective is aligned with the temporal
+structure of the behavioral target.
 
 
 
 \section{HBN-EEG Reaction-Time Dataset and Evaluation Protocol}
 
+\subsection{HBN-EEG and Contrast Change Detection}
 
 We use the reaction-time prediction task introduced by the NeurIPS EEG Foundation Challenge \citep{EEGChallengeWebsite2025,EEGFoundationChallengeArxiv2025}, based on curated releases of the HBN-EEG dataset \citep{Shirazi2024HBNEEG}. Our focus is trial-wise reaction-time prediction from the contrast change detection (CCD) paradigm. The challenge setting provides a useful standardized task definition, but the main evaluation in this manuscript uses labeled HBN releases rather than the original leaderboard score. Specifically, we use releases R1-R8 for model fitting, R9-R10 as a development partition, and R11 as an untouched local holdout for final reporting. The releases comprise recordings from more than 3{,}000 participants aged 5-21 collected across a standardized battery of six EEG tasks spanning both passive and active paradigms \citep{Shirazi2024HBNEEG,EEGChallengeWebsite2025}.
 
@@ -234,7 +304,7 @@ The contrast change detection (CCD) task is the active HBN-EEG paradigm used in 
 
 \subsection{Trial-Wise Reaction-Time Prediction}
 
-The task is trial-wise behavioral decoding via prediction of RT of the participant's button press on each CCD trial. Each input is a fixed-length 2~s EEG segment, represented as 128 EEG channels sampled at 100~Hz and time-locked to the stimulus event. Following the task definition, the input window corresponds to the interval from 0.5~s to 2.5~s after stimulus onset(Figure~\ref{fig:tasks}); trials whose responses fall outside this interval are excluded. The target is a single scalar RT per trial, and performance is evaluated using normalized RMSE (nRMSE), defined as RMSE divided by the standard deviation of the true targets \citep{EEGChallengeWebsite2025}. Because the label reflects when a response occurs within the post-stimulus interval, this prediction problem naturally motivates modeling RT as an event-time quantity rather than as a static scalar regression target.
+The task is trial-wise behavioral decoding via prediction of RT of the participant's button press on each CCD trial. Each input is a fixed-length 2~s EEG segment, represented as 128 EEG channels sampled at 100~Hz and time-locked to the stimulus event. Following the task definition, the input window corresponds to the interval from 0.5~s to 2.5~s after stimulus onset (Figure~\ref{fig:tasks}); trials whose responses fall outside this interval are excluded. The target is a single scalar RT per trial, and performance is evaluated using normalized RMSE (nRMSE), defined as RMSE divided by the standard deviation of the true targets \citep{EEGChallengeWebsite2025}. Because the label reflects when a response occurs within the post-stimulus interval, this prediction problem naturally motivates modeling RT as an event-time quantity rather than as a static scalar regression target.
 
 
 \begin{figure}[!t]
@@ -247,56 +317,36 @@ The task is trial-wise behavioral decoding via prediction of RT of the participa
 
 \subsection{Release-Separated Evaluation Protocol}
 
-\textcolor{red}{To reduce optimistic bias from validation reuse, we use a release-separated protocol over HBN releases. Releases R1-R8 are used for fitting the base EEG models. Releases R9-R10 are treated as a development partition for checkpointing, calibration, protocol diagnostics, and fitting a prespecified stacking procedure. We do not treat R9-R10 performance as a final estimate of generalization. For stacking analyses, meta-model inputs on R9-R10 are generated using subject-disjoint out-of-fold predictions so that the meta-model never receives in-fold predictions for the same subject.}
+To reduce optimistic bias from validation reuse, we use a release-separated protocol over HBN releases. Releases R1-R8 are used for fitting the base EEG models. Releases R9-R10 are treated as a development partition for checkpointing, calibration, protocol diagnostics, and fitting a prespecified stacking procedure. We do not treat R9-R10 performance as a final estimate of generalization. For stacking analyses, meta-model inputs on R9-R10 are generated using subject-disjoint out-of-fold predictions so that the meta-model never receives in-fold predictions for the same subject.
 
-\textcolor{red}{Release R11 is held out as an untouched local test release. No R11 labels or metrics are used for base-model training, checkpointing, calibration, stacking design, hyperparameter selection, or model selection. All main performance claims are based on R11 and are reported with subject-level bootstrap confidence intervals. The original hidden CodaBench evaluation from the EEG Foundation Challenge is reported separately in the Appendix as secondary benchmark context.}
+Release R11 is held out as an untouched local test release. No R11 labels or metrics are used for base-model training, checkpointing, calibration, stacking design, hyperparameter selection, or model selection. All main performance claims are based on R11 and are reported with subject-level bootstrap confidence intervals. The original hidden CodaBench evaluation from the EEG Foundation Challenge is reported separately in the Appendix as secondary benchmark context.
 
+\subsection{Fixed Input Normalization and Training Protocol}
 
-\textcolor{red}{All neural models receive the same input normalization. For each 2~s trial window and each EEG channel, we subtract that channel's temporal mean within the window and divide by its temporal standard deviation within the same window. This per-window standardization uses no label information, no subject-level statistics, and no train-, validation-, or test-set aggregate statistics. It is therefore part of the fixed input preprocessing protocol rather than a model-specific tuning procedure.}
+All neural models receive the same input normalization. For each 2~s trial window and each EEG channel, we subtract that channel's temporal mean within the window and divide by its temporal standard deviation within the same window. This per-window standardization uses no label information, no subject-level statistics, and no train-, validation-, or test-set aggregate statistics. It is therefore part of the fixed input preprocessing protocol rather than a model-specific tuning procedure.
 
-\textcolor{red}{Unless otherwise stated, training uses a fixed mild augmentation recipe. Channel dropout is applied with probability 0.25 and removes at most 30\% of channels. Temporal cutout is applied with probability 0.25 and masks a contiguous 10-50 sample interval, corresponding to at most 0.5~s in a 2~s, 100~Hz window. Gaussian noise is applied with probability 0.3 with standard deviation sampled as $0.01 + U(0,0.01)$. We avoid mixup and stronger corruption recipes in the default protocol because such perturbations are harder to justify as label-preserving for trial-wise RT prediction.}
+Unless otherwise stated, training uses a fixed mild augmentation recipe. Channel dropout is applied with probability 0.25 and removes at most 30\% of channels. Temporal cutout is applied with probability 0.25 and masks a contiguous 10-50 sample interval, corresponding to at most 0.5~s in a 2~s, 100~Hz window. Gaussian noise is applied with probability 0.3 with standard deviation sampled as $0.01 + U(0,0.01)$. We avoid mixup and stronger corruption recipes in the default protocol because such perturbations are harder to justify as label-preserving for trial-wise RT prediction.
 
 
 
 
 %%%_____ methods revision start___%
 
-\section{Methods}  % or maybe \section{Event-Time Distribution Modeling for Reaction-Time Prediction}
-\subsection{Direct Scalar-Regression Baselines}
+\section{Methods}
 
-\subsection{Direct Scalar-Regression Baselines}
-
-We compare event-time modeling against compact direct-regression baselines and standardized external EEG architectures trained under the same input preprocessing and release-separated protocol. All direct-regression models receive fixed 2~s stimulus-locked windows and are trained without mixup using the fixed mild augmentation recipe described below. The baselines are intended to test whether improvements arise from the event-time objective rather than from generic capacity increases or architecture-specific tuning.
-
-For clarity, we use mechanism-level model names rather than internal implementation names. MSP-CNN denotes a multiscale segment-pooling CNN that maps the 2~s EEG window to scalar RT through temporal segment statistics and an MLP head. ETR-CNN denotes a compact event-time-readout CNN that predicts an RT-oriented temporal distribution but is still supervised as a direct regression/readout baseline rather than through full event-time segmentation.
-
-External architectures are evaluated as supervised architectures trained from scratch under the same fixed preprocessing protocol. Pretrained weights are not used.
-
-
-\subsection{Reaction Time as Event-Time Distribution Modeling}
-\subsection{ETS-U-Net Architecture}
-\subsection{Calibration and Distribution-Aware Stacking}
-
-
-%%%_____ revision end___%
-
-
-
-\subsection{Baseline: Lightweight Temporal ConvNet for Direct RT Regression}
+\subsection{Scalar Regression Baselines}
 
 \label{sec:baseline_regression}
 
-We begin with a lightweight baseline that treats Challenge~1 as direct reaction-time regression: a stimulus-locked 2~s EEG crop $X \in \mathbb{R}^{C \times T}$ with $T=200$ samples (100~Hz) is mapped to a scalar RT. 
+We begin with baselines that treat the task as direct reaction-time regression: a stimulus-locked 2~s EEG crop $X \in \mathbb{R}^{C \times T}$ with $T=200$ samples (100~Hz) is mapped to a scalar RT.
 
 Consistent with the low-SNR and distribution shift setting, we focus on lightweight backbones that are less prone to overfitting and enable extensive ablations, calibration, and ensembling.
 
-Several lightweight models (see \texttt{models/regression}) were trained using a two-stage schedule (base training followed by fine-tuning), where
-fine-tuning restarts from the best validation checkpoint with a reduced learning rate on plateaus, and with strong
-augmentations (time cutout, channel dropout, additive Gaussian noise, time-scaling, and mixup). 
+All direct-regression baselines use the fixed 2~s input window, the per-window standardization described above, no mixup, batch size 128, patience 20, and the same release-separated train/development/holdout protocol. The default augmentation is the mild channel-dropout, temporal-cutout, and Gaussian-noise recipe described in the dataset protocol; stronger corruptions are retained only as appendix diagnostics.
 
-Key Challenge~1 training and inference settings are summarized in Table~\ref{tab:ch1_repro}, Sec.~\ref{sec:repro}. These models serve as reference points for ablations and for isolating the effect of making temporal structure explicit in Section~\ref{sec:rt_segmentation}. In contrast to the segmentation formulation, the direct-regression setup tended to require more careful tuning and was less stable under heavy temporal jitter and cropping. This baseline treats the window as a static input-output regression problem, without an explicit representation of response timing.
+For clarity, we use mechanism-level names in the manuscript. MSP-CNN denotes a multiscale segment-pooling CNN. It maps the full EEG window to scalar RT through temporal segment statistics and an MLP head. These models serve as reference points for isolating the effect of making temporal structure explicit in Section~\ref{sec:rt_segmentation}. In contrast to the segmentation formulation, direct scalar regression treats the window as a static input-output regression problem, without an explicit representation of response timing.
 
-The main regression backbone (Figure~\ref{fig:ch1_regression}) SneddyNet is a lightweight 1-D temporal ConvNet with:
+The main MSP-CNN regression backbone (Figure~\ref{fig:ch1_regression}) is a lightweight 1-D temporal ConvNet with:
 (i) per-sample normalization to reduce cross-subject amplitude variation,
 (ii) a learned channel-squeeze layer ($1\times1$ conv, 128$\rightarrow$96) that forms data-driven electrode mixtures,
 and (iii) an EfficientNet-like temporal hierarchy with widening stages of residual depthwise-separable blocks
@@ -304,11 +354,7 @@ and (iii) an EfficientNet-like temporal hierarchy with widening stages of residu
 Coarse timing cues are retained using segment-wise statistical pooling: the time axis is split into 2 and 4 segments,
 mean and max are computed per segment, and the resulting features are passed to a small MLP head.
 
-The initial RT regression baseline (SneddyNet) achieved \textbf{0.9360 nRMSE} on the benchmark's fully hidden held-out release (evaluated server-side; Table~\ref{tab:rt_regression_models}, Sec.~\ref{sec:rt_reg_zoo}), representing a substantial
-improvement over generic off-the-shelf architectures implemented in the Braindecode library \citep{braindecode}. In our
-RT regression setup, the best-performing Braindecode baselines (e.g., EEGNet \citep{lawhern2018eegnet} and EEGConformer
-\citep{song2023eegconformer}) tended toward near-constant predictions and did not improve over the mean-predictor
-reference, yielding nRMSE $\approx 1.00$.
+External architectures are evaluated as supervised architectures trained from scratch under the same fixed preprocessing protocol. Pretrained weights are not used. The main tables report the wrapped/standardized variants because they receive the same per-window standardization as our models; unwrapped external runs are treated as sanity checks in the Appendix.
 
 Despite strong performance and fast training, direct regression does not explicitly represent the event-timing structure
 of the task. Under heavier temporal jitter and cropping, optimization tended to over-focus on local waveform
@@ -318,20 +364,20 @@ distribution.
 \begin{figure}[!t]
     \centering
     \includegraphics[width=\linewidth]{img/ch1/Ch1_regression.png}
-    \caption{SneddyNet: direct RT regression baseline architecture. A lightweight 1-D temporal ConvNet maps a stimulus-locked 2~s EEG crop (128 channels, 100~Hz) to a scalar reaction-time prediction. Per-sample normalization and a learned $1\times1$ channel-squeeze layer (128$\rightarrow$96) are followed by residual depthwise-separable stages with anti-aliased temporal downsampling, segment-wise pooling (2 and 4 segments; mean+max), and an MLP head.}
+    \caption{MSP-CNN direct RT regression baseline architecture. A lightweight 1-D temporal ConvNet maps a stimulus-locked 2~s EEG crop (128 channels, 100~Hz) to a scalar reaction-time prediction. Per-sample normalization and a learned $1\times1$ channel-squeeze layer (128$\rightarrow$96) are followed by residual depthwise-separable stages with anti-aliased temporal downsampling, segment-wise pooling (2 and 4 segments; mean+max), and an MLP head.}
     \label{fig:ch1_regression}
 \end{figure}
 
 
 
 
-\subsection{Direct Regression Baselines: Model Zoo and Takeaways}
+\subsection{Temporal-Readout Regression}
 \label{sec:rt_reg_zoo}
 
 
 \begin{table}[!t]
 \centering
-\caption{Direct Reaction Time baselines (validation). Lower nRMSE is better. \emph{DS} = depthwise-separable.}
+\caption{Regression-style architecture families used before the event-time segmentation pivot. \emph{DS} = depthwise-separable. Current release-separated results are reported in Section~\ref{sec:results_scalar}.}
 \label{tab:rt_regression_models}
 
 \begingroup
@@ -350,39 +396,38 @@ p{0.09\linewidth}
 @{}}
 
 \toprule
-\textbf{Model} & \textbf{Key design (high-level)} & \textbf{Temporal readout} & \textbf{nRMSE} $\downarrow$ & \textbf{Size (MB)} \\
+\textbf{Model} & \textbf{Key design (high-level)} & \textbf{Temporal readout} & \textbf{Manuscript role} & \textbf{Size (MB)} \\
 
 \midrule
-%%%%%%%%%%%%%%%%% old version
-SneddyNet-S &
+MSP-CNN-S &
 \textbf{Compact DS-residual encoder}\par
 Shallow depth and small kernels emphasize local temporal motifs.
 Strong temporal compression yields coarse features suited to pooling. &
-StatPool + MLP & 0.9299 & 4.95 \\
+Segment-stat pooling + MLP & compact MSP-CNN baseline & 4.95 \\
 
 \addlinespace[0.3em]
 
-SneddyNet-L &
+MSP-CNN-L &
 \textbf{Higher-capacity DS-residual encoder}\par
 Wider/deeper stack and larger kernels increase temporal context and channel capacity.
 Same coarse temporal hierarchy, but with stronger representational power. &
-StatPool + MLP & \textbf{0.9152} & 45.66 \\
+Segment-stat pooling + MLP & capacity ablation & 45.66 \\
 
 \addlinespace[0.3em]
 
-SneddyRTNet-Dilated &
+ETR-CNN-Dilated &
 \textbf{Dilated DS-residual backbone}\par
-Dilations expand receptive field while delaying temporal compression relative to SneddyNet.
+Dilations expand receptive field while delaying temporal compression relative to MSP-CNN.
 Designed to support distributional timing rather than coarse pooling. &
-TimeDist soft-argmax & 0.9181 & 49.24 \\
+Temporal soft-argmax & ETR-CNN baseline & 49.24 \\
 
 \addlinespace[0.3em]
 
-RecurTiny EEGRT (ACT) &
+Recurrent ETR-CNN (ACT) &
 \textbf{Tied-weight recursive DS core}\par
 Iterative refinement with step conditioning; adaptive computation via ACT halting.
 Large effective depth at low parameter cost, paired with distributional timing. &
-Recur-ACT TimeDist & 0.9179 & 1.67 \\
+ACT temporal soft-argmax & exploratory readout variant & 1.67 \\
 
 \bottomrule
 \end{tabularx}
@@ -392,35 +437,26 @@ Recur-ACT TimeDist & 0.9179 & 1.67 \\
 \end{table}
 
 
-Although our final RT solution uses temporal segmentation, we found it important to document strong regression-style
-baselines (including scalar and time-distribution readouts) as a reference point and ablation.
-Table~\ref{tab:rt_regression_models} summarizes representative regression-style baselines trained and evaluated under the
-same validation protocol.
+Temporal-readout regression is an intermediate baseline between scalar pooling and full event-time supervision. These models predict a distribution over time bins and read RT as an expectation, but the supervision remains scalar RT or an RT-derived readout loss rather than a full event-time posterior objective. Table~\ref{tab:rt_regression_models} summarizes representative regression-style architecture families; the release-separated performance comparison is reported in the Results.
 
 All baselines implement the same high-level pipeline: \emph{(a)} per-sample temporal standardization,
 \emph{(b)} a learnable $1{\times}1$ channel-mixing projection ($C \!\rightarrow\! c_0$), and \emph{(c)} a lightweight
 depthwise-separable residual convolutional backbone inspired by DS-ResNet style and MobileNet/Xception
 \citep{howard2017mobilenets,chollet2017xception}. They differ mostly in how the final temporal feature map is converted into an RT estimate, that is, the \emph{temporal readout}.
-In all cases, supervision remains scalar RT (or an RT-derived target) without explicit event-time labels; TimeDist is used only as a readout parameterization, not as event-time supervision.
+In all cases, supervision remains scalar RT (or an RT-derived target) without explicit event-time labels; the temporal soft-argmax head is used only as a readout parameterization, not as event-time supervision.
 
-We consider three temporal readout families. \textbf{StatPool+MLP} (SneddyNet family) applies segmented mean and max
+We consider three temporal readout families. \textbf{Segment-stat pooling with an MLP} (MSP-CNN family) applies segmented mean and max
 pooling over time to encode coarse early and late cues (conceptually similar to segment-based aggregation in TSN
-\citep{wang2016tsn}), followed by an MLP regressor. \textbf{TimeDist soft-argmax} (SneddyRTNet) predicts a distribution
+\citep{wang2016tsn}), followed by an MLP regressor. \textbf{Temporal soft-argmax} (ETR-CNN) predicts a distribution
 over time bins and reads RT as its expectation via a soft-argmax (coordinate-regression style) readout
-\citep{nibali2018dsnt}. \textbf{Recur-ACT TimeDist} (RecurTinyEEGRT) refines the time distribution iteratively using tied
+\citep{nibali2018dsnt}. \textbf{ACT temporal soft-argmax} (recurrent ETR-CNN) refines the time distribution iteratively using tied
 weights with adaptive computation time (ACT) style halting \citep{graves2016act} and FiLM conditioning \citep{perez2018film},
 producing a halting-weighted mixture distribution before the same expectation readout. 
-SneddyRTNet additionally uses dilated convolutions to expand receptive field while delaying temporal compression relative to SneddyNet \citep{yu2016dilated}.
+ETR-CNN additionally uses dilated convolutions to expand receptive field while delaying temporal compression relative to MSP-CNN \citep{yu2016dilated}.
 
-We observe two patterns emerge. First, increasing capacity improves StatPool+MLP performance
-(SneddyNet-L vs.\ SneddyNet-S). Second, time-distribution readouts can match large regressors while being substantially
-more parameter-efficient (RecurTinyEEGRT at 1.67\,MB). However, despite being competitive, these direct regression
-baselines are less robust under heavy temporal jitter and cropping. Moreover, calibration under cross-subject and cross-release shift is not guaranteed by the readout alone; obtaining well-calibrated uncertainty typically requires additional
-modeling and/or post-hoc calibration \citep{guo2017calibration,kendall2017uncertainties}. These considerations motivate the
-segmentation formulation below, which makes response timing explicit via event-time supervision and
-distribution-matching losses.
+This baseline is important because it tests whether an expectation-style temporal head alone explains the gains. It does not: a temporal readout can be useful, but calibration under cross-subject and cross-release shift is not guaranteed by the readout alone, and the model is still not trained to match the geometry of an event-time posterior. These considerations motivate the segmentation formulation below, which makes response timing explicit via event-time supervision and distribution-matching losses.
 
-\subsection{Reformulating RT Prediction as Temporal Segmentation}
+\subsection{Event-Time Posterior Modeling}
 \label{sec:rt_segmentation}
 
 To make event timing explicit and to enable strong crop augmentation, RT prediction was reformulated as
@@ -444,6 +480,8 @@ Let a 2~s crop be $X \in \mathbb{R}^{C\times T}$ with $\mathrm{sfreq}=100$~Hz, $
 For training-time augmentation, we retain a longer stimulus-locked segment of length 4~s (0--4~s post-stimulus) and sample a 2~s subwindow from it, introducing temporal jitter while preserving trial identity. The crop start is clipped so that the labeled response remains inside the sampled 2~s window (label-preserving jitter). During validation and official inference, we always use the fixed stimulus-locked 2~s window with offset $t_0=0.5$~s (0.5--2.5~s), so that 
 $t_{\mathrm{abs}} = t_0 + t_{\mathrm{rel}}$.
 
+\subsection{Soft-Label Event-Time Segmentation}
+
 \paragraph{Soft target distribution.}
 For a sampled crop, the ground-truth event time within the crop is represented as a relative time
 $y_{\mathrm{rel}}\in[0,\mathrm{crop\_sec})$ with $\mathrm{crop\_sec}=2$.
@@ -458,13 +496,13 @@ This smoothing stabilizes optimization while preserving temporal localization; i
 (start larger and decrease over training).
 
 \paragraph{Model output and losses.}
-A 1-D segmentation backbone (Section~\ref{sec:sneddyunet}) produces logits $z_t$ for $t=0,\dots,T-1$, and a predicted
+A 1-D segmentation backbone produces logits $z_t$ for $t=0,\dots,T-1$, and a predicted
 event-time distribution is obtained via temperature-scaled softmax,
 \begin{equation}
 \label{eq:rt_pred_dist}
 p_t(\tau)=\frac{e^{z_t/\tau}}{\sum_{k=0}^{T-1} e^{z_k/\tau}}.
 \end{equation}
-Training minimizes a weighted segmentation objective:
+The soft-label segmentation family is written as a weighted objective:
 \begin{equation}
 \label{eq:rt_loss}
 \begin{aligned}
@@ -482,12 +520,31 @@ where
 D_{\mathrm{KL}}(q\|p)=\sum_{t=0}^{T-1} q_t \log\frac{q_t}{p_t}, \;
 H(p)=-\sum_{t=0}^{T-1} p_t \log p_t.
 \end{equation*}
-The time-RMSE term is the primary objective, since minimizing the readout error aligns directly with the benchmark metric. The remaining terms act as optional distribution-level regularizers on $p(t)$: (i) $\mathrm{CE}(q,p)$ encourages mass near the soft target; (ii) the CDF-based Wasserstein-1 term penalizes temporal
-misalignment in a geometry-aware way (shifting probability mass along time rather than matching bins independently); (iii) $D_{\mathrm{KL}}(q\|p)$ discourages off-target modes by penalizing probability mass far from $q$; and
-(iv) the entropy penalty $-H(p)$ encourages sharper (more confident) predictions when distributions become overly diffuse under strong
-augmentation. We also explored focal reweighting and a hazard-parameterized head (mapping logits to a discrete-time hazard
-and then to an event-time distribution), but these variants did not yield consistent validation improvements under the
-subject-disjoint protocol and are not used in the final pipeline. We treat augmentation strength jointly with temperature calibration because it affects predictive confidence.
+This expression defines an ablation family rather than a single mandatory loss cocktail. CE-only supervision sets the scalar time term to zero and asks the model to match a Gaussian soft event-time label. The hybrid objective combines CE with a soft-argmax time loss. The time-only ablation removes distributional matching while keeping the same readout, and the Wasserstein-only ablation tests whether a CDF-based geometry loss is sufficient on its own. The entropy, KL, and related terms are best viewed as posterior-geometry controls rather than as the main contribution. We also explored focal reweighting and a hazard-parameterized head (mapping logits to a discrete-time hazard and then to an event-time distribution), but these variants did not yield consistent validation improvements under the subject-disjoint protocol and are not used in the final pipeline.
+
+\subsection{Latent Event-Time Likelihood}
+
+As a probabilistic alternative to soft Gaussian-label supervision, we also evaluate a latent event-time likelihood. The temporal softmax defines a posterior over latent event bins, and the observed scalar RT is modeled as a noisy realization of the latent event time:
+\begin{equation}
+\label{eq:event_nll}
+p(y\mid X)
+= \sum_{t=0}^{T-1} p_t(X)\,
+\mathcal{N}\!\left(y;\,t_0 + g_t,\,\sigma_y^2\right),
+\qquad
+\mathcal{L}_{\mathrm{EventNLL}} = -\log p(y\mid X).
+\end{equation}
+This objective keeps the same event-time interpretation but replaces the artificial target mask $q_t$ with a marginal likelihood over latent response-relevant event times. We therefore present EventNLL primarily as a more principled latent-variable objective, not as the scalar-NRMSE winner in the current completed runs.
+
+\subsection{Posterior Geometry and Temperature Calibration}
+
+The posterior view makes geometric properties of the predicted distribution directly inspectable. CDF-based distances penalize temporal displacement of probability mass, entropy and variance summarize posterior sharpness, and quantiles expose asymmetric uncertainty around the predicted response time. These summaries are useful for diagnosis and for downstream stacking.
+
+When used, explicit posterior regularization can be written generically as
+\begin{equation}
+\label{eq:posterior_regularized_objective}
+\mathcal{L} = \mathcal{L}_{\mathrm{event}} + \lambda R\!\left(p(t\mid X)\right),
+\end{equation}
+where $R$ may target entropy, variance, tail mass, or other posterior-shape statistics. In this manuscript we treat such terms as analysis and control of posterior geometry unless a clean ablation has been completed.
 
 \paragraph{Inference and temperature tuning.}
 The relative event time is estimated by expectation (soft-argmax),
@@ -506,8 +563,8 @@ time-distributions with markedly different sharpness and entropy: some models ge
 were systematically more diffuse. This creates a confidence-scale mismatch, where naive averaging (or stacking without
 temperature-scaled inputs) can underweight accurate but underconfident models and overweight overconfident ones.
 
-We therefore apply temperature scaling \citep{guo2017calibration} to tune the softness of $p(t)$, improving single-model
-readout and making confidence profiles more comparable across models, which in turn stabilizes ensembling and stacking.
+We therefore use post-hoc temperature scaling \citep{guo2017calibration} to tune the softness of $p(t)$, improving the
+readout and making confidence profiles more comparable across losses and models.
 Temperature is selected by validation tuning for each base model $m$:
 
 \begin{equation}
@@ -516,30 +573,30 @@ Temperature is selected by validation tuning for each base model $m$:
 \ \mathrm{nRMSE}_{\text{val}}\big(\hat t_{\mathrm{abs}}^{(m)}(\tau)\big).
 \end{equation}
 
-In our implementation, $\mathcal{T}_{\text{cal}}$ is a 30-point linear grid in $[0.4,1.8]$ (Table~\ref{tab:ch1_repro}, Sec.~\ref{sec:repro}).
+In our current release-separated protocol, $\mathcal{T}_{\text{cal}}$ is selected on the R9-R10 development split and applied unchanged to R11.
 
-Because confidence scales differ across architectures and augmentation settings, this step is critical; mixup in
-particular tends to increase entropy and shift the optimal $\tau$.
+Because confidence scales differ across objectives and architectures, temperature is treated as a posterior-geometry
+control selected on development data rather than as a separate model-selection signal.
 
 
 
-\subsection{Segmentation Architecture: SneddyUNet Family}
-\label{sec:sneddyunet}
+\paragraph{ETS-U-Net Architecture.}
+\label{sec:ets_unet}
 
 \begin{figure}[t]
     \centering
-    \includegraphics[width=0.9\linewidth]{img/ch1/Ch1_sneddyunet_1.png}
-    \caption{SneddyUNet1D for RT segmentation. A lightweight 1-D U-Net maps a 2~s, 128-channel EEG crop to per-time logits
+    \includegraphics[width=0.9\linewidth]{img/ch1/Ch1_ets_unet_1.png}
+    \caption{ETS-U-Net for RT segmentation. A lightweight 1-D U-Net maps a 2~s, 128-channel EEG crop to per-time logits
     and an event-time distribution $p(t)$. The encoder applies a $1\times1$ channel-squeeze layer followed by residual
     blocks with temporal downsampling (\texttt{TimeDown}); a bottleneck aggregates context, and the decoder upsamples with
     skip connections to recover time-resolved outputs. The right panel shows an example prediction $p(t)$ and Gaussian soft
     target $q(t)$, together with the resulting predicted vs.\ true response time.}
-    \label{fig:sneddyunet}
+    \label{fig:ets_unet}
 \end{figure}
 
 
-A family of efficient 1-D encoder-decoder networks (``SneddyUNet'') is used to map a stimulus-locked EEG crop
-$X\in\mathbb{R}^{C\times T}$ to per-time logits $z_{0:T-1}$ (Figure~\ref{fig:sneddyunet}). All segmentation variants follow a 1-D U-Net style encoder-decoder with skip
+The ETS-U-Net family is used to map a stimulus-locked EEG crop
+$X\in\mathbb{R}^{C\times T}$ to per-time logits $z_{0:T-1}$ (Figure~\ref{fig:ets_unet}). All segmentation variants follow a 1-D U-Net style encoder-decoder with skip
 connections for precise localization \citep{ronneberger2015unet}. The encoder progressively downsamples the temporal axis
 to build multi-scale context, while the decoder upsamples and fuses encoder features to recover per-time outputs at the
 original 200-sample resolution (internal down/up-sampling is used only to form multi-scale features). Each scale is refined
@@ -552,12 +609,12 @@ decimation, downsampling applies a fixed depthwise smoothing filter followed by 
 
 
 \textbf{Segmentation model zoo.} Table~\ref{tab:rt_seg_models} lists the variants used for ensembling/stacking.
-SneddyUNet-L/M/S share the same SneddyUNet1D template and vary width and the number of residual refinement blocks per level.
-AttnSneddyUNet replaces the bottleneck with temporal multi-head self-attention (MHSA) \citep{vaswani2017attention} and uses
+ETS-U-Net-L/M/S share the same ETS-U-Net template and vary width and the number of residual refinement blocks per level.
+Attention ETS-U-Net replaces the bottleneck with temporal multi-head self-attention (MHSA) \citep{vaswani2017attention} and uses
 stochastic depth (DropPath) regularization \citep{huang2016stochasticdepth} to stabilize training at higher capacity.
-EEGInceptionSeg replaces single-path temporal filtering with Inception-style multi-branch temporal kernels
+EEG-Inception Segmentation replaces single-path temporal filtering with Inception-style multi-branch temporal kernels
 \citep{szegedy2015going}, following the EEG-Inception design for ERP feature extraction \citep{santamaria2020eeginception}.
-Finally, SneddyUNet-FM augments the channel-mixing front-end with factorized cross-channel interactions inspired by
+Finally, Factorized ETS-U-Net augments the channel-mixing front-end with factorized cross-channel interactions inspired by
 Factorization Machines (FM) \citep{rendle2010fm}, optionally also injected within encoder stages to introduce a distinct
 cross-channel inductive bias.
 
@@ -581,33 +638,33 @@ cross-channel inductive bias.
 \textbf{Model} & \textbf{Architecture} & \textbf{Key features} & \textbf{Strengths} \\
 \hline
 
-SneddyUNet-L (wide)
-& SneddyUNet1D
+ETS-U-Net-L (wide)
+& ETS-U-Net
 & wider encoder; depthwise-separable convs; 5 ResBlocks/level; dilated bottleneck
 & highest capacity; captures complex local temporal patterns \\
 
-SneddyUNet-M
-& SneddyUNet1D
+ETS-U-Net-M
+& ETS-U-Net
 & moderate width; depthwise-separable convs; 5 ResBlocks/level; dilated bottleneck
 & best single-model accuracy / efficiency tradeoff \\
 
-SneddyUNet-S
-& SneddyUNet1D
+ETS-U-Net-S
+& ETS-U-Net
 & lighter encoder; depthwise-separable convs; 3 ResBlocks/level; same bottleneck family
 & fast, low-variance; complements deeper models \\
 
-AttnSneddyUNet (MHSA)
-& Attention U-Net
+Attention ETS-U-Net (MHSA)
+& Attention ETS-U-Net
 & MHSA bottleneck (4 heads, depth=3); DropPath; positional depthwise conv
 & captures long-range temporal dependencies \\
 
-EEGInceptionSeg
+EEG-Inception Segmentation
 & EEG-Inception 1D
 & multi-branch temporal scales (0.5/0.25/0.125\,s) with feature fusion
 & strong multi-scale feature extraction \\
 
-SneddyUNet-FM
-& Factorized U-Net
+Factorized ETS-U-Net
+& Factorized ETS-U-Net
 & FM-style cross-channel interactions at input; optional per-stage FM injection
 & distinct cross-channel inductive bias \\
 \hline
@@ -618,24 +675,20 @@ SneddyUNet-FM
 
 
 
-Architectural diversity is introduced to improve ensembling and stacking. SneddyUNet-L (wide) uses a wider encoder and
-5 residual blocks per level, providing the highest capacity. SneddyUNet-M retains the same depth (5 blocks/level) with a
-more moderate width for a stronger accuracy--efficiency trade-off, while SneddyUNet-S uses a lighter encoder
+Architectural diversity is introduced to improve ensembling and stacking. ETS-U-Net-L (wide) uses a wider encoder and
+5 residual blocks per level, providing the highest capacity. ETS-U-Net-M retains the same depth (5 blocks/level) with a
+more moderate width for a stronger accuracy--efficiency trade-off, while ETS-U-Net-S uses a lighter encoder
 (3 blocks/level) and yields faster, lower-variance base learners. Long-range temporal interactions are emphasized in
-AttnSneddyUNet (MHSA) via a multi-head self-attention bottleneck. EEGInceptionSeg replaces single-path temporal filtering
-with multi-branch kernels for multi-scale feature extraction. Finally, SneddyUNet-FM augments the standard channel-mixing
+Attention ETS-U-Net (MHSA) via a multi-head self-attention bottleneck. EEG-Inception Segmentation replaces single-path temporal filtering
+with multi-branch kernels for multi-scale feature extraction. Finally, Factorized ETS-U-Net augments the standard channel-mixing
 front-end with an FM-style factorized interaction module (optionally also injected within encoder stages), providing a
 distinct cross-channel inductive bias.
 
-\subsection{Out-of-Fold Stacking over Time Distributions}
+\subsection{Distribution-Aware Stacking}
 \label{sec:rt_stacking}
 Segmentation-style outputs enable richer ensembling than scalar averaging, but combination becomes sensitive to model confidence: naive averaging can overweight overconfident models and underweight accurate but underconfident ones. We therefore train a second-stage stacker on distributional meta-features extracted from the time-distribution outputs.
 
-All base segmentation models are trained once on the training partition $\mathcal{D}_{\text{train}}$
-(Table~\ref{tab:protocol}, Sec.~\ref{sec:behavioral_decoding_RT}). We then compute their logits on the held-out validation partition $\mathcal{D}_{\text{val}}$
-and convert logits to meta-features (e.g., peak time, entropy/variance, temperature-conditioned expected times, and CDF
-quantiles) to train a second-stage stacker. For server-side inference on $\mathcal{D}_{\text{holdout}}$, we compute the
-same meta-features from held-out logits and apply the fold-trained stackers (median-aggregated; Figure~\ref{fig:Ch1_stacking}).
+All base segmentation models are fit on R1-R8. We then compute out-of-fold meta-model inputs on the R9-R10 development partition using subject-disjoint folds, so that the stacker never receives in-fold predictions for the same subject. Logits and temperature-scaled event-time probabilities are converted to meta-features such as peak time, entropy, variance, expected time, and CDF quantiles. The final stacking comparison is applied once to R11, and is reported as a secondary analysis rather than as the primary model-selection criterion.
 
 
 \begin{figure}[t!]
@@ -661,201 +714,185 @@ m_{\mathrm{top2}} = z_{\max} - \max_{t\neq t^\star} z_t.
 For each $\tau\in\mathcal{T}_{\text{meta}}$, probabilities are formed as $p(\tau)=\mathrm{softmax}(\mathbf{z}/\tau)$ (Eq.~\ref{eq:rt_pred_dist}, Sec.~\ref{sec:rt_segmentation}), where $\mathbf{z}=(z_0,\dots,z_{T-1})$ denotes the per-time logit vector for a given model and window. Distributional summaries
 are computed, including the soft-argmax time (Eq.~\ref{eq:rt_soft_argmax}, Sec.~\ref{sec:rt_segmentation}), entropy $H(p(\tau))$, peak probability
 $p_{\max}(\tau)$, time variance $\mathrm{Var}_{p(\tau)}[g]$, and CDF time-quantiles (10/50/90\%). In our implementation,
-$\mathcal{T}_{\text{meta}}=\{0.7,1.0,1.3\}$ (Table~\ref{tab:ch1_repro}, Sec.~\ref{sec:repro}).
+$\mathcal{T}_{\text{meta}}=\{0.7,1.0,1.3\}$.
 
 \paragraph{Meta-learner and inference.}
 We use linear Ridge regression as a strong baseline meta-learner, and gradient boosting to capture non-linear reliability
-patterns across models and temperatures. The meta-learner is trained only on $\mathcal{D}_{\text{val}}$ using 5-fold subject-disjoint cross-validation: each subject is assigned to exactly one fold (Figure~\ref{fig:Ch1_stacking}). For fold $k$, the stacker is fit on the other four folds and predicts RT for the held-out fold. We report validation nRMSE using these out-of-fold predictions. Folds are stratified to match the per-subject mean RT distribution across folds. For inference on $\mathcal{D}_{\text{holdout}}$, the same feature construction is applied to held-out logits; predictions from the fold-trained stackers are aggregated (median) to obtain the final RT estimate. 
+patterns across models and temperatures. The meta-learner is trained only on R9-R10 using subject-disjoint cross-validation: each subject is assigned to exactly one fold (Figure~\ref{fig:Ch1_stacking}). For fold $k$, the stacker is fit on the other folds and predicts RT for the held-out fold. We report development nRMSE using these out-of-fold predictions. Folds are stratified to match the per-subject mean RT distribution across folds. For inference on R11, the same feature construction is applied to held-out logits; predictions from the fold-trained stackers are aggregated to obtain the final RT estimate.
 Manual blending is retained as a reference, but it cannot adapt weights to sample-specific confidence profiles.
 
 
-\subsection{RT Prediction Results: Base Models and Stacking}
-\label{sec:rt_results}
+\section{Results}
 
-Segmentation models are first evaluated individually with and without temperature tuning. Compared to the best direct
-regression baselines (Table~\ref{tab:rt_regression_models}, Sec.~\ref{sec:rt_reg_zoo}, best nRMSE $\approx 0.915$), segmentation yields a clear
-improvement even at the single-model level (Table~\ref{tab:base_models}, best temperature-tuned nRMSE $\approx 0.899$).
-This is consistent with the view that making event timing explicit is a stronger inductive bias for RT decoding than
-scalar regression in this setting. Wider and deeper U-Nets (e.g., SneddyUNet-M) achieve the strongest single-model
-accuracy while remaining efficient, whereas smaller models (e.g., SneddyUNet-S and EEGInceptionSeg) provide
-complementary, low-variance predictions that are useful for ensembling. Attention bottlenecks can improve long-range
-temporal context but come with higher parameter and storage cost.
+\subsection{Scalar Regression and External Backbone Baselines}
+\label{sec:results_scalar}
 
-The performance achieved by each standalone model is presented in Table~\ref{tab:base_models}, which also reports the
-serialized checkpoint size. Notably, the strongest single model (\mbox{SneddyUNet-M}) is only 12.5~MB, and several
-complementary base learners are below 10~MB (e.g., SneddyUNet-S: 9.2~MB; EEGInceptionSeg: 0.66~MB). This indicates that
-competitive RT prediction can be achieved with lightweight architectures, supporting rapid experimentation and
-resource-constrained deployment.
+Table~\ref{tab:r11_regression_baselines} reports the current release-separated direct-regression baselines. The compact MSP-CNN and ETR-CNN models are the strongest direct-regression baselines under the fixed protocol. Wrapped external architectures are substantially better controlled than their unwrapped sanity-check counterparts, but remain behind the compact task-specific baselines on R11.
 
 \begin{table}[!t]
 \centering
-\caption{Representative segmentation models for RT prediction (validation). ``def.'' uses $\tau=1$; ``cal.'' uses the
-calibrated $\tau^\star$ selected on the validation split.}
-\label{tab:base_models}
-\small
-\setlength{\tabcolsep}{6pt}
-\renewcommand{\arraystretch}{1.15}
-\begin{tabular}{lcccc}
-\hline
-\textbf{Model} & \textbf{nRMSE (def.)} $\downarrow$ & \textbf{nRMSE (cal.)} $\downarrow$ & $\boldsymbol{\tau^\star}$ & \textbf{Size (MB)} \\
-\hline
-SneddyUNet-L (wide)     & 0.9025 & 0.9023 & 1.076 & 20.8 \\
-SneddyUNet-M            & 0.8989 & 0.8988 & 1.076 & 12.5 \\
-SneddyUNet-S            & 0.9038 & 0.9038 & 1.000 & 9.2 \\
-AttnSneddyUNet (MHSA)   & 0.9015 & 0.9015 & 1.028 & 130 \\
-EEGInceptionSeg         & 0.9174 & 0.9169 & 1.124 & 0.66 \\
-SneddyUNet-FM           & 0.9105 & 0.9093 & 1.221 & 41 \\
-\hline
-\end{tabular}
-\end{table}
-
-Ensembling is performed at two levels. First, manual blending averages temperature-tuned single-model predictions and
-yields performance comparable to the best single model. Second, stacking learns how to combine models based on
-distributional meta-features (peak location, sharpness, entropy, variance, and CDF quantiles), allowing confidence to be
-re-weighted in a sample-dependent manner. In this setting, gradient boosting provides the strongest overall performance.
-Table~\ref{tab:stacking} reports results for different combination strategies on the validation split (stackers evaluated
-out-of-fold) and on the organizer-held held-out release (labels hidden).
-
-
-The improvement from stacking is consistent with the intuition that different architectures produce distinct
-time-distribution shapes (sharp peaks vs.\ diffuse uncertainty). By conditioning on distributional meta-features, the
-stacker learns when each model is reliable and adjusts their contributions accordingly, yielding a more stable final RT
-estimate than fixed-weight averaging.
-
-\begin{table}[!t]
-\centering
-\caption{Ensembling and stacking for RT prediction (validation OOF and hidden held-out release).}
-\label{tab:stacking}
-\small
-\setlength{\tabcolsep}{8pt}
-\renewcommand{\arraystretch}{1.15}
-\begin{tabular}{lcc}
-\hline
-\textbf{Method} & \textbf{Valid nRMSE} $\downarrow$ & \textbf{Held-out nRMSE} $\downarrow$ \\
-\hline
-Best temperature-tuned single model      & 0.898757 & 0.92334 \\
-Manual blending                          & 0.899979 & 0.91840 \\
-Ridge stacking                           & 0.890430 & 0.91539 \\
-Gradient boosting stacking               & \textbf{0.883365} & \textbf{0.91394} \\
-\hline
-\end{tabular}
-\end{table}
-
-In the next section, we apply the same overarching principle, explicit temporal structure, to trait prediction, where
-supervision is weaker and informative signals are captured via lagged temporal coupling rather than event timing.
-
-
-
-\section{Reproducibility and Code Availability}
-
-\label{sec:repro}
-
-All code (training and inference), notebooks (data preparation, regression/segmentation, calibration, ensembling and
-stacking), and pretrained weights are available at \url{https://github.com/sneddy/neurosned}.
-
-\paragraph{Challenge 1 (RT): exact inference reproducibility.}
-We release the exact checkpoints for the base RT models and the fitted stacking meta-models used in our final submission.
-Running inference with these released artefacts reproduces our submitted RT predictions.
-
-\paragraph{Challenge 1 (RT): training notes.}
-Training uses staged fine-tuning with early stopping on validation nRMSE; on plateaus, we reload the best validation
-checkpoint and reduce the learning rate (typically by a factor of $0.5$). Because this procedure is adaptive and GPU
-training is not perfectly deterministic, retraining can yield small variations; Table~\ref{tab:ch1_repro} summarizes the
-default settings used in our released notebooks.
-
-
-\paragraph{Challenge 2 (externalizing): inference reproducibility.}
-We release the final fitted ridge model used for externalizing prediction together with the feature-extraction code and the
-selected feature subset. Running inference with these released artefacts reproduces our submitted Challenge~2 predictions.
-
-\paragraph{Challenge 2 (externalizing): training notes.}
-The bootstrap-driven add/drop feature selection is stochastic (bootstrap resampling over subjects); re-running selection can
-yield small variations in the chosen subset. Our paper specifies the feature construction (lags, per-window standardization,
-ridge-stabilized transitions) and the selection criterion, and the released notebooks implement the exact pipeline.
-
-\begin{table}[t!]
-\centering
-\caption{Minimal reproducibility details for Challenge~1 (RT). These settings summarize the defaults used in our released
-training notebooks and stacking code.}
-\label{tab:ch1_repro}
+\caption{Direct-regression and wrapped external backbone baselines under the release-separated protocol. R11 scores are reported with subject-bootstrap confidence intervals. Lower nRMSE is better.}
+\label{tab:r11_regression_baselines}
 \scriptsize
-\setlength{\tabcolsep}{6pt}
+\setlength{\tabcolsep}{3pt}
 \renewcommand{\arraystretch}{1.15}
-\begin{tabularx}{\linewidth}{@{} p{0.30\linewidth} X @{}}
+\begin{tabularx}{\linewidth}{@{} >{\RaggedRight\arraybackslash}p{0.22\linewidth} Y c >{\RaggedRight\arraybackslash}p{0.27\linewidth} @{}}
 \toprule
-\textbf{Component} & \textbf{Setting} \\
+\textbf{Model} & \textbf{Role} & \textbf{Valid nRMSE} $\downarrow$ & \textbf{R11 nRMSE} $\downarrow$ \\
 \midrule
-Input / preprocessing &
-2~s window at 100~Hz, 128 EEG channels (reference excluded). Per-sample temporal standardization in-model. Official
-inference window: 0.5--2.5~s post-stimulus. \\
-
-Training crop jitter (segmentation) &
-From a cached stimulus-locked 4~s segment (0--4~s post-stimulus), with probability $p_{\text{crop}}{=}0.3$ sample a 2~s
-subwindow with start-time jitter around the default 0.5~s offset (uniform jitter $\pm 0.25$~s), clipped so the labeled
-event lies within the crop; otherwise use the fixed 0.5--2.5~s crop. \\
-
-Soft target (segmentation) &
-Gaussian label smoothing (Eq.~\ref{eq:rt_soft_target}, ~\ref{sec:rt_segmentation}) with $\sigma=0.15$~s. \\
-
-Segmentation objective &
-Primary term: RMSE on soft-argmax time (Eq.~\ref{eq:rt_soft_argmax}, Sec.~\ref{sec:rt_segmentation}); auxiliary terms used when beneficial:
-soft-label CE, CDF-based Wasserstein-1, KL, and mild entropy penalty; focal weighting and a hazard-parameterized head were explored but did not yield consistent gains and were not used in the final pipeline. \\
-
-EEG augmentations (segmentation) &
-Time scaling ($p{=}0.2$, scale 0.8--1.2), channel dropout ($p{=}0.25$, drop fraction sampled uniformly up to a max value; max 0.8 in our implementation), time cutout ($p{=}0.25$, length 10--60 samples), Gaussian noise ($p{=}0.2$, std $\approx 0.01$--0.04), RT-binned mixup
-($p{=}0.1$, Beta($\alpha{=}0.4$)). \\
-
-Loss weights (segmentation) &
-Released defaults:
-$\lambda_{\text{time}}=3$,
-$\lambda_{\text{CE}}=1$,
-$\lambda_{W1}=10^{-3}$,
-$\lambda_{\text{KL}}=0$,
-$\lambda_{H}=0$.
-During development, auxiliary weights were occasionally adjusted (or disabled) when beneficial for validation nRMSE;
-$W_1$ uses a smaller coefficient due to its larger raw scale. \\
-
-Optimization (segmentation) &
-Adam with initial LR $10^{-3}$ (typical), early stopping on validation nRMSE; on plateaus, reload best checkpoint and
-reduce LR (typically by a factor of $0.5$; staged fine-tuning). Batch size 2000 in the released notebooks. \\
-
-Temperature scaling (calibration) &
-$\tau^\star$ chosen by grid search over $\mathcal{T}_{\text{cal}}$: 30 values linearly spaced in $[0.4,1.8]$
-(Eq.~\ref{eq:rt_tau_tuning}, Sec.~\ref{sec:rt_segmentation}). \\
-
-Stacking meta-features &
-Per-model features from logits and from $p(\tau)$ at $\mathcal{T}_{\text{meta}}=\{0.7,1.0,1.3\}$: hard peak time,
-entropy, peak probability/margin, variance, and CDF quantiles (10/50/90\%). \\
-
-Meta-learner &
-Ridge regression (alpha grid) and histogram gradient boosting (lr 0.05, max\_iter 2000, early stopping).
-5-fold subject-disjoint CV within the validation partition; fold predictions aggregated by median. \\
+MSP-CNN & compact scalar regression baseline & 0.933637 & 0.946269 [0.931609, 0.962943] \\
+ETR-CNN & temporal-readout direct regression & 0.932577 & 0.945938 [0.930153, 0.963795] \\
+ETR-CNN large & capacity ablation & 0.939308 & 0.951909 [0.936078, 0.969803] \\
+TIDNet wrapped & strongest external supervised baseline so far & 0.957974 & 0.959004 [0.948507, 0.970822] \\
+EEGConformer wrapped & modern supervised transformer-style baseline & 0.957968 & 0.962802 [0.951634, 0.975382] \\
+EEGNet wrapped & canonical compact EEG baseline & 0.957877 & 0.965041 [0.954684, 0.977111] \\
+LaBraM wrapped & foundation-style architecture from scratch & 0.958254 & 0.965382 [0.952576, 0.979330] \\
+Deep4Net wrapped & classical convolutional baseline & 0.955678 & 0.971619 [0.956680, 0.989067] \\
+ATCNet wrapped & supervised conv/attention/TCN baseline & 0.970046 & 0.977366 [0.966497, 0.990685] \\
+EEGPT wrapped & foundation-style architecture from scratch & 0.967140 & 0.978796 [0.969367, 0.990273] \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
+\subsection{Temporal Readout Alone Gives Only Modest Gains}
+
+The temporal-readout ETR-CNN is only marginally better than the scalar MSP-CNN on R11 (0.945938 vs.\ 0.946269 nRMSE), and increasing ETR-CNN capacity worsens the held-out score to 0.951909. This suggests that simply parameterizing a temporal expectation is not sufficient; the larger gain comes from supervising the time distribution itself.
+
+\subsection{Event-Time Segmentation Improves RT Prediction}
+
+Table~\ref{tab:r11_segmentation_losses} summarizes the current completed event-time segmentation loss ablations. The best calibrated hybrid event-time segmentation model reaches 0.935573 nRMSE on R11, improving over the strongest completed direct-regression baseline. CE-only soft-label supervision is also strong. This is the central empirical step in the narrative: once RT is represented as an event-time posterior, distributional supervision over time becomes more useful than treating RT as a scalar window label.
+
+\begin{table}[!t]
+\centering
+\caption{Completed event-time segmentation loss ablations under the release-separated protocol. ``Cal.'' denotes post-hoc temperature selection on R9-R10 and one-shot application to R11.}
+\label{tab:r11_segmentation_losses}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\linewidth}{@{} >{\RaggedRight\arraybackslash}p{0.17\linewidth} Y c c >{\RaggedRight\arraybackslash}p{0.27\linewidth} @{}}
+\toprule
+\textbf{Run} & \textbf{Objective} & $\boldsymbol{\tau}$ & \textbf{Valid nRMSE} $\downarrow$ & \textbf{R11 nRMSE} $\downarrow$ \\
+\midrule
+CE only, base & soft-label event-time CE & 0.65 & 0.922529 & 0.938738 [0.921696, 0.958015] \\
+CE only, cal. & soft-label event-time CE & 0.70 & 0.922277 & 0.936942 [0.920329, 0.955704] \\
+Hybrid, base & soft-label CE + soft-argmax time loss & 0.65 & 0.925601 & 0.940006 [0.921243, 0.960020] \\
+Hybrid, cal. & soft-label CE + soft-argmax time loss & 0.80 & 0.924544 & 0.935573 [0.918136, 0.954309] \\
+Event NLL, cal. & continuous latent event-time likelihood & 0.70 & 0.923619 & 0.940947 [0.923160, 0.960322] \\
+Time only, cal. & soft-argmax scalar time loss only & 0.85 & 0.935298 & 0.944578 [0.930935, 0.959775] \\
+Wasserstein only, cal. & event-time CDF distance only & 2.95 & 0.936941 & 0.949716 [0.934666, 0.966443] \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Loss Ablations: Distributional Supervision Matters}
+
+The loss ablations separate the value of the temporal readout from the value of distributional supervision. The time-only model directly optimizes soft-argmax error but removes distribution matching; it is weaker than CE-only and hybrid segmentation. The Wasserstein-only run is a useful negative control: not every distributional distance recovers the gain. CE, CE+time, and EventNLL remain in the same performance band, supporting the view that the main gain comes from the event-time formulation rather than from a single hand-tuned loss.
+
+\subsection{Latent Event-Time Likelihood as a Principled Alternative}
+
+The event-time NLL run nearly matches CE-only and hybrid segmentation without requiring a hand-weighted CE+time objective. It should therefore be presented as a principled latent-variable likelihood rather than as a claim of best scalar nRMSE. In the calibrated posterior analysis, EventNLL produces a much narrower posterior than CE or CE+time and places more mass near the target, but it also under-covers nominal central intervals. This makes it scientifically useful: it reveals that similar scalar errors can correspond to different posterior geometries.
+
+\subsection{Posterior Geometry and Calibration}
+
+Temperature calibration improves all completed event-time segmentation readouts, with the largest gains for the hybrid and Wasserstein-only objectives. More importantly, Figure~\ref{fig:posterior_geometry_main} shows that losses with similar scalar nRMSE can learn very different temporal posteriors. EventNLL is sharply target-aligned but under-covers, time-only posteriors are broader and show larger mode-mean gaps, and CE/CE+time provide better empirical coverage. This supports treating posterior sharpness as a first-class analysis object: the model's probability geometry affects scalar readout, uncertainty interpretation, and the reliability of downstream ensembling.
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=\linewidth]{img/ch1/posterior_geometry_main_calibrated.png}
+    \caption{Posterior geometry differs across event-time losses even when scalar nRMSE is similar. Panel A reports calibrated R11 scalar readout with subject-bootstrap intervals. Panel B aligns predicted posteriors to the true RT. Panels C--E summarize posterior width, near-target mass, and mode-mean disagreement. Panel F compares empirical coverage of central posterior intervals. EventNLL is a principled latent-time likelihood and produces sharper target-aligned posteriors, but it is not the best scalar-NRMSE model and under-covers relative to CE-based objectives.}
+    \label{fig:posterior_geometry_main}
+\end{figure}
+
+\subsection{Distribution-Aware Stacking as a Secondary Analysis}
+
+% TODO(manuscript): Replace this placeholder after the final R9-R10 OOF and R11 stacking rerun. The section should compare the best single model, simple averaging, scalar-only stacking, and distribution-aware stacking on the same R11 predictions. The claim should be secondary: posterior features may add reusable information beyond scalar predictions, but base-model and calibration claims should stand without stacking.
+Distribution-aware stacking is retained as a secondary analysis rather than as the central performance claim. Its purpose is to test whether logits, entropy, variance, and posterior quantiles carry reusable information beyond scalar RT predictions under the fixed release-separated protocol.
+
+
+
+\section{Discussion}
+
+\subsection{RT Prediction as Event-Time Localization}
+
+The results support treating trial-wise RT prediction as event-time localization rather than as ordinary scalar regression. The label is the latency of a response within a post-stimulus interval, and models benefit when that timing structure is explicit in both the output space and the loss. This framing also connects naturally to response-locked EEG analyses, where trial-to-trial latency variability is part of the signal rather than a nuisance to be averaged away.
+
+\subsection{Why Distributional Supervision Helps}
+
+Distributional supervision gives the model a local temporal target instead of a single global scalar penalty. CE-only and hybrid losses outperform the time-only loss, suggesting that the gain is not just a differentiable soft-argmax readout. The soft event-time target encourages probability mass near plausible response latencies and makes label-consistent temporal crop jitter easier to justify. EventNLL reaches a similar scalar-error regime through a different route: it marginalizes a latent event time instead of asking the model to imitate a hand-constructed Gaussian mask.
+
+\subsection{Relation to EEG Backbones and Pretraining}
+
+The wrapped external baselines show that standard EEG architectures can train under the fixed normalization protocol, but they do not close the gap to compact task-specific models or event-time segmentation in the current runs. Foundation-style architectures are evaluated here as architectures trained from scratch, not as pretrained models. The comparison therefore should not be read as evidence against pretraining; it shows that, under this benchmark protocol, formulation and objective design are strong levers even with lightweight supervised models.
+
+\subsection{Why Posterior Geometry Matters}
+
+The event-time posterior contains more information than its expectation. Sharpness, entropy, variance, quantiles, and the gap between posterior mode and posterior mean describe confidence and ambiguity in ways that scalar predictions discard. The current posterior analysis shows that CE, CE+time, EventNLL, time-only, and Wasserstein losses can have similar scalar readouts but different target-alignment, width, and coverage behavior. Temperature calibration is therefore best understood as posterior-geometry control and a fairness step for comparing readouts, not as the main methodological claim.
+
+\subsection{Limitations}
+
+The main limitation is that all claims are tied to HBN-EEG CCD and the release-separated protocol used here. R11 is a stronger local holdout than reused validation performance, but it is still drawn from the same broader dataset family and preprocessing pipeline. Some ablations remain incomplete, including repeated seeds, final stacking reruns, and additional posterior-geometry examples. The current foundation-style comparisons also do not use pretrained weights or montage-specialized setup changes, so they should be interpreted as controlled architecture baselines rather than as a full evaluation of EEG foundation models.
+
 \section{Conclusion}
-We studied robust EEG decoding under cross-subject and cross-release distribution shift using the EEG Foundation Challenge
-benchmark on HBN-EEG CCD recordings. Our central message is that making temporal structure explicit improves robustness
-under heterogeneous, low-SNR EEG. We instantiated this principle in two complementary settings: event timing for
-behavioral decoding and lagged temporal coupling for trait prediction.
 
-For trial-wise RT prediction we reported strong direct regression baselines as reference
-points and found that objective design, temperature scaling and distribution-aware ensembling provided
-consistent gains beyond moderate increases in backbone capacity within the tested regime. The obtained results suggest that scalar regression tends to encourage reliance on global window statistics and exploit global texture-like patterns.  Reformulating scalar regression as temporal segmentation by supervising an
-event-time distribution better matched the nature of
-the problem and enabled time-consistent crop augmentation. Combining several compact 1-D encoder–decoder variants further improved robustness: their diverse uncertainty profiles could be exploited via OOF stacking on simple distributional meta-features. Stacking helps because different architectures produce complementary event-time distributions. Using distributional meta-features, the stacker learns trial-wise reliability and adapts model weights accordingly, outperforming fixed averaging.
+We reformulated EEG-based reaction-time prediction as event-time distribution modeling and evaluated it under a release-separated HBN-EEG protocol. The current results indicate that supervising an event-time posterior improves RT prediction beyond scalar regression and beyond a temporal-readout head alone. Loss ablations show that distributional event-time supervision matters, EventNLL provides a principled latent-variable likelihood alternative, and posterior-geometry analysis reveals uncertainty behavior that scalar nRMSE alone cannot capture.
 
+\appendix
 
-For trait prediction lagged dynamics descriptors help under shift because they deliberately compress each window into regularized, low-dimensional summaries of persistence and cross-channel coupling across multiple time scales. Per-window standardization and ridge-stabilized transitions reduce sensitivity to nuisance amplitude differences and short-window estimation noise, yielding a more consistent trait signal than end-to-end window regression in a weak-supervision regime.
+\section{Original Hidden CodaBench Benchmark Results}
 
+The original hidden CodaBench evaluation is retained as secondary benchmark context only. It should not be used as the main generalization estimate in the revised manuscript because the main claims now rely on labeled R11 evaluation with subject-bootstrap confidence intervals.
 
-Overall, the most reliable improvements arose when the objective and representation exposed what mattered about
-the signal, event timing for behavior and lagged coupling for traits, rather than relying on end-to-end scalar prediction
-from short windows. In practice, this favors structure-aligned supervision, calibrated distributional outputs, and combination strategies that exploit complementary uncertainty profiles under distribution shift. At the same time, our conclusions are necessarily conditioned on the specific benchmark design and evaluation protocol, and therefore should be read as evidence about robust prediction under this construction rather than as a definitive statement about underlying neural mechanisms. 
+\begin{table}[!h]
+\centering
+\caption{Original hidden-release CodaBench RT results from the earlier submission-oriented pipeline. These results are reported for historical comparison and are not the primary paper-facing evaluation.}
+\label{tab:appendix_codabench}
+\small
+\setlength{\tabcolsep}{8pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Method} & \textbf{Validation nRMSE} $\downarrow$ & \textbf{Hidden nRMSE} $\downarrow$ \\
+\midrule
+Best temperature-tuned single model & 0.898757 & 0.92334 \\
+Manual blending & 0.899979 & 0.91840 \\
+Ridge stacking & 0.890430 & 0.91539 \\
+Gradient boosting stacking & \textbf{0.883365} & \textbf{0.91394} \\
+\bottomrule
+\end{tabular}
+\end{table}
 
+\section{Unwrapped External Backbone Sanity Checks}
 
-In particular, lagged-transition descriptors are best understood as regularized mechanistic summaries of temporal dependence useful for stable decoding, but not equivalent to causal connectivity or directed neural influence. We also can not claim guaranteed transfer to other tasks, montages, preprocessing pipelines, or populations. These considerations motivate extending the present framework with causal representation learning to better characterize the hidden processes that underlie trait prediction and behavioral decoding, and to build adaptive cross-task pipelines that generalize beyond CCD and remain robust across diverse acquisition settings.
+% TODO(manuscript): Move the unwrapped EEGNet, EEGConformer, LaBraM, and other scale-sensitive external runs here. This section should explain that the unwrapped runs are sanity checks showing sensitivity to amplitude scale, whereas wrapped/standardized external models are the fair main baselines.
+Unwrapped external architectures are useful for diagnosing scale sensitivity, but they are not the primary external baselines because our own models use per-window standardization. The main-text comparison therefore uses wrapped external models.
+
+\section{Additional Protocol Calibration Runs}
+
+% TODO(manuscript): Summarize the older protocol-calibration runs here: optimizer checks, learning-rate checks, sigma 0.12/0.18, batch-size comparisons, no-augmentation and strong-augmentation regression diagnostics. Keep the main text focused on the frozen protocol.
+This appendix should document how the fixed protocol was selected without turning exploratory validation runs into final claims.
+
+\section{Additional Architecture Ablations}
+
+% TODO(manuscript): Add architecture ablations after the corresponding R11 reruns are complete. Candidate rows include ETS-U-Net capacity variants, attention bottleneck, factorized channel interactions, recurrent variants, and EEG-Inception-style segmentation.
+Architecture ablations should be used to separate formulation effects from capacity or backbone-specific effects.
+
+\section{Additional Posterior Geometry Examples}
+
+Figure~\ref{fig:appendix_representative_posteriors} shows representative trials where models have similar scalar predictions but different posterior widths, large mode-mean gaps, or strong disagreement across losses. Figure~\ref{fig:appendix_temperature_sensitivity} shows the development-split temperature curves used to choose post-hoc readout temperatures.
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=\linewidth]{img/ch1/posterior_geometry_examples_calibrated.png}
+    \caption{Representative calibrated event-time posteriors. Dashed black lines denote the true RT, and dotted colored lines denote model-specific posterior means. The examples illustrate why scalar RT alone is insufficient: models can agree on the mean while assigning very different posterior width, or disagree strongly because the posterior is multimodal or skewed.}
+    \label{fig:appendix_representative_posteriors}
+\end{figure}
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=0.9\linewidth]{img/ch1/temperature_sensitivity_calibrated.png}
+    \caption{Temperature sensitivity on the R9-R10 development split. Vertical lines mark selected temperatures. The curves show that different losses induce different confidence scales, motivating temperature calibration as posterior-geometry control before comparing scalar readouts or using posterior features downstream.}
+    \label{fig:appendix_temperature_sensitivity}
+\end{figure}
 
 
 \bibliography{references}
