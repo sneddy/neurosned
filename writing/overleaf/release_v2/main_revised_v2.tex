@@ -131,25 +131,11 @@ kun.zhang@mbzuai.ac.ae
 
 
 
-Robust EEG decoding remains challenging due to low signal-to-noise ratio and pronounced distribution shift across
-subjects, sessions, and acquisition setups. We study robust EEG decoding under cross-subject and cross-release
-distribution shift on Healthy Brain Network EEG recordings from the contrast change detection paradigm. Our central idea
-is that making task-relevant temporal structure explicit improves robustness under EEG heterogeneity, and we apply it to behavioral decoding (trial-wise reaction time, RT) from stimulus-locked 2~s windows.
+Robust EEG decoding is often framed as a backbone problem: larger architectures or pretrained representations are expected to absorb low signal-to-noise ratio and cross-subject variability. We study a complementary formulation-first route for trial-wise reaction-time (RT) prediction from Healthy Brain Network EEG in the contrast change detection paradigm. Under a subject-disjoint, release-separated evaluation, a compact task-specific regression model already outperforms heavier wrapped external EEG backbones, suggesting that architecture scale alone is not the main bottleneck in this setting.
 
+We then ask whether adding temporal structure to the output helps. A temporal-readout regressor parameterizes an expectation over time bins while retaining scalar RT supervision, but it yields only marginal gains over compact scalar regression. This negative result motivates our main reformulation: instead of predicting a single RT directly, the model predicts an event-time posterior over possible response latencies and reads out RT by expectation. Soft-label event-time segmentation improves over the strongest regression baselines, and loss ablations show that the gain comes from distributional supervision rather than from the soft-argmax readout alone. We also evaluate EventNLL, a latent event-time likelihood that treats observed RT as a noisy realization of an unobserved response-relevant event time.
 
-We first compare compact scalar-regression models with standardized external EEG backbones, then introduce temporal
-readout baselines that inject timing structure while retaining scalar supervision. Our main reformulation predicts an
-event-time posterior over response latencies and derives scalar RT by expectation. Loss ablations show that distributional
-event-time supervision matters beyond a soft-argmax readout alone: CE and hybrid CE+time objectives outperform a
-time-only readout loss, while a Wasserstein-only objective is a useful negative control. We also evaluate a latent
-event-time likelihood, not as the best scalar-NRMSE model, but as a principled probabilistic objective in which observed
-RT is a noisy realization of a latent event time. Compact extensions with a two-scale Gaussian observation kernel and a
-hazard/survival parameterization show that the event-time formulation is not tied to one softmax-Gaussian implementation.
-
-This framing is useful for brain-behavior decoding when targets are inherently temporal. It aligns supervision with latency variability, enables latent-consistent jittered cropping, and makes posterior geometry inspectable. In our experiments, scalar scores alone hide important differences in posterior width, mode-mean disagreement, target-aligned mass, and coverage. A shifted-crop diagnostic further shows that event-time segmentation moves predictions in a more event-like direction than scalar regression, while also revealing that fixed-window training still permits stimulus-locked shortcut behavior. We therefore treat temperature calibration and posterior regularization primarily as geometry analysis and control, not as the central method claim.
-
-
-We evaluate the method under a release-separated protocol using HBN releases R1--R8 for model fitting, R9--R10 for development-stage calibration and meta-learning, and R11 for final reporting. The original hidden-release CodaBench evaluation is reported separately for continuity with the challenge setting. Under this protocol, the calibrated CE+time event-time segmentation model achieves 0.935573 nRMSE on R11 [0.918136, 0.954309], compared with 0.945938 [0.930153, 0.963795] for the strongest direct-regression baseline. Five-seed robustness checks on selected core recipes preserve the same ordering: CE and EventNLL segmentation remain about 0.010--0.011 nRMSE better than the repeated temporal-readout regression baseline, while the time-only control is much closer to scalar regression.
+This posterior formulation makes model behavior inspectable beyond scalar nRMSE. Posterior width, target-aligned mass, mode-mean disagreement, and interval coverage reveal differences hidden by point predictions, while a shifted-crop diagnostic shows that event-time segmentation moves predictions in a more event-like direction than scalar regression, though fixed-window shortcuts remain. On R11, calibrated CE+time segmentation reaches 0.935573 nRMSE [0.918136, 0.954309], compared with 0.945938 [0.930153, 0.963795] for the strongest direct-regression baseline; five-seed checks preserve the same ordering. Together, these results support event-time distribution modeling as a lightweight route to more robust EEG-based RT prediction.
 
 
 
@@ -160,9 +146,9 @@ We evaluate the method under a release-separated protocol using HBN releases R1-
 
 Electroencephalography (EEG) is widely used for measuring human brain activity because it is noninvasive, comparatively inexpensive, and provides millisecond-scale temporal resolution. This temporal resolution makes EEG especially attractive for decoding behavioral variables that unfold over time, including reaction times, response preparation, and event-related dynamics. At the same time, EEG decoding remains difficult in heterogeneous datasets because task-relevant signals are low-SNR and vary substantially across subjects, sessions, and recording conditions.
 
-Motivated by the success of foundation models in language and vision, the EEG community has recently seen a rapid growth of large-scale pretrained backbones that aim to learn transferable, task-agnostic representations from heterogeneous EEG corpora. Examples include transformer-based pretraining such as EEGPT \citep{wang2024eegpt}, large multi-dataset tokenization and masking strategies such as LaBraM \citep{Jiang2024LaBraM} and EEGFormer \citep{Chen2024EEGFormer}, state-space model backbones such as EEGMamba \citep{Wang2025EEGMamba}, and large-scale cross-setup pretraining explicitly targeting montage and recording variability such as REVE \citep{ElOuahidi2025REVE}. Autoregressive pretraining has also been explored for generalist EEG modeling \citep{Yue2024BrainGPT}. Overall, these efforts suggest that large-scale self-supervised pretraining can reduce reliance on task-specific labels and improve performance.
+Motivated by the success of foundation models in language and vision, the EEG community has recently seen rapid growth in pretrained backbones that aim to learn transferable, task-agnostic representations from heterogeneous EEG corpora, including transformer, state-space, and cross-setup pretraining approaches \citep{wang2024eegpt,Jiang2024LaBraM,Chen2024EEGFormer,Wang2025EEGMamba,ElOuahidi2025REVE,Yue2024BrainGPT}. Overall, these efforts suggest that large-scale self-supervised pretraining can reduce reliance on task-specific labels and improve performance.
 
-Despite this progress, robust EEG decoding remains challenging in practice due to low signal-to-noise ratio (SNR) and strong distribution shifts. EEG recordings reflect mixtures of neural sources through volume conduction and are easily contaminated by non-neural artifacts such as eye movements, facial and neck muscle activities, cardiac signals, and environmental noise. EEG is also highly nonstationary across time and context: changes in alertness, movement, task engagement, and electrode impedance can substantially shift the data distribution even within a single session. Crucially for machine learning, there is substantial inter-subject variability driven by anatomy, development, cognitive strategy, and recording conditions. Together, these factors often yield models that perform well within-subject or within-session but degrade sharply when evaluated across subjects, sites, or dataset releases.
+Despite this progress, robust EEG decoding remains difficult because task-relevant signals are low-SNR and strongly affected by artifacts, nonstationarity, and inter-subject variability. These factors often yield models that perform well within a subject, session, or curated split but degrade under cross-subject, cross-site, or release-separated evaluation.
 
 
 In this work, we argue that a practical route to robustness under EEG heterogeneity is to make the temporal structure of the prediction target explicit. We focus on trial-wise reaction-time prediction from stimulus-locked EEG. Reaction time is not merely a scalar label attached to an entire window; it is the latency of a behavioral event following stimulus onset. Treating this latency as ordinary scalar regression discards temporal structure that is naturally present in the task. We therefore reformulate reaction-time prediction as event-time distribution modeling. Given the low-SNR and cross-subject/cross-release shift, we deliberately prioritize lightweight models and controlled objective-design comparisons rather than introducing a larger backbone.
@@ -178,120 +164,23 @@ Our experiments compare the event-time formulation against compact direct-regres
 
 Our contributions are:
 \begin{enumerate}
-    \item We reformulate EEG-based reaction-time prediction as event-time distribution modeling rather than ordinary scalar regression.
-    \item We evaluate compact direct-regression baselines, temporal-readout regression, and standardized external EEG architectures under a release-separated HBN protocol with R11 subject-bootstrap confidence intervals.
-    \item We show through loss ablations that event-time distributional supervision matters beyond scalar soft-argmax regression.
-    \item We verify the main event-time supervision gap with five-seed robustness checks over selected scalar, external, and segmentation baselines.
-    \item We formulate EventNLL as a principled latent event-time likelihood for RT, complementing soft Gaussian-label supervision, and evaluate Gaussian-mixture and hazard/survival extensions.
-    \item We analyze posterior geometry and a shifted-crop diagnostic to separate scalar accuracy from event-time localization behavior.
-    \item We treat temperature calibration and secondary distribution-aware stacking as readout/ensemble analyses while reporting the original hidden challenge results only as secondary evidence.
+    \item We reformulate EEG-based reaction-time prediction as event-time distribution modeling, replacing ordinary scalar regression with a posterior over response latencies and an expectation-based scalar readout.
+    \item We evaluate this formulation against compact scalar baselines, temporal-readout regression, and standardized external EEG architectures under a release-separated HBN protocol with R11 subject-bootstrap confidence intervals.
+    \item We show through loss ablations and five-seed robustness checks that distributional event-time supervision improves over scalar soft-argmax regression, and we introduce EventNLL as a latent event-time likelihood alternative to soft Gaussian-label supervision.
+    \item We analyze posterior geometry and shifted-crop behavior to separate scalar accuracy from uncertainty, target alignment, and partial event-localization behavior; temperature tuning and distribution-aware stacking are treated as secondary readout/ensemble analyses.
 \end{enumerate}
 
 \section{Related Work}
 
 \subsection{Robust EEG Decoding under Distribution Shift}
-A central obstacle for EEG decoding is that the data distribution changes substantially
-across subjects, sessions, and recording setups. Long before the current wave of large
-pretrained EEG backbones, the BCI community developed methods aimed at reducing this
-shift through more stable feature spaces and explicit alignment. A prominent example is
-Riemannian EEG decoding, which represents trials by spatial covariance matrices and
-uses the geometry of symmetric positive definite matrices to improve cross-subject and
-cross-session classification \citep{Barachant2012RiemannianBCI}. Related transfer
-learning work has emphasized distribution alignment and data reuse across subjects or
-sessions to reduce calibration requirements
-\citep{Jayaram2016TransferLearningBCI,Zanini2018RiemannianTL,HeWu2020EuclideanAlignment}.
-Together, these methods highlight a recurring principle: robustness often improves when
-learning is constrained by inductive biases that suppress nuisance variability.
+A central obstacle for EEG decoding is distribution shift across subjects, sessions, and recording setups. Classical BCI work addressed this problem through structured feature spaces and alignment, including Riemannian covariance-based decoding and transfer-learning approaches that reduce subject/session mismatch \citep{Barachant2012RiemannianBCI,Jayaram2016TransferLearningBCI,Zanini2018RiemannianTL,HeWu2020EuclideanAlignment}. Deep EEG models have pursued related goals through domain adaptation and moment matching \citep{Ganin2016DANN,SunSaenko2016DeepCORAL}, while self-supervised and large-scale EEG pretraining aims to learn reusable representations across tasks, subjects, and hardware \citep{Kostas2021BENDR,wang2024eegpt,Jiang2024LaBraM,Chen2024EEGFormer,Wang2025EEGMamba,ElOuahidi2025REVE,Yue2024BrainGPT}.
 
-Deep learning approaches to robust EEG decoding have imported similar ideas from
-domain adaptation, including adversarially learned domain-invariant representations
-\citep{Ganin2016DANN} and moment-matching objectives such as correlation alignment
-\citep{SunSaenko2016DeepCORAL}. In parallel, self-supervised and large-scale EEG
-pretraining has emerged as another route to transferability, with contrastive or masked
-objectives used to learn reusable representations across tasks, subjects, and hardware
-\citep{Kostas2021BENDR}. This direction has recently expanded into multi-dataset EEG
-foundation models and generalist backbones
-\citep{wang2024eegpt,Jiang2024LaBraM,Chen2024EEGFormer,Wang2025EEGMamba,ElOuahidi2025REVE,Yue2024BrainGPT}.
+Our work is complementary to alignment-centric transfer learning and large-scale pretraining. Rather than proposing a new invariant backbone or domain-matching loss, we focus on a task-driven source of structure: the temporal nature of reaction time. Foundation-style architectures in our experiments are trained from scratch and used as controlled architecture baselines, so the main question is whether objective design and temporal inductive bias improve release-separated RT prediction.
 
-Our work is complementary to both alignment-centric transfer learning and large-scale
-pretraining. Rather than proposing a new invariant backbone or an explicit
-domain-matching loss, we focus on a task-driven source of structure: the temporal nature
-of the behavioral target. Reaction time is not merely a scalar label attached to an EEG
-window; it is the latency of a behavioral event following stimulus onset. We therefore
-reformulate RT prediction as event-time distribution modeling, in which the model
-predicts a distribution over possible response latencies and the scalar RT estimate is
-obtained by an expectation readout. The reaction-time task introduced by the EEG
-Foundation Challenge provides a standardized large-scale setting for studying this
-question under cross-subject and cross-release shift
-\citep{EEGChallengeWebsite2025,EEGFoundationChallengeArxiv2025}. We use it as a
-test bed for objective design and temporal inductive bias, not as a study of
-pretraining itself: foundation-style architectures in our experiments are trained from
-scratch and serve as controlled architecture baselines.
+\subsection{Reaction-Time Prediction as Event-Time Distribution Modeling}
+Reaction time is inherently temporal: even when evaluation uses one scalar per trial, the target is the latency of a behavioral event within a post-stimulus window. This view is related to single-trial EEG and ERP analyses showing that trial-to-trial latency variability carries behaviorally meaningful structure and can be obscured by conventional averaging \citep{Jung1998SingleTrialERP,Ouyang2017LatencyReview}. It is also compatible with decision-time models, including diffusion and accumulation-to-bound accounts of RT variability \citep{Ratcliff2008Diffusion,OConnell2012Supramodal,Kelly2013Internal}. We do not fit a cognitive process model; we use the weaker premise that observed RT is a noisy realization of a response-relevant event time.
 
-\subsection{Reaction-Time Decoding as Event-Time Prediction}
-Reaction time is inherently temporal: even when evaluation uses a single scalar per
-trial, the supervised quantity is an event time within a post-stimulus window. This view
-is closely related to single-trial EEG and ERP work showing that trial-to-trial latency
-variability can carry behaviorally meaningful structure. ERP-image analyses, for
-example, sort single-trial epochs by reaction time and reveal stimulus-locked and
-response-locked components that can be blurred by conventional averaging
-\citep{Jung1998SingleTrialERP}. Reviews of single-trial ERP latency estimation further
-emphasize that intra-subject latency variability, especially in the P3 range, is linked to
-behavioral variability and can substantially affect averaged ERP morphology
-\citep{Ouyang2017LatencyReview}. This motivates treating the RT label not only as a
-trial-level scalar, but as the latency of a response-relevant event whose timing varies
-across trials.
-
-Supervised RT prediction from single-trial EEG has also been studied directly, but is
-usually formulated as scalar regression or coarse discretized classification from
-hand-crafted or learned EEG features \citep{Chowdhury2020RTSensors}. Our formulation
-keeps the same supervised prediction setting while changing the output space: instead of
-directly regressing RT, the model predicts a posterior distribution over candidate
-response times.
-
-This event-time view is also compatible with computational models of decision time.
-Sequential-sampling models, especially the diffusion decision model, explain RT
-distributions through latent evidence accumulation, decision boundaries, and
-non-decision time components \citep{Ratcliff2008Diffusion}. Human EEG studies have
-identified related accumulation-to-bound signals, including centro-parietal dynamics
-whose buildup rate and boundary crossing relate to perceptual decision time
-\citep{OConnell2012Supramodal,Kelly2013Internal}. We do not fit a cognitive process
-model or infer drift-rate parameters; instead, we adopt the weaker premise that observed
-RT is a noisy behavioral realization of a latent response-relevant event time.
-
-\subsection{Distributional Supervision, Latent Event Times, and Calibration}
-From a machine-learning perspective, our approach can be viewed as a distributional
-version of scalar RT regression. Label distribution learning replaces point labels with
-soft distributions over labels and is particularly natural when neighboring labels share
-metric structure, as neighboring time bins do in a post-stimulus RT window
-\citep{Geng2016LabelDistributionLearning}. Time-to-event modeling provides a related
-language: classical survival analysis treats event time as the central target
-\citep{Cox1972CoxPH}, and modern deep models can directly parameterize discrete
-event-time distributions \citep{Lee2018DeepHit}. Although our benchmark does not
-involve clinical survival outcomes or censoring, the discrete event-time view is useful
-because it makes timing explicit and supports probabilistic supervision over response
-latency.
-
-Because our model outputs a posterior over response time, calibration and posterior
-geometry are part of the modeling problem rather than only implementation details.
-Recent neural time-to-event work emphasizes calibration and uncertainty for
-event-time distributions \citep{Chapfuwa2023Calibration}, and evaluation frameworks
-for individual survival distributions provide useful terminology for assessing whether
-predicted distributional mass, coverage, and uncertainty are meaningful
-\citep{Haider2020SurvivalDistributions}. In our setting, scalar RT is obtained by the
-posterior expectation, but the full event-time posterior remains available for diagnosis:
-its width, entropy, target-aligned mass, mode-mean disagreement, and coverage can
-distinguish objectives that appear similar under scalar nRMSE.
-
-Our event-time formulation therefore bridges three lines of work: single-trial EEG
-analyses of response-locked latency variability
-\citep{Jung1998SingleTrialERP,Ouyang2017LatencyReview}, computational accounts of
-reaction-time distributions
-\citep{Ratcliff2008Diffusion,OConnell2012Supramodal,Kelly2013Internal}, and modern
-distributional supervision for labels and event times
-\citep{Geng2016LabelDistributionLearning,Lee2018DeepHit,Chapfuwa2023Calibration,Haider2020SurvivalDistributions}.
-The resulting model remains lightweight, but its objective is aligned with the temporal
-structure of the behavioral target.
+From a machine-learning perspective, this motivates replacing point RT regression with distributional supervision over time. Label distribution learning is natural when neighboring labels share metric structure \citep{Geng2016LabelDistributionLearning}, and discrete time-to-event models provide a probabilistic language for event-time prediction \citep{Cox1972CoxPH,Lee2018DeepHit}. Because our model outputs a posterior over response time, posterior geometry and calibration become part of evaluation: width, entropy, target-aligned mass, mode-mean disagreement, and coverage can distinguish models with similar scalar nRMSE \citep{Chapfuwa2023Calibration,Haider2020SurvivalDistributions}.
 
 
 \section{Dataset and Evaluation Protocol}
