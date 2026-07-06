@@ -27,6 +27,7 @@ from benchmarks.pkg.artefacts_manager import ArtefactsManager
 from benchmarks.pkg.config import load_experiment_config, resolve_path
 from benchmarks.pkg.evaluation.factory import build_dataset_wrapper
 from benchmarks.pkg.evaluation.runner import run_holdout_evaluation
+from benchmarks.pkg.evaluation.shifted import run_shifted_evaluation
 from benchmarks.pkg.gpu import GpuMonitor
 from benchmarks.pkg.runtime import choose_device, path_text, tee_output
 from benchmarks.pkg.training import ReloadBestOnPlateau
@@ -122,6 +123,61 @@ def reload_checkpoint_path(output_checkpoint_path: Path, input_checkpoint_path: 
     if input_checkpoint_path is not None and input_checkpoint_path.exists():
         return input_checkpoint_path
     raise FileNotFoundError("Stage requested reload='best', but no checkpoint is available.")
+
+
+def run_configured_shifted_evaluation(
+    *,
+    config,
+    model,
+    artefacts: ArtefactsManager,
+    output_checkpoint_path: Path,
+    device,
+) -> dict | None:
+    """Run optional shifted-crop evaluation from the experiment config."""
+    shifted = config.evaluation.shifted_crop
+    if not shifted.enabled:
+        return None
+
+    dataset_path = resolve_path(shifted.dataset, PROJECT_ROOT)
+    output_dir = resolve_path(shifted.output_dir, PROJECT_ROOT) if shifted.output_dir is not None else None
+    if dataset_path is None:
+        raise ValueError("evaluation.shifted_crop.dataset cannot be None.")
+
+    checkpoint_loaded = False
+    if output_checkpoint_path.exists():
+        model.load_state_dict(torch.load(output_checkpoint_path, map_location=device))
+        checkpoint_loaded = True
+        print(f"Loaded best checkpoint for shifted-crop eval: {path_text(output_checkpoint_path)}")
+    else:
+        print("Best checkpoint is missing; shifted-crop eval will use current model state.")
+
+    metadata = run_shifted_evaluation(
+        config=config,
+        model=model,
+        run_dir=artefacts.run_dir,
+        checkpoint_path=output_checkpoint_path,
+        dataset_path=dataset_path,
+        device=device,
+        target_min=shifted.target_min,
+        target_max=shifted.target_max,
+        starts=shifted.starts,
+        reference_start=shifted.reference_start,
+        crop_sec=shifted.crop_sec,
+        sfreq=shifted.sfreq,
+        batch_size=shifted.batch_size,
+        num_workers=shifted.num_workers,
+        segmentation_temperature_override=shifted.segmentation_temperature,
+        bootstrap_samples=shifted.bootstrap_samples,
+        bootstrap_seed=shifted.bootstrap_seed,
+        output_dir=output_dir,
+        save_predictions=shifted.save_predictions,
+    )
+    artefacts.save_summary(
+        shifted_crop_eval=metadata["artifacts"]["metadata"],
+        shifted_crop_checkpoint_loaded=checkpoint_loaded,
+        shifted_crop_save_predictions=shifted.save_predictions,
+    )
+    return metadata
 
 
 def build_stage_trainer(
@@ -438,6 +494,13 @@ def run_config(
                 artefacts=artefacts,
                 device=device,
             )
+            shifted_metadata = run_configured_shifted_evaluation(
+                config=config,
+                model=model,
+                artefacts=artefacts,
+                output_checkpoint_path=output_checkpoint_path,
+                device=device,
+            )
 
             print(f"Best {config.trainer.monitor}: {best_metric:.6f}")
             print(f"Best epoch: {best_epoch}")
@@ -447,6 +510,8 @@ def run_config(
                 print(f"Saved best validation predictions: {path_text(best_val_predictions_path)}")
             if holdout_metrics is not None:
                 print(f"Saved holdout evaluation: {path_text(artefacts.paths.run_dir / f'{config.evaluation.holdout_split}_metrics.json')}")
+            if shifted_metadata is not None:
+                print(f"Saved shifted-crop evaluation: {path_text(Path(shifted_metadata['artifacts']['metadata']))}")
             print(f"Run summary: {path_text(artefacts.paths.run_summary)}")
 
             history_df = pd.DataFrame(history)

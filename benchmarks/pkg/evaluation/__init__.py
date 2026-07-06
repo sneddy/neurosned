@@ -18,6 +18,7 @@ from benchmarks.pkg.evaluation.metrics import (
 )
 from benchmarks.pkg.evaluation.readout import logits_to_probabilities, soft_argmax_predictions, softmax_probabilities
 from benchmarks.pkg.evaluation.runner import run_holdout_evaluation, run_temperature_calibration
+from benchmarks.pkg.evaluation.shifted import run_shifted_eval_from_run_dir, run_shifted_evaluation
 
 __all__ = [
     "TemperatureReadout",
@@ -35,6 +36,8 @@ __all__ = [
     "posterior_distributional_metrics",
     "rmse",
     "run_holdout_evaluation",
+    "run_shifted_eval_from_run_dir",
+    "run_shifted_evaluation",
     "run_temperature_calibration",
     "soft_argmax_predictions",
     "softmax_probabilities",

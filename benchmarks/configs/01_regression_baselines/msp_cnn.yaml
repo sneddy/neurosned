@@ -1,5 +1,5 @@
 experiment: 01_regression_baselines
-name: shallowfbcspnet_wrapped
+name: msp_cnn
 task: regression
 seed: 2025
 
@@ -53,16 +53,18 @@ loaders:
     num_workers: 6
 
 model:
-  module_name: benchmarks.pkg.models.wrappers
-  class_name: WithStdPerSample
+  module_name: benchmarks.pkg.models.regression.sneddy_net
+  class_name: SneddyNet
   params:
-    inner:
-      module_name: braindecode.models
-      class_name: ShallowFBCSPNet
-      params:
-        n_chans: 128
-        n_outputs: 1
-        n_times: 200
+    n_chans: 128
+    n_times: 200
+    sfreq: 100
+    n_outputs: 1
+    c0: 48
+    widen: 2
+    depth_per_stage: 3
+    dropout: 0.05
+    k: 15
 
 optimizer:
   module_name: torch.optim

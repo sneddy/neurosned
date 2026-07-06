@@ -21,10 +21,11 @@ class TrainCroppingDataset(Dataset):
     - `q`: a 1D Gaussian soft label centered at the reaction time inside crop.
     - `y_rel_sec`: the scalar reaction time relative to crop start.
 
-    `crop_sec` controls the crop duration. `end_time` optionally trims late
-    signal tails before cropping. With `crop_proba > 0`, the crop start is
-    jittered around the default 0.5 s post-stimulus offset by
-    `cropping_offset`, while preserving the target inside the crop.
+    `crop_sec` controls the crop duration. `end_time` trims late signal tails
+    before cropping and defaults to the 5 s prepared-window length. With
+    `crop_proba > 0`, the crop start is sampled from `crop_start_min` to
+    `crop_start_max`, while preserving the target inside the crop. The legacy
+    `cropping_offset` argument is a shorthand for `0.5 +/- cropping_offset`.
 
     When `use_augmentation=True`, the dataset can apply time scaling, channel
     dropout, short temporal cutout, and Gaussian noise. These augmentations are
@@ -38,7 +39,10 @@ class TrainCroppingDataset(Dataset):
         sfreq: float,
         crop_sec: float = 2.0,
         sigma: float = 0.12,
-        cropping_offset: float = 0.2,
+        cropping_offset: float | None = None,
+        crop_start_min: float | None = None,
+        crop_start_max: float | None = None,
+        target_margin: float | None = None,
         crop_proba: float = 1.0,
         dropout_range: float = 0.2,
         dropout_proba: float = 0.5,
@@ -52,7 +56,7 @@ class TrainCroppingDataset(Dataset):
         noise_base_std: float = 0.01,
         noise_random_std: float = 0.03,
         use_channels: list | None = None,
-        end_time: float | None = None,
+        end_time: float | None = 5.0,
         use_augmentation: bool = False,
     ):
         self.base = base
@@ -60,7 +64,25 @@ class TrainCroppingDataset(Dataset):
         self.crop_sec = float(crop_sec)
         self.T_crop = int(round(self.crop_sec * self.sfreq))
         self.sigma = float(sigma)
+        if cropping_offset is not None and (crop_start_min is not None or crop_start_max is not None):
+            raise ValueError("Use either cropping_offset or crop_start_min/crop_start_max, not both.")
+        if cropping_offset is not None:
+            cropping_offset = float(cropping_offset)
+            crop_start_min = 0.5 - cropping_offset
+            crop_start_max = 0.5 + cropping_offset
+        elif crop_start_min is None and crop_start_max is None:
+            crop_start_min = crop_start_max = 0.5
+        elif crop_start_min is None or crop_start_max is None:
+            raise ValueError("crop_start_min and crop_start_max must be set together.")
+        if float(crop_start_min) > float(crop_start_max):
+            raise ValueError("crop_start_min must be <= crop_start_max.")
+        if target_margin is not None and float(target_margin) < 0:
+            raise ValueError("target_margin must be non-negative.")
+
         self.cropping_offset = cropping_offset
+        self.crop_start_min = float(crop_start_min)
+        self.crop_start_max = float(crop_start_max)
+        self.target_margin = None if target_margin is None else float(target_margin)
         self.crop_proba = crop_proba
         self.dropout_proba = dropout_proba
         self.dropout_range = dropout_range
@@ -83,15 +105,18 @@ class TrainCroppingDataset(Dataset):
 
     def _crop_segment(self, X_full, y_abs):
         """
-        Crops a 2-second window that starts around the default 0.5 s offset
-        with a random shift in [-cropping_offset, +cropping_offset] seconds.
+        Crops a fixed-length window from the configured start range.
         """
         if torch.rand((), device=X_full.device) < self.crop_proba:
-            start_second = 0.5 + random.uniform(-self.cropping_offset, self.cropping_offset)
-            start_second = max(start_second, y_abs - 2.0)
-            start_second = min(start_second, y_abs - self.cropping_offset)
-            start_second = np.clip(start_second, 0.5 - self.cropping_offset, 0.5 + self.cropping_offset)
-            start_second = np.clip(start_second, 0, self.end_time - self.crop_sec)
+            start_second = random.uniform(self.crop_start_min, self.crop_start_max)
+            target_margin = 0.0 if self.target_margin is None else self.target_margin
+            available_end = self.end_time if self.end_time is not None else X_full.shape[-1] / self.sfreq
+            min_start = max(0.0, y_abs - self.crop_sec + target_margin)
+            max_start = min(available_end - self.crop_sec, y_abs - target_margin)
+            if min_start <= max_start:
+                start_second = np.clip(start_second, min_start, max_start)
+            else:
+                start_second = np.clip(start_second, 0.0, available_end - self.crop_sec)
         else:
             start_second = 0.5
         start_point = int(round(start_second * self.sfreq))

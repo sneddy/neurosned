@@ -1,5 +1,5 @@
 experiment: 01_regression_baselines
-name: shallowfbcspnet_wrapped
+name: eegpt_wrapped
 task: regression
 seed: 2025
 
@@ -9,7 +9,7 @@ evaluation:
   save_predictions: true
   save_logits: false
   repeated_runs:
-    enabled: true
+    enabled: false
     seeds: [2025, 2026, 2027, 2028, 2029]
   confidence_interval:
     enabled: true
@@ -21,8 +21,6 @@ data:
   train: data/new_validation/r1_r8_train.pkl
   valid: data/new_validation/r9_r10_val.pkl
   test: data/new_validation/r11_test.pkl
-  target_min: 0.5
-  target_max: 2.5
   train_dataset:
     module_name: benchmarks.data.regression
     class_name: FixedWindowDataset
@@ -58,11 +56,12 @@ model:
   params:
     inner:
       module_name: braindecode.models
-      class_name: ShallowFBCSPNet
+      class_name: EEGPT
       params:
         n_chans: 128
         n_outputs: 1
         n_times: 200
+        sfreq: 100
 
 optimizer:
   module_name: torch.optim
