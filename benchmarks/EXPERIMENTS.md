@@ -77,10 +77,12 @@ experiments. Current clean regression baselines are in
 `01_regression_baselines`.
 
 The current direct-regression story is that `sneddy_rt_net` is slightly best,
-`sneddy_net` is nearly tied, and the strongest external baseline so far is
-`tidnet_wrapped`. `wrapped` means that the external model receives the same
-per-window standardization used by our models; this is the stronger and fairer
-baseline than the unwrapped sanity checks.
+`sneddy_net` is nearly tied, and the strongest external baseline on the held-out
+R11 release so far is `tidnet_wrapped`. Deep4Net has the best validation nRMSE
+among the wrapped external baselines, but its R11 generalization is weaker than
+TIDNet and EEGConformer. `wrapped` means that the external model receives the
+same per-window standardization used by our models; this is the stronger and
+fairer baseline than the unwrapped sanity checks.
 
 Per-window standardization is part of the fixed neural input preprocessing
 protocol, not a model-specific tuning trick. For each trial window and channel,
@@ -228,7 +230,7 @@ analyze the signal.
 | Posterior geometry | Do models with similar scalar error learn different temporal posteriors? | CRPS, fixed-kernel EventNLL, posterior width, near-target mass, mode-mean gap, coverage, raster and target-aligned figures. | Main novelty beyond nRMSE: output semantics differ across objectives. | Completed for calibrated R11 segmentation runs. |
 | Shifted-crop diagnostic | Do fixed-window models learn event localization or scalar shortcut behavior? | 5 s R11 windows, shifted 2 s inference crops, raw shift slope, localizer-like fraction. | Diagnostic and limitation: fixed-window training permits shortcut learning. | Completed for scalar regression, CE, and EventNLL. |
 | Shift-augmented training | Can crop-relative random shifts force stronger event localization? | Random crop shifts during training with labels transformed to `RT - s`. | Planned stronger localization experiment. | Planned / optional. |
-| Seed robustness | Are the main gaps stable across random seeds? | Five-seed repeated runs for SneddyRTNet, TIDNet wrapped, CE, EventNLL, and time-only. | Reliability support for camera-ready claims. | Completed for current repeated set. |
+| Seed robustness | Are the main gaps stable across random seeds? | Five-seed repeated runs for SneddyRTNet, TIDNet wrapped, CE, EventNLL, time-only, hazard EventNLL, and Gaussian-mixture EventNLL. | Reliability support for camera-ready claims. | Completed for current repeated set. |
 | Final training recipe | Does two-stage training with checkpoint reload improve or stabilize the final model? | Two-stage/reload code path and demo config; paper-facing repeated results still needed. | Optional final recipe or appendix if results justify it. | Planned / not yet a main result. |
 | Stacking add-on | Do event-time distributions provide reusable information beyond scalar predictions? | Subject-disjoint OOF stacking on R9-R10, final application to R11. | Optional performance and representation evidence. | Planned / optional. |
 
@@ -388,8 +390,8 @@ Full report and artifact index:
 
 | item | status |
 | --- | --- |
-| CE, EventNLL, and time-only seed robustness | Completed in `03_seed_robustness`. |
-| Extra seed robustness for combo/Wasserstein/hazard/mixture variants | Optional appendix work only if reviewer pressure requires it. |
+| CE, EventNLL, time-only, hazard, and Gaussian-mixture seed robustness | Completed in `03_seed_robustness`. |
+| Extra seed robustness for combo/Wasserstein variants | Optional appendix work only if reviewer pressure requires it. |
 | Shift-augmented event-time training | Planned optional experiment if we want a stronger localization claim than the current shifted-crop diagnostic supports. |
 
 ## 03 Seed Robustness
@@ -409,24 +411,29 @@ Status checked on 2026-07-06. Values are mean +/- sample standard deviation
 over completed seeds. R11 nRMSE ranges are min-max across seeds. Posterior CRPS
 and fixed-kernel EventNLL are reported only for event-time segmentation runs.
 
-| model | status | valid nRMSE | R11 nRMSE | R11 range | posterior CRPS | fixed-kernel EventNLL | artifact |
-| --- | --- | ---: | ---: | ---: | ---: | ---: | --- |
-| SneddyRTNet | 5/5 finished | 0.9359 +/- 0.0031 | 0.9495 +/- 0.0048 | 0.9451-0.9570 | - | - | `sneddy_rt_net_repeated__20260705_144301/repeated_summary.csv` |
-| TIDNet wrapped | 5/5 finished | 0.9546 +/- 0.0014 | 0.9614 +/- 0.0046 | 0.9547-0.9656 | - | - | `tidnet_wrapped_repeated__20260705_201812/repeated_summary.csv` |
-| ETS-U-Net CE | 5/5 finished | 0.9209 +/- 0.0024 | 0.9384 +/- 0.0021 | 0.9352-0.9407 | 0.1927 +/- 0.0007 | 0.3062 +/- 0.0086 | `unet_deeper_ce_only_repeated__20260705_161334/repeated_summary.csv` |
-| ETS-U-Net EventNLL | 5/5 finished | 0.9242 +/- 0.0024 | 0.9391 +/- 0.0045 | 0.9318-0.9439 | 0.2011 +/- 0.0019 | 0.1523 +/- 0.0133 | `unet_deeper_event_nll_repeated__20260705_173122/repeated_summary.csv` |
-| ETS-U-Net time-only | 5/5 finished | 0.9371 +/- 0.0020 | 0.9473 +/- 0.0021 | 0.9447-0.9496 | 0.2040 +/- 0.0020 | 0.3878 +/- 0.0268 | `unet_deeper_time_only_repeated__20260705_185012/repeated_summary.csv` |
+| model | status | valid nRMSE | R11 nRMSE | calibrated R11 nRMSE | R11 range | posterior CRPS | fixed-kernel EventNLL | artifact |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| SneddyRTNet | 5/5 finished | 0.9359 +/- 0.0031 | 0.9495 +/- 0.0048 | - | 0.9451-0.9570 | - | - | `sneddy_rt_net_repeated__20260705_144301/repeated_summary.csv` |
+| TIDNet wrapped | 5/5 finished | 0.9546 +/- 0.0014 | 0.9614 +/- 0.0046 | - | 0.9547-0.9656 | - | - | `tidnet_wrapped_repeated__20260705_201812/repeated_summary.csv` |
+| ETS-U-Net CE | 5/5 finished | 0.9209 +/- 0.0024 | 0.9384 +/- 0.0021 | - | 0.9352-0.9407 | 0.1927 +/- 0.0007 | 0.3062 +/- 0.0086 | `unet_deeper_ce_only_repeated__20260705_161334/repeated_summary.csv` |
+| ETS-U-Net EventNLL | 5/5 finished | 0.9242 +/- 0.0024 | 0.9391 +/- 0.0045 | - | 0.9318-0.9439 | 0.2011 +/- 0.0019 | 0.1523 +/- 0.0133 | `unet_deeper_event_nll_repeated__20260705_173122/repeated_summary.csv` |
+| ETS-U-Net hazard EventNLL | 5/5 finished | 0.9243 +/- 0.0014 | 0.9398 +/- 0.0027 | 0.9396 +/- 0.0016 | 0.9379-0.9444 | 0.2022 +/- 0.0019 | 0.1519 +/- 0.0103 | `unet_deeper_hazard_event_nll_repeated__20260705_214044/repeated_summary.csv` |
+| ETS-U-Net Gaussian-mixture EventNLL | 5/5 finished | 0.9240 +/- 0.0011 | 0.9413 +/- 0.0021 | 0.9385 +/- 0.0011 | 0.9377-0.9425 | 0.1979 +/- 0.0014 | 0.1644 +/- 0.0061 | `unet_deeper_gaussian_mixture_event_nll_repeated__20260706_102324/repeated_summary.csv` |
+| ETS-U-Net time-only | 5/5 finished | 0.9371 +/- 0.0020 | 0.9473 +/- 0.0021 | - | 0.9447-0.9496 | 0.2040 +/- 0.0020 | 0.3878 +/- 0.0268 | `unet_deeper_time_only_repeated__20260705_185012/repeated_summary.csv` |
 
 Seed robustness supports the main event-time supervision claim: CE and EventNLL
 segmentation are both about 0.010-0.011 R11 nRMSE better than the repeated
 SneddyRTNet scalar baseline on average. The time-only segmentation control is
 much closer to scalar regression, which supports the claim that the gain comes
 from distributional event-time supervision rather than only the U-Net readout.
-EventNLL remains slightly weaker than CE on scalar nRMSE/CRPS, but much better
-under the fixed-kernel EventNLL score, consistent with its role as a sharper
-probabilistic localization objective. The optional TIDNet wrapped seed run is
+The hazard and Gaussian-mixture EventNLL extensions are stable and remain in the
+same scalar-accuracy band as CE/EventNLL; the mixture variant benefits from
+post-hoc temperature calibration, reaching 0.9385 +/- 0.0011 R11 nRMSE.
+EventNLL-family rows remain slightly weaker than CE on CRPS, but much better
+under the fixed-kernel EventNLL score, consistent with their role as sharper
+probabilistic localization objectives. The optional TIDNet wrapped seed run is
 also complete and remains weaker than SneddyRTNet and the event-time
-segmentation variants.
+segmentation variants on R11.
 
 ### Core
 
@@ -450,7 +457,7 @@ segmentation variants.
 
 | config | role |
 | --- | --- |
-| `external_optional/tidnet_wrapped.yaml` | Completed optional external-backbone seed robustness for the strongest wrapped baseline. |
+| `external_optional/tidnet_wrapped.yaml` | Completed optional external-backbone seed robustness for the strongest wrapped baseline by R11 point estimate. |
 
 Do not run every regression model for five seeds by default. The seed robustness
 budget should support the main claims: best scalar baseline, strongest
@@ -525,7 +532,7 @@ sections above.
 
 | item | purpose | current status |
 | --- | --- | --- |
-| Integrate seed robustness results | Estimate whether the main gaps survive random initialization and report them in the final tables. | Completed for SneddyRTNet, TIDNet wrapped, CE, EventNLL, and time-only; use the `03 Seed Robustness` summaries above. |
+| Integrate seed robustness results | Estimate whether the main gaps survive random initialization and report them in the final tables. | Completed for SneddyRTNet, TIDNet wrapped, CE, EventNLL, hazard EventNLL, Gaussian-mixture EventNLL, and time-only; use the `03 Seed Robustness` summaries above. |
 | Finalize main R11 tables | Keep the paper-facing comparison focused on best scalar regression, best event-time segmentation, and key negative controls. | Use `01 Regression Baselines`, `02 Segmentation Ablations`, and repeated-seed summaries. |
 | Finalize posterior-geometry figure/caption | Support the claim that scalar RT error hides different event-time posterior semantics. | Current artifacts live under `02_segmentation_ablations/figures/posterior_geometry_calibrated/`. |
 | Finalize shifted-crop diagnostic text | Present fixed-window shortcut learning as a diagnostic result, not as solved localization. | Full report: `benchmarks/experiments/shifted_eval_camera_ready_report.md`. |
