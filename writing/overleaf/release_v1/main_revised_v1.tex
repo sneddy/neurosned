@@ -845,21 +845,24 @@ ETS-U-Net time-only & soft-argmax time loss control & 0.9371 $\pm$ 0.0020 & 0.94
 \subsection{Latent Event-Time Likelihood as a Principled Alternative}
 
 The event-time NLL run nearly matches CE-only and hybrid segmentation without requiring a hand-weighted CE+time objective. We therefore present it as a principled latent-variable likelihood rather than as a claim of best scalar nRMSE. The Gaussian-mixture kernel improves the EventNLL-family scalar readout relative to the fixed Gaussian kernel, while the hazard EventNLL extension reaches CE-level R11 performance without reverting to scalar regression. In the calibrated posterior analysis, EventNLL produces a much narrower posterior than CE or CE+time and places more mass near the target, but it also under-covers nominal central intervals. This makes it scientifically useful: it reveals that similar scalar errors can correspond to different posterior geometries.
+\subsection{Posterior Geometry and Interval Coverage}
 
-\subsection{Posterior Geometry and Calibration}
+The scalar results above compare models through the posterior mean, but the event-time formulation produces a full distribution over response latencies. Two losses can therefore have similar nRMSE while assigning probability mass very differently over time. We analyze this posterior geometry to ask whether the scalar prediction is supported by a localized temporal event distribution, whether the posterior is overly diffuse or overly concentrated, and whether nominal posterior intervals have meaningful empirical coverage.
 
-Temperature calibration improves all completed event-time segmentation readouts, with the largest gains for the hybrid and Wasserstein-only objectives. More importantly, Figure~\ref{fig:posterior_geometry_main} shows that losses with similar scalar nRMSE can learn very different temporal posteriors. EventNLL is sharply target-aligned but under-covers, time-only posteriors are broader and show larger mode-mean gaps, and CE/CE+time provide better empirical coverage. This supports treating posterior sharpness as a first-class analysis object: the model's probability geometry affects scalar readout, uncertainty interpretation, and the reliability of downstream ensembling.
+The softmax temperature used in this section is selected on R9--R10 to minimize scalar nRMSE of the posterior-mean readout. Thus, we treat temperature selection as readout-temperature tuning rather than as full probabilistic calibration. After this readout tuning, we evaluate the learned event-time posterior itself: whether its mass is near the observed RT, whether the posterior mean agrees with the posterior mode, and whether nominal posterior intervals contain the true RT at the expected rate.
+
+Table~\ref{tab:posterior_geometry_metrics} uses four groups of metrics. First, scalar nRMSE and MAE measure the posterior-mean RT prediction. Second, CRPS and fixed-kernel EventNLL score the full posterior distribution; lower values indicate better distributional predictions. The fixed-kernel EventNLL uses the same Gaussian observation kernel for all models, so it evaluates the predicted event-time distribution under a common likelihood score rather than under each model's own training loss. Third, Width80, Mass $\pm$150 ms, and mode-mean gap describe posterior geometry: Width80 is the median width of the nominal 80\% central posterior interval, Mass $\pm$150 ms is the posterior probability assigned within 150 ms of the observed RT, and mode-mean gap measures disagreement between the posterior peak and the posterior mean used for scalar readout. Finally, Coverage80 and Coverage MAE summarize interval coverage. Coverage80 is the empirical coverage of the nominal 80\% central interval, whose calibrated target is 0.80. Coverage MAE is the mean absolute difference between empirical and nominal coverage over central intervals $\{50\%,60\%,70\%,80\%,90\%\}$.
 
 \begin{figure}[!t]
     \centering
     \includegraphics[width=\linewidth]{img/ch1/posterior_geometry_main_calibrated.png}
-    \caption{Posterior geometry differs across event-time losses even when scalar nRMSE is similar. Panel A reports calibrated R11 scalar readout with subject-bootstrap intervals. Panel B aligns predicted posteriors to the true RT. Panels C--E summarize posterior width, near-target mass, and mode-mean disagreement. Panel F compares empirical coverage of central posterior intervals. EventNLL is a principled latent-time likelihood and produces sharper target-aligned posteriors, but it is not the best scalar-NRMSE model and under-covers relative to CE-based objectives.}
+    \caption{Posterior geometry differs across event-time losses even when scalar nRMSE is similar. Panel A reports R11 scalar readout after selecting the softmax temperature on R9--R10 to minimize nRMSE. Panel B aligns predicted posteriors to the true RT. Panels C--E summarize posterior width, near-target mass, and mode-mean disagreement. Panel F compares empirical coverage of central posterior intervals; the diagonal is ideal interval coverage.}
     \label{fig:posterior_geometry_main}
 \end{figure}
 
 \begin{table}[!t]
 \centering
-\caption{Quantitative posterior geometry on R11 for matched event-time segmentation losses. Scalar nRMSE and MAE summarize point-readout accuracy; CRPS and fixed-kernel EventNLL are distributional scores computed from the full posterior; width, near-target mass, mode-mean gap, and empirical coverage quantify posterior concentration and calibration. CRPS is reported in milliseconds. Fixed-kernel EventNLL uses the same Gaussian observation kernel for all models ($\sigma=0.15$~s), so lower values indicate higher likelihood of the observed RT under the predicted event-time mixture.}
+\caption{Quantitative posterior geometry on R11 for matched event-time segmentation losses. Metrics are defined in the text. CRPS is reported in milliseconds. Fixed-kernel EventNLL uses a common Gaussian observation kernel for all models ($\sigma=0.15$~s). For Coverage80, values closer to 0.80 indicate better nominal 80\% interval coverage; for Coverage MAE, lower is better.}
 \label{tab:posterior_geometry_metrics}
 \scriptsize
 \setlength{\tabcolsep}{3pt}
@@ -878,6 +881,8 @@ Wasserstein & 0.950 & 222 & 165 & 0.219 & 740 & 0.296 & 50 & 0.812 & 0.053 \\
 \end{tabular}%
 }
 \end{table}
+
+These metrics show that the losses induce different output semantics. CE+time and CE give the strongest scalar readouts, but their nominal 80\% intervals cover about 90\% of trials, indicating conservative over-coverage. EventNLL is not well calibrated as an uncertainty posterior: its nominal 80\% interval covers only 48\% of trials. Its value is instead localization-like concentration, with the narrowest Width80, the highest near-target mass, and the best fixed-kernel EventNLL score. Wasserstein has the smallest Coverage MAE and a Coverage80 value closest to 0.80, but this comes with weaker scalar nRMSE and lower near-target mass. Thus, posterior geometry reveals a trade-off among scalar accuracy, target concentration, and interval coverage that is hidden by nRMSE alone.
 
 \subsection{Shifted-Crop Diagnostic: Partial Event Localization}
 
