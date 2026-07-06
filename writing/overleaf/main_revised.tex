@@ -142,12 +142,13 @@ event-time posterior over response latencies and derives scalar RT by expectatio
 event-time supervision matters beyond a soft-argmax readout alone: CE and hybrid CE+time objectives outperform a
 time-only readout loss, while a Wasserstein-only objective is a useful negative control. We also evaluate a latent
 event-time likelihood, not as the best scalar-NRMSE model, but as a principled probabilistic objective in which observed
-RT is a noisy realization of a latent event time.
+RT is a noisy realization of a latent event time. Compact extensions with a two-scale Gaussian observation kernel and a
+hazard/survival parameterization show that the event-time formulation is not tied to one softmax-Gaussian implementation.
 
-This framing is useful for brain-behavior decoding when targets are inherently temporal. It aligns supervision with latency variability, enables latent-consistent jittered cropping, and makes posterior geometry inspectable. In our experiments, scalar scores alone hide important differences in posterior width, mode-mean disagreement, target-aligned mass, and coverage; we therefore treat temperature calibration and posterior regularization primarily as geometry analysis and control, not as the central method claim.
+This framing is useful for brain-behavior decoding when targets are inherently temporal. It aligns supervision with latency variability, enables latent-consistent jittered cropping, and makes posterior geometry inspectable. In our experiments, scalar scores alone hide important differences in posterior width, mode-mean disagreement, target-aligned mass, and coverage. A shifted-crop diagnostic further shows that event-time segmentation moves predictions in a more event-like direction than scalar regression, while also revealing that fixed-window training still permits stimulus-locked shortcut behavior. We therefore treat temperature calibration and posterior regularization primarily as geometry analysis and control, not as the central method claim.
 
 
-We evaluate the method under a release-separated protocol using HBN releases R1--R8 for model fitting, R9--R10 for development-stage calibration and meta-learning, and R11 for final reporting. The original hidden-release CodaBench evaluation is reported separately for continuity with the challenge setting. Under this protocol, the calibrated CE+time event-time segmentation model achieves 0.935573 nRMSE on R11 [0.918136, 0.954309], compared with 0.945938 [0.930153, 0.963795] for the strongest direct-regression baseline.
+We evaluate the method under a release-separated protocol using HBN releases R1--R8 for model fitting, R9--R10 for development-stage calibration and meta-learning, and R11 for final reporting. The original hidden-release CodaBench evaluation is reported separately for continuity with the challenge setting. Under this protocol, the calibrated CE+time event-time segmentation model achieves 0.935573 nRMSE on R11 [0.918136, 0.954309], compared with 0.945938 [0.930153, 0.963795] for the strongest direct-regression baseline. Five-seed robustness checks on selected core recipes preserve the same ordering: CE and EventNLL segmentation remain about 0.010--0.011 nRMSE better than the repeated temporal-readout regression baseline, while the time-only control is much closer to scalar regression.
 
 
 
@@ -179,8 +180,10 @@ Our contributions are:
     \item We reformulate EEG-based reaction-time prediction as event-time distribution modeling rather than ordinary scalar regression.
     \item We evaluate compact direct-regression baselines, temporal-readout regression, and standardized external EEG architectures under a release-separated HBN protocol with R11 subject-bootstrap confidence intervals.
     \item We show through loss ablations that event-time distributional supervision matters beyond scalar soft-argmax regression.
-    \item We formulate EventNLL as a principled latent event-time likelihood for RT, complementing soft Gaussian-label supervision.
-    \item We analyze posterior geometry, temperature calibration, and secondary distribution-aware stacking while reporting the original hidden challenge results only as secondary evidence.
+    \item We verify the main event-time supervision gap with five-seed robustness checks over selected scalar, external, and segmentation baselines.
+    \item We formulate EventNLL as a principled latent event-time likelihood for RT, complementing soft Gaussian-label supervision, and evaluate Gaussian-mixture and hazard/survival extensions.
+    \item We analyze posterior geometry and a shifted-crop diagnostic to separate scalar accuracy from event-time localization behavior.
+    \item We treat temperature calibration and secondary distribution-aware stacking as readout/ensemble analyses while reporting the original hidden challenge results only as secondary evidence.
 \end{enumerate}
 
 \section{Related Work}
@@ -468,7 +471,7 @@ regression.
 \begin{figure}[!t]
     \centering
     \includegraphics[width=\linewidth]{img/ch1/ch1_pipeline.png}
-    \caption{Temporal segmentation pipeline for RT prediction.  For each trial we cache a longer stimulus-locked segment (4~s in our implementation) and sample a 2~s subwindow with start-time jitter for training; the RT label is shifted into the sampled window and a Gaussian soft target $q_t$ is formed. Per-time logits $z_t$ are produced by a 1-D segmentation model and are optimized with distribution-matching losses (e.g., soft-label CE, CDF-based Wasserstein-1, KL, and mild entropy penalty); focal reweighting and a hazard head were explored but not used in the final pipeline. RT is obtained by temperature-scaled soft-argmax, with $\tau^\star$ selected to minimize validation nRMSE.}
+    \caption{Temporal segmentation pipeline for RT prediction.  For each trial we cache a longer stimulus-locked segment (4~s in our implementation) and sample a 2~s subwindow with start-time jitter for training; the RT label is shifted into the sampled window and a Gaussian soft target $q_t$ is formed. Per-time logits $z_t$ are produced by a 1-D segmentation model and are optimized with distribution-matching losses (e.g., soft-label CE, CDF-based Wasserstein-1, KL, and mild entropy penalty) or latent EventNLL objectives. The main readout is a temperature-scaled softmax posterior; hazard/survival readouts and alternate observation kernels are evaluated as compact extensions. RT is obtained by temperature-scaled soft-argmax, with $\tau^\star$ selected to minimize validation nRMSE.}
     \label{fig:ch1_pipeline}
 \end{figure}
 
@@ -517,7 +520,7 @@ where
 D_{\mathrm{KL}}(q\|p)=\sum_{t=0}^{T-1} q_t \log\frac{q_t}{p_t}, \;
 H(p)=-\sum_{t=0}^{T-1} p_t \log p_t.
 \end{equation*}
-This expression defines an ablation family rather than a single mandatory loss cocktail. CE-only supervision sets the scalar time term to zero and asks the model to match a Gaussian soft event-time label. The hybrid objective combines CE with a soft-argmax time loss. The time-only ablation removes distributional matching while keeping the same readout, and the Wasserstein-only ablation tests whether a CDF-based geometry loss is sufficient on its own. The entropy, KL, and related terms are best viewed as posterior-geometry controls rather than as the main contribution. We also explored focal reweighting and a hazard-parameterized head (mapping logits to a discrete-time hazard and then to an event-time distribution), but these variants did not yield consistent validation improvements under the subject-disjoint protocol and are not used in the final pipeline.
+This expression defines an ablation family rather than a single mandatory loss cocktail. CE-only supervision sets the scalar time term to zero and asks the model to match a Gaussian soft event-time label. The hybrid objective combines CE with a soft-argmax time loss. The time-only ablation removes distributional matching while keeping the same readout, and the Wasserstein-only ablation tests whether a CDF-based geometry loss is sufficient on its own. The entropy, KL, focal, and related terms are best viewed as posterior-geometry controls rather than as the main contribution. We also evaluate a hazard-parameterized readout as an extension, mapping logits to a discrete-time survival process before forming the event-time posterior.
 
 \subsection{Latent Event-Time Likelihood}
 
@@ -531,6 +534,23 @@ p(y\mid X)
 \mathcal{L}_{\mathrm{EventNLL}} = -\log p(y\mid X).
 \end{equation}
 This objective keeps the same event-time interpretation but replaces the artificial target mask $q_t$ with a marginal likelihood over latent response-relevant event times. We therefore present EventNLL primarily as a more principled latent-variable objective, not as the scalar-NRMSE winner among the evaluated losses.
+
+\paragraph{Observation-kernel and hazard extensions.}
+The EventNLL formulation separates the latent event-time posterior $p_t(X)$ from the observation model $K(y\mid t)$. The default model uses a single Gaussian observation kernel, but we also evaluate a two-scale Gaussian mixture,
+\begin{equation}
+\label{eq:event_nll_mixture_kernel}
+K(y\mid t)=(1-\alpha)\,\mathcal{N}(y;t_0+g_t,\sigma_{\mathrm{narrow}}^2)
++\alpha\,\mathcal{N}(y;t_0+g_t,\sigma_{\mathrm{wide}}^2),
+\end{equation}
+which keeps most probability mass in a narrow timing error while allowing a wider tail for occasional noisy RT observations. In the completed run, $\sigma_{\mathrm{narrow}}=0.10$~s, $\sigma_{\mathrm{wide}}=0.35$~s, and $\alpha=0.10$.
+
+As a readout extension, we also evaluate a hazard/survival parameterization. Instead of using logits only as unconstrained softmax scores, each temporal logit defines a conditional event probability
+\begin{equation}
+\label{eq:hazard_readout}
+h_t=\sigma(z_t/\tau),\qquad
+p_t^{\mathrm{haz}} \propto h_t\prod_{k<t}(1-h_k),
+\end{equation}
+with the resulting event-bin probabilities normalized over the represented window. This keeps the same event-time likelihood in Eq.~\ref{eq:event_nll}, but changes the posterior parameterization from a categorical softmax to a discrete-time survival process. We treat this as a paper-facing extension because it tests whether the event-time formulation is tied to one softmax implementation.
 
 \subsection{Posterior Geometry and Temperature Calibration}
 
@@ -757,7 +777,7 @@ The temporal-readout ETR-CNN is only marginally better than the scalar MSP-CNN o
 
 \subsection{Event-Time Segmentation Improves RT Prediction}
 
-Table~\ref{tab:r11_segmentation_losses} summarizes the event-time segmentation loss ablations. The calibrated hybrid event-time segmentation model reaches 0.935573 nRMSE on R11, improving over the strongest direct-regression baseline. CE-only soft-label supervision is also strong. This is the central empirical step in the narrative: once RT is represented as an event-time posterior, distributional supervision over time becomes more useful than treating RT as a scalar window label.
+Table~\ref{tab:r11_segmentation_losses} summarizes the event-time segmentation loss ablations. The calibrated hybrid event-time segmentation model reaches 0.935573 nRMSE on R11, improving over the strongest direct-regression baseline. CE-only soft-label supervision is also strong. The Gaussian-mixture and hazard rows are compact EventNLL-family extensions: the former changes the observation kernel, while the latter changes the event-time posterior parameterization. This is the central empirical step in the narrative: once RT is represented as an event-time posterior, distributional supervision over time becomes more useful than treating RT as a scalar window label.
 
 \begin{figure}[!t]
     \centering
@@ -782,6 +802,8 @@ CE only, cal. & soft-label event-time CE & 0.70 & 0.922277 & 0.936942 [0.920329,
 Hybrid, base & soft-label CE + soft-argmax time loss & 0.65 & 0.925601 & 0.940006 [0.921243, 0.960020] \\
 Hybrid, cal. & soft-label CE + soft-argmax time loss & 0.80 & 0.924544 & 0.935573 [0.918136, 0.954309] \\
 Event NLL, cal. & continuous latent event-time likelihood & 0.70 & 0.923619 & 0.940947 [0.923160, 0.960322] \\
+Gaussian mixture NLL, cal. & two-scale EventNLL observation kernel & 0.75 & 0.921676 & 0.939267 [0.921864, 0.958291] \\
+Hazard EventNLL & hazard-parameterized event-time posterior & 0.65 & 0.924318 & 0.937332 [0.920594, 0.955704] \\
 Time only, cal. & soft-argmax scalar time loss only & 0.85 & 0.935298 & 0.944578 [0.930935, 0.959775] \\
 Wasserstein only, cal. & event-time CDF distance only & 2.95 & 0.936941 & 0.949716 [0.934666, 0.966443] \\
 \bottomrule
@@ -790,11 +812,39 @@ Wasserstein only, cal. & event-time CDF distance only & 2.95 & 0.936941 & 0.9497
 
 \subsection{Loss Ablations: Distributional Supervision Matters}
 
-The loss ablations separate the value of the temporal readout from the value of distributional supervision. The time-only model directly optimizes soft-argmax error but removes distribution matching; it is weaker than CE-only and hybrid segmentation. The Wasserstein-only run is a useful negative control: not every distributional distance recovers the gain. CE, CE+time, and EventNLL remain in the same performance band, supporting the view that the main gain comes from the event-time formulation rather than from a single hand-tuned loss.
+The loss ablations separate the value of the temporal readout from the value of distributional supervision. The time-only model directly optimizes soft-argmax error but removes distribution matching; it is weaker than CE-only and hybrid segmentation. The Wasserstein-only run is a useful negative control: not every distributional distance recovers the gain. CE, CE+time, and EventNLL remain in the same performance band, supporting the view that the main gain comes from the event-time formulation rather than from a single hand-tuned loss. The hazard EventNLL result further shows that the formulation is not tied to a categorical softmax readout: a survival-style posterior reaches the same scalar-performance regime while preserving the event-time likelihood view.
+
+\subsection{Seed Robustness of the Main Gap}
+
+To test whether the main comparison depends on a favorable random initialization, we repeated selected core recipes over five seeds (2025--2029). This analysis is a reliability check rather than a new model-selection stage: it focuses on the strongest temporal-readout regression baseline, the strongest wrapped external baseline, the two main distributional event-time objectives, and the time-only segmentation control.
+
+Table~\ref{tab:seed_robustness} shows that the central event-time supervision gap is stable. CE and EventNLL segmentation remain about 0.010--0.011 R11 nRMSE better than the repeated ETR-CNN scalar baseline on average. In contrast, the time-only segmentation control is much closer to ETR-CNN, supporting the interpretation that the gain comes from distributional event-time supervision rather than only from a U-Net backbone or soft-argmax readout. The optional repeated TIDNet baseline also remains weaker than both ETR-CNN and the event-time segmentation variants.
+
+\begin{table}[!t]
+\centering
+\caption{Five-seed robustness summary for selected core models. Values are mean $\pm$ sample standard deviation over seeds 2025--2029; R11 range is min--max across seeds. Posterior scores are reported only for event-time segmentation runs. Lower is better for all metrics.}
+\label{tab:seed_robustness}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.12}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{@{} l l c c c c c @{}}
+\toprule
+\textbf{Model} & \textbf{Role} & \textbf{Valid nRMSE} $\downarrow$ & \textbf{R11 nRMSE} $\downarrow$ & \textbf{R11 range} & \textbf{Posterior CRPS} $\downarrow$ & \textbf{Fixed NLL} $\downarrow$ \\
+\midrule
+ETR-CNN & temporal-readout scalar baseline & 0.9359 $\pm$ 0.0031 & 0.9495 $\pm$ 0.0048 & 0.9451--0.9570 & -- & -- \\
+TIDNet wrapped & strongest wrapped external baseline & 0.9546 $\pm$ 0.0014 & 0.9614 $\pm$ 0.0046 & 0.9547--0.9656 & -- & -- \\
+ETS-U-Net CE & soft-label event-time CE & 0.9209 $\pm$ 0.0024 & 0.9384 $\pm$ 0.0021 & 0.9352--0.9407 & 0.1927 $\pm$ 0.0007 & 0.3062 $\pm$ 0.0086 \\
+ETS-U-Net EventNLL & latent event-time likelihood & 0.9242 $\pm$ 0.0024 & 0.9391 $\pm$ 0.0045 & 0.9318--0.9439 & 0.2011 $\pm$ 0.0019 & 0.1523 $\pm$ 0.0133 \\
+ETS-U-Net time-only & soft-argmax time loss control & 0.9371 $\pm$ 0.0020 & 0.9473 $\pm$ 0.0021 & 0.9447--0.9496 & 0.2040 $\pm$ 0.0020 & 0.3878 $\pm$ 0.0268 \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
 
 \subsection{Latent Event-Time Likelihood as a Principled Alternative}
 
-The event-time NLL run nearly matches CE-only and hybrid segmentation without requiring a hand-weighted CE+time objective. We therefore present it as a principled latent-variable likelihood rather than as a claim of best scalar nRMSE. In the calibrated posterior analysis, EventNLL produces a much narrower posterior than CE or CE+time and places more mass near the target, but it also under-covers nominal central intervals. This makes it scientifically useful: it reveals that similar scalar errors can correspond to different posterior geometries.
+The event-time NLL run nearly matches CE-only and hybrid segmentation without requiring a hand-weighted CE+time objective. We therefore present it as a principled latent-variable likelihood rather than as a claim of best scalar nRMSE. The Gaussian-mixture kernel improves the EventNLL-family scalar readout relative to the fixed Gaussian kernel, while the hazard EventNLL extension reaches CE-level R11 performance without reverting to scalar regression. In the calibrated posterior analysis, EventNLL produces a much narrower posterior than CE or CE+time and places more mass near the target, but it also under-covers nominal central intervals. This makes it scientifically useful: it reveals that similar scalar errors can correspond to different posterior geometries.
 
 \subsection{Posterior Geometry and Calibration}
 
@@ -829,9 +879,37 @@ Wasserstein & 0.950 & 222 & 165 & 0.219 & 740 & 0.296 & 50 & 0.812 & 0.053 \\
 }
 \end{table}
 
+\subsection{Shifted-Crop Diagnostic: Partial Event Localization}
+
+The posterior analyses above show that event-time losses produce different probability geometries, but they do not by themselves prove that a model has learned a within-crop event localizer. A fixed stimulus-locked window can still permit shortcut behavior: a model may predict trial difficulty, subject-level slowness, or stimulus-locked response tendency without moving its prediction when the crop is shifted. We therefore introduced a shifted-crop diagnostic on R11. For each trial, we used a 5~s EEG window and evaluated the same trained model on 2~s crops starting at $s\in\{0.2,0.3,\dots,0.8\}$~s. The reference crop is $s=0.5$~s, matching the training and main inference protocol. To avoid target-censoring effects, this analysis uses the common-inside subset where RT remains inside all shifted crops ($0.8\leq \mathrm{RT}\leq 2.2$~s; 14{,}183 trials).
+
+If the model truly localizes the response-relevant event within the crop, shifting the crop start by $\Delta s$ should move the predicted crop-relative event time by approximately $-\Delta s$, giving a raw shift slope near $-1$. A crop-invariant scalar regressor should instead have a slope near 0. Table~\ref{tab:shifted_crop_diagnostic} shows that the event-time segmentation models preserve or improve reference-crop accuracy and move in a more localizer-like direction than the best scalar regressor. EventNLL reaches a raw shift slope of $-0.292$ [95\% CI: $-0.311$, $-0.272$], compared with $-0.253$ [$-0.270$, $-0.235$] for ETR-CNN and $-0.172$ on average across regression baselines. The fraction of localizer-like trials also increases from 10.1\% for ETR-CNN to 14.8\% for CE and 15.9\% for EventNLL.
+
+This result should be interpreted as evidence for a representational shift, not as solved shift equivariance. The segmentation models remain far from the ideal slope of $-1$, indicating that fixed-window training still mixes event localization with scalar response-tendency shortcuts. That limitation is useful: it identifies shift-augmented, crop-relative event-time training as the natural next step if the goal is a stronger trial-wise neural event localizer.
+
+\begin{table}[!t]
+\centering
+\caption{Shifted-crop diagnostic on the R11 common-inside subset. The ideal within-crop event localizer has raw shift slope $-1$; a crop-invariant scalar shortcut has slope 0. Reference nRMSE is computed at the standard $s=0.5$~s crop.}
+\label{tab:shifted_crop_diagnostic}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.12}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{@{} l c c c c c c @{}}
+\toprule
+\textbf{Model} & \textbf{Ref nRMSE} $\downarrow$ & \textbf{Ref MAE, s} $\downarrow$ & \textbf{Worst $\Delta$ nRMSE} & \textbf{Raw shift slope} & \textbf{Localizer-like trials} & \textbf{Invariant-like trials} \\
+\midrule
+ETR-CNN & 0.874 & 0.206 [0.199, 0.215] & 0.174 & $-0.253$ [$-0.270$, $-0.235$] & 10.1\% [9.0, 11.1] & 34.5\% \\
+ETS-U-Net CE & 0.856 & 0.201 [0.193, 0.209] & 0.193 & $-0.287$ [$-0.306$, $-0.267$] & 14.8\% [13.3, 16.3] & 34.4\% \\
+ETS-U-Net EventNLL & 0.859 & 0.201 [0.193, 0.210] & 0.198 & $-0.292$ [$-0.311$, $-0.272$] & 15.9\% [14.5, 17.3] & 33.3\% \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
 \subsection{Distribution-Aware Stacking as a Secondary Ensemble Analysis}
 
-The R11 results above are intentionally reported without post-hoc stacking, so that the main comparisons isolate the event-time objective, scalar readout, and posterior geometry. The available stacking evidence comes from the original hidden-release CodaBench evaluation (Appendix Table~\ref{tab:appendix_codabench}). In that submission-oriented pipeline, gradient boosting stacking achieved 0.91394 hidden nRMSE, compared with 0.92334 for the best single model, 0.91840 for manual blending, and 0.91539 for Ridge stacking. This supports the role of posterior-derived meta-features as an ensemble calibration layer, while the release-separated R11 claims remain based on the single-model comparisons in Tables~\ref{tab:r11_regression_baselines}--\ref{tab:posterior_geometry_metrics}.
+The R11 results above are intentionally reported without post-hoc stacking, so that the main comparisons isolate the event-time objective, scalar readout, posterior geometry, and shifted-crop behavior. The available stacking evidence comes from the original hidden-release CodaBench evaluation (Appendix Table~\ref{tab:appendix_codabench}). In that submission-oriented pipeline, gradient boosting stacking achieved 0.91394 hidden nRMSE, compared with 0.92334 for the best single model, 0.91840 for manual blending, and 0.91539 for Ridge stacking. This supports the role of posterior-derived meta-features as an ensemble calibration layer, while the release-separated R11 claims remain based on the single-model comparisons and diagnostics in Tables~\ref{tab:r11_regression_baselines}--\ref{tab:shifted_crop_diagnostic}.
 
 
 
@@ -839,7 +917,7 @@ The R11 results above are intentionally reported without post-hoc stacking, so t
 
 \subsection{RT Prediction as Event-Time Localization}
 
-The results support treating trial-wise RT prediction as event-time localization rather than as ordinary scalar regression. The label is the latency of a response within a post-stimulus interval, and models benefit when that timing structure is explicit in both the output space and the loss. This framing also connects naturally to response-locked EEG analyses, where trial-to-trial latency variability is part of the signal rather than a nuisance to be averaged away.
+The results support treating trial-wise RT prediction as event-time localization rather than as ordinary scalar regression. The label is the latency of a response within a post-stimulus interval, and models benefit when that timing structure is explicit in both the output space and the loss. The shifted-crop diagnostic adds a stricter check on this interpretation: event-time segmentation models move in a more event-like direction than scalar regression under temporal crop shifts, but their slopes remain far from perfect localizer behavior. This framing therefore connects naturally to response-locked EEG analyses while also making clear that fixed-window RT prediction is not the same as fully shift-equivariant event detection.
 
 \subsection{Why Distributional Supervision Helps}
 
@@ -855,11 +933,11 @@ The event-time posterior contains more information than its expectation. Sharpne
 
 \subsection{Limitations}
 
-The main limitation is that all claims are tied to HBN-EEG CCD and the release-separated protocol used here. R11 is a stronger local holdout than reused validation performance, but it is still drawn from the same broader dataset family and preprocessing pipeline. The reported uncertainty intervals quantify subject-level sampling variability, but they do not replace a full multi-seed analysis. The foundation-style comparisons also do not use pretrained weights or montage-specialized setup changes; they are controlled architecture baselines rather than a full evaluation of EEG foundation models.
+The main limitation is that all claims are tied to HBN-EEG CCD and the release-separated protocol used here. R11 is a stronger local holdout than reused validation performance, but it is still drawn from the same broader dataset family and preprocessing pipeline. The shifted-crop diagnostic shows partial localization, not full shift equivariance, so stronger claims about trial-wise neural event localization would require training protocols that explicitly randomize crop position and supervise crop-relative timing. The five-seed robustness checks support the main scalar-versus-event-time comparison, but they cover selected core recipes rather than every kernel, hazard, calibration, and architecture variant. The foundation-style comparisons also do not use pretrained weights or montage-specialized setup changes; they are controlled architecture baselines rather than a full evaluation of EEG foundation models.
 
 \section{Conclusion}
 
-We reformulated EEG-based reaction-time prediction as event-time distribution modeling and evaluated it under a release-separated HBN-EEG protocol. The results indicate that supervising an event-time posterior improves RT prediction beyond scalar regression and beyond a temporal-readout head alone. Loss ablations show that distributional event-time supervision matters, EventNLL provides a principled latent-variable likelihood alternative, and posterior-geometry analysis reveals uncertainty behavior that scalar nRMSE alone cannot capture.
+We reformulated EEG-based reaction-time prediction as event-time distribution modeling and evaluated it under a release-separated HBN-EEG protocol. The results indicate that supervising an event-time posterior improves RT prediction beyond scalar regression and beyond a temporal-readout head alone. Loss ablations and five-seed robustness checks show that distributional event-time supervision matters, EventNLL provides a principled latent-variable likelihood alternative, and posterior-geometry plus shifted-crop analyses reveal output behavior that scalar nRMSE alone cannot capture.
 
 \appendix
 
@@ -888,11 +966,61 @@ Gradient boosting stacking & \textbf{0.883365} & \textbf{0.91394} \\
 
 \section{Unwrapped External Backbone Sanity Checks}
 
-Unwrapped external architectures are useful for diagnosing scale sensitivity. Because our own models use per-window standardization, the primary comparison uses wrapped external models.
+Unwrapped external architectures are useful for diagnosing scale sensitivity. Because our own models use per-window standardization, the primary comparison uses wrapped external models. Table~\ref{tab:appendix_unwrapped_external} reports matched sanity checks for representative off-the-shelf architectures with and without the fixed per-window standardization wrapper. The unwrapped rows often collapse toward target-standard-deviation behavior (nRMSE near 1), whereas the wrapped variants train meaningfully under the same release-separated protocol used in the main tables.
+
+\begin{table}[!t]
+\centering
+\caption{Unwrapped external-backbone sanity checks. ``Wrapped'' means that the model receives the same per-window channel standardization used by our compact baselines. Lower nRMSE is better. These checks diagnose scale sensitivity; the wrapped variants are the fair external comparisons used in the main results.}
+\label{tab:appendix_unwrapped_external}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.12}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{@{} l c c c c l @{}}
+\toprule
+\textbf{Architecture} & \textbf{Unwrapped valid} & \textbf{Unwrapped R11} & \textbf{Wrapped valid} & \textbf{Wrapped R11} & \textbf{Takeaway} \\
+\midrule
+EEGNet & 1.000000 & 1.002046 [0.999718, 1.007253] & 0.957877 & 0.965041 [0.954684, 0.977111] & Standardization makes the compact EEG baseline train \\
+EEGConformer & 1.000000 & 1.000413 [0.999906, 1.003179] & 0.957968 & 0.962802 [0.951634, 0.975382] & Transformer-style baseline is scale-sensitive without wrapping \\
+LaBraM & 1.000000 & 1.000711 [0.998638, 1.004512] & 0.958254 & 0.965382 [0.952576, 0.979330] & From-scratch foundation-style architecture needs the fixed normalization \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
 
 \section{Additional Protocol Calibration Runs}
 
 Protocol calibration evaluated optimizer choice, learning rate, soft-label width, batch size, and augmentation strength before fixing the training recipe used in the release-separated experiments. These diagnostics informed the protocol but are separated from the R11 results used for the main claims.
+
+\section{Additional EventNLL Kernel and Hazard Robustness Checks}
+
+The main text keeps the event-time segmentation table focused on the core CE, EventNLL, and control objectives, plus two compact EventNLL-family extensions. Table~\ref{tab:appendix_kernel_hazard_robustness} reports the broader kernel and hazard robustness checks. These runs use the same release-separated protocol and test whether the probabilistic event-time result depends on one specific Gaussian observation kernel or one specific softmax parameterization.
+
+\begin{table}[!t]
+\centering
+\caption{Additional EventNLL kernel and hazard robustness checks. Lower nRMSE is better. ``Cal.'' denotes post-hoc temperature selection on R9--R10; the heteroscedastic run is reported at its base readout because it was not part of the calibrated kernel table.}
+\label{tab:appendix_kernel_hazard_robustness}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.12}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{@{} l l c c c l @{}}
+\toprule
+\textbf{Variant} & \textbf{Change tested} & $\boldsymbol{\tau}$ & \textbf{Valid nRMSE} $\downarrow$ & \textbf{R11 nRMSE} $\downarrow$ & \textbf{Takeaway} \\
+\midrule
+Gaussian EventNLL, cal. & fixed Gaussian observation kernel & 0.70 & 0.923619 & 0.940947 [0.923160, 0.960322] & Core latent event-time likelihood reference \\
+Gaussian mixture EventNLL, cal. & narrow/wide Gaussian observation mixture & 0.75 & 0.921676 & 0.939267 [0.921864, 0.958291] & Strongest calibrated EventNLL-family scalar readout \\
+Laplace EventNLL, cal. & Laplace observation kernel & 0.75 & 0.926636 & 0.940696 [0.923718, 0.959285] & Robust kernel did not improve over cleaner Gaussian/mixture variants \\
+Student-$t$ EventNLL, cal. & heavy-tailed Student-$t$ observation kernel & 0.80 & 0.923259 & 0.941127 [0.923382, 0.960687] & Calibration recovers validation gap, but R11 remains tied or weaker \\
+Heteroscedastic EventNLL & trial-wise learned observation scale $\sigma(x)$ & 0.65 & 0.923056 & 0.942343 [0.923630, 0.962703] & Learned scale did not improve R11 enough for the core table \\
+Hazard EventNLL & hazard posterior with continuous Gaussian EventNLL & 0.65 & 0.924318 & 0.937332 [0.920594, 0.955704] & Strong alternative posterior parameterization \\
+Hazard discrete NLL & exact-bin discrete survival likelihood & 0.65 & 0.926288 & 0.946823 [0.928204, 0.967220] & Negative control: exact-bin survival loss is weaker than continuous EventNLL \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+Overall, these checks support two points. First, the latent event-time view is not tied to a single Gaussian-softmax implementation: the hazard EventNLL and Gaussian-mixture kernel remain competitive. Second, more robust or more flexible observation models are not automatically better; Laplace, Student-$t$, heteroscedastic, and exact-bin hazard variants are useful robustness probes but do not strengthen the core R11 story enough to feature in the main table.
 
 \section{Additional Architecture Ablations}
 
