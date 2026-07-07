@@ -119,7 +119,7 @@ kun.zhang@mbzuai.ac.ae
 
 
 \ \\[-2mm]
-{\bf Keywords:} weak event-time supervision, event-time posterior modeling, EEG reaction-time decoding, behavioral latency, shifted-crop diagnostics
+{\bf Keywords:} weak event-time supervision, event-time posterior modeling, EEG reaction-time decoding, behavioral latency, posterior geometry
 
 \thispagestyle{empty}
 \markboth{}{NC instructions}
@@ -135,7 +135,7 @@ Single-trial EEG analyses are often organized around events and latencies, such 
 
 We evaluate this formulation on the Healthy Brain Network contrast change detection EEG task under a subject-disjoint, release-separated protocol. Architecture and readout controls show that the improvement is not explained by architecture scale or by a differentiable expectation readout alone. Distributional event-time supervision yields lower held-out error than the strongest scalar and temporal-readout baselines. Loss ablations and five-seed checks support the interpretation that the gain comes from supervising the event-time distribution, not merely from using a soft-argmax readout. EventNLL provides a probabilistic latent-event alternative, treating observed RT as a noisy realization of an unobserved response-relevant event time.
 
-Beyond point prediction, the event-time posterior makes temporally resolved evaluation possible rather than limiting assessment to scalar nRMSE. Posterior width, target-aligned mass, mode-mean disagreement, and interval coverage characterize whether predictions are localized, diffuse, overconfident, or miscalibrated. We further introduce shifted-crop inference as a shortcut-vs-localization diagnostic: under temporal crop shifts, event-time models move in a more localizer-like direction, while also showing that fixed-window training does not fully solve shift-equivariant event localization. Together, these results support event-time distribution modeling as a probabilistic and interpretable formulation for linking single-trial EEG dynamics to behavioral timing. The same event-time view is naturally relevant to EEG settings in which the target has a latency interpretation, including ERP latency estimation, movement onset decoding, and other latency-varying neural or behavioral phenomena.
+Beyond point prediction, the event-time posterior makes temporally resolved evaluation possible rather than limiting assessment to scalar nRMSE. Posterior width, target-aligned mass, mode-mean disagreement, and interval coverage characterize whether predictions are localized, diffuse, overconfident, or miscalibrated. Together, these results support event-time distribution modeling as a probabilistic and interpretable formulation for linking single-trial EEG dynamics to behavioral timing. The same event-time view is naturally relevant to EEG settings in which the target has a latency interpretation, including ERP latency estimation, movement onset decoding, and other latency-varying neural or behavioral phenomena.
 
 
 
@@ -158,9 +158,9 @@ We study this question using the Healthy Brain Network contrast change detection
 
 This distinction determines the control structure of our experiments. We compare direct scalar regression, temporal-readout regression, time-only segmentation, and distributionally supervised event-time models to separate architecture capacity, differentiable expectation readout, scalar timing loss with a temporal head, and full posterior supervision. The central test is whether supervising the event-time distribution provides a better inductive bias than treating RT as an ordinary scalar label.
 
-The posterior is also scientifically useful because it changes what can be evaluated from each trial. Posterior width, target-aligned mass, mode-mean disagreement, and interval coverage characterize localization, uncertainty, and calibration, distinguishing models with similar scalar error. We further introduce shifted-crop inference as a shortcut-vs-localization diagnostic: a crop-relative event localizer should shift its predicted crop-relative event time opposite to the crop shift, whereas a crop-invariant scalar shortcut should remain closer to fixed absolute timing.
+The posterior is also scientifically useful because it changes what can be evaluated from each trial. Posterior width, target-aligned mass, mode-mean disagreement, and interval coverage characterize localization, uncertainty, and calibration, distinguishing models with similar scalar error.
 
-Our results support this formulation-first view. Compact task-specific scalar models provide strong baselines, and larger supervised or foundation-style architectures trained from scratch do not by themselves close the gap. Distributional event-time supervision improves held-out prediction over scalar and temporal-readout controls and remains stable in five-seed checks, while time-only and readout ablations show that the gain is not explained by soft-argmax alone. Posterior-geometry and shifted-crop analyses further reveal temporal evidence and partial localization behavior hidden by scalar metrics.
+Our results support this formulation-first view. Compact task-specific scalar models provide strong baselines, and larger supervised or foundation-style architectures trained from scratch do not by themselves close the gap. Distributional event-time supervision improves held-out prediction over scalar and temporal-readout controls and remains stable in five-seed checks, while time-only and readout ablations show that the gain is not explained by soft-argmax alone. Posterior-geometry analyses further reveal temporal evidence and output behavior hidden by scalar metrics.
 
 Although our experiments focus on RT prediction, the broader claim is that neural or behavioral targets with time-of-occurrence semantics should not automatically be reduced to static scalar regression. Event-time posteriors may also be useful for ERP latency estimation, movement onset decoding, error-related responses, and other latency-varying EEG phenomena.
 
@@ -169,7 +169,7 @@ Our contributions are:
     \item We recast behavioral RT labels as weak event-time annotations and formulate EEG RT decoding as event-time posterior modeling rather than direct scalar regression.
     \item We evaluate this formulation under a subject-disjoint, release-separated HBN-EEG protocol against compact scalar regression, temporal-readout regression, time-only segmentation, and standardized external EEG architecture controls.
     \item We show through loss ablations and five-seed robustness checks that distributional event-time supervision improves over scalar, temporal-readout, and time-only controls, and we evaluate EventNLL as a latent event-time likelihood in which observed RT is treated as a noisy realization of an unobserved response-relevant event.
-    \item We use posterior geometry and shifted-crop inference to separate scalar accuracy from temporal evidence, uncertainty, shortcut behavior, and partial event localization.
+    \item We use posterior geometry to separate scalar accuracy from temporal evidence, uncertainty, target concentration, and calibration.
 \end{enumerate}
 
 \section{Related Work}
@@ -206,50 +206,53 @@ Taken together, prior work provides strong traditions for event-centered EEG ana
 
 
 \section{Dataset and Evaluation Protocol}
+\label{sec:dataset_protocol}
 
 \subsection{HBN-EEG CCD Reaction-Time Task}
 
-We use the reaction-time prediction task introduced by the NeurIPS EEG Foundation Challenge \citep{EEGChallengeWebsite2025,EEGFoundationChallengeArxiv2025}, based on curated releases of the HBN-EEG dataset \citep{Shirazi2024HBNEEG}. Our analysis is restricted to the contrast change detection (CCD) reaction-time subset rather than the full multi-task HBN-EEG resource.
+We use the reaction-time prediction task introduced by the NeurIPS EEG Foundation Challenge \citep{EEGChallengeWebsite2025,EEGFoundationChallengeArxiv2025}, based on curated releases of the HBN-EEG dataset \citep{Shirazi2024HBNEEG}. In this contrast change detection (CCD) task, participants viewed two flickering grating stimuli and responded after a contrast change made one grating perceptually dominant. The released target is the trial-wise reaction time from stimulus onset to button press.
 
-In the CCD task, participants viewed two flickering grating stimuli and responded after a contrast change made one grating perceptually dominant. The released target is the trial-wise reaction time from stimulus onset to button press. Each model input for the main evaluation is a fixed 2~s stimulus-locked EEG window spanning 0.5--2.5~s after stimulus onset, sampled at 100~Hz from 128 EEG channels. Because RT marks when a response occurs within this post-stimulus window, the task naturally supports an event-time interpretation rather than only a window-level scalar regression view.
+Each model input is a stimulus-locked EEG segment represented as 128 EEG channels sampled at 100~Hz after excluding the reference channel. The fixed analysis window spans 0.5--2.5~s after stimulus onset (Figure~\ref{fig:tasks}). For each trial, models predict RT in seconds, and performance is evaluated using normalized RMSE (nRMSE), defined as RMSE divided by the standard deviation of the true targets within the evaluated split \citep{EEGChallengeWebsite2025}.
 
 \begin{figure}[!t]
     \centering
     \includegraphics[width=0.9\linewidth]{img/challenge_task.png}
-    \caption{Reaction-time prediction as event-time modeling. Each trial provides a 2~s stimulus-locked EEG window from the CCD paradigm (0.5--2.5~s after stimulus onset; 128 EEG channels at 100~Hz). The observed RT is represented as a smoothed distribution over post-stimulus time bins. The model predicts an event-time distribution, which is converted to a scalar RT prediction using a temperature-scaled soft-argmax readout.}
+    \caption{HBN-EEG contrast change detection reaction-time task. Each trial provides a stimulus-locked EEG segment; the fixed analysis window used here spans 0.5--2.5~s after stimulus onset with 128 EEG channels sampled at 100~Hz. The released target is the trial-wise reaction time from stimulus onset to button press.}
     \label{fig:tasks}
 \end{figure}
 
+\FloatBarrier
 
-\subsection{Release-Separated Evaluation Protocol}
+\subsection{Shared Evaluation Protocol}
 
-We evaluate models using a fixed release-separated protocol. Releases R1--R8 are used for model fitting. Releases R9--R10 form the development partition used for early stopping, checkpoint selection, and temperature tuning. Release R11 is reserved for one-shot final holdout evaluation. R11 labels are not used for model fitting, checkpoint selection, temperature selection, calibration, or stacking; all R11 analyses apply choices fixed on R1--R10.
+We use this task as a controlled evaluation setting for separating three possible sources of RT prediction performance: EEG backbone capacity, temporal readout parameterization, and distributional event-time supervision. The benchmark therefore fixes the data split, target support, input representation, and scalar evaluation rule before varying architectures and objectives in the Methods.
 
-Prepared trials are CCD windows with both stimulus and response annotations. The main analyzed set additionally applies the RT-support filter \(0.5 \leq \mathrm{RT} \leq 2.5\)~s, matching the fixed inference window and modeled event-time support. Table~\ref{tab:ccd_protocol_stats} reports the actual analysis sets; metadata checks confirmed zero subject overlap across the train, development, and R11 test partitions after filtering.
+To avoid subject leakage, all models use the same release-separated CCD split: R1--R8 for fitting, R9--R10 for development choices such as early stopping, checkpoint selection, and temperature tuning, and R11 for final reporting after all model and readout choices are fixed. For consistency, the analysis includes only 2~s windows containing the response event (\(0.5 \leq \mathrm{RT} \leq 2.5\)~s). Table~\ref{tab:ccd_protocol_stats} reports the resulting partitions; metadata checks confirmed zero subject overlap across train, development, and test after filtering.
 
-\begin{table}[!t]
+\begin{table}[!htbp]
 \centering
 \caption{Release-separated CCD protocol statistics after window construction and RT-support filtering. Prepared trials are 2~s CCD windows with stimulus and response annotations; analyzed trials additionally satisfy \(0.5 \leq \mathrm{RT} \leq 2.5\)~s.}
 \label{tab:ccd_protocol_stats}
 \scriptsize
 \setlength{\tabcolsep}{3pt}
 \renewcommand{\arraystretch}{1.12}
-\begin{tabularx}{\linewidth}{@{} l l >{\RaggedRight\arraybackslash}X r r r @{}}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}} l l r r r @{}}
 \toprule
-\textbf{Partition} & \textbf{Releases} & \textbf{Role} & \textbf{Prepared trials} & \textbf{Analyzed trials} & \textbf{Subjects} \\
+\textbf{Partition} & \textbf{Releases} & \textbf{Prepared trials} & \textbf{Analyzed trials} & \textbf{Subjects} \\
 \midrule
-Train & R1--R8 & model fitting & 74{,}576 & 73{,}030 & 1{,}221 \\
-Development & R9--R10 & early stopping, checkpoint selection, temperature tuning & 17{,}867 & 17{,}348 & 308 \\
-Test & R11 & one-shot final holdout evaluation & 15{,}751 & 15{,}164 & 292 \\
+Train & R1--R8 & 74{,}576 & 73{,}030 & 1{,}221 \\
+Development & R9--R10 & 17{,}867 & 17{,}348 & 308 \\
+Test & R11 & 15{,}751 & 15{,}164 & 292 \\
 \bottomrule
-\end{tabularx}
+\end{tabular*}
 \end{table}
+\FloatBarrier
 
-Direct-regression baselines are trained from the prepared 2~s R1--R8 windows. Event-time models use the corresponding 5~s cache only to construct 2~s crops and temporal targets; in the main event-time ablations, the standard crop is fixed to the same 0.5--2.5~s interval used by the regression baselines. The 5~s cache differs from the 2~s training cache by three support-filtered training trials. All scalar comparisons use the same support-filtered R9--R10 development set and R11 test set. Diagnostic analyses that require different crop starts or stricter RT support are introduced separately in the corresponding sections.
+\subsection{Shared Training Protocol}
 
-Scalar performance is evaluated using normalized RMSE (nRMSE), defined as RMSE divided by the standard deviation of the true targets within the evaluated split \citep{EEGChallengeWebsite2025}. Main scalar results are computed on all support-filtered R11 trials. Posterior-geometry analyses use the same R11 support unless a diagnostic-specific subset is stated explicitly.
+All neural models receive the same input normalization: for each 2~s trial window and EEG channel, we subtract the channel's temporal mean within the window and divide by its temporal standard deviation within the same window. The training recipe is also shared: Adam with learning rate \(10^{-3}\), zero weight decay, train batch size 128, validation batch size 256, up to 100 epochs, early stopping on development nRMSE with patience 20, and no mixup. Unless otherwise stated, training uses one fixed mild augmentation profile so that regularization is part of the protocol rather than a model-specific tuning degree of freedom. Channel dropout is applied with probability 0.25 and removes at most 30\% of channels, temporal cutout is applied with probability 0.25 and masks a contiguous 10--50 sample interval, and Gaussian noise is applied with probability 0.3 and standard deviation \(0.01 + U(0,0.01)\). These perturbations approximate plausible electrode loss, brief local signal corruption, and measurement noise while preserving the trial-wise RT label.
 
-All neural models receive the same input normalization: for each 2~s trial window and EEG channel, we subtract the channel's temporal mean within the window and divide by its temporal standard deviation within the same window. Unless otherwise stated, training uses one fixed mild augmentation profile so that regularization is part of the protocol rather than a model-specific tuning degree of freedom. Channel dropout is applied with probability 0.25 and removes at most 30\% of channels, temporal cutout is applied with probability 0.25 and masks a contiguous 10--50 sample interval, and Gaussian noise is applied with probability 0.3 and standard deviation \(0.01 + U(0,0.01)\). These perturbations approximate plausible electrode loss, brief local signal corruption, and measurement noise while preserving the trial-wise RT label.
+Within this fixed protocol, the paper-facing experimental axes are deliberately narrow. The regression block varies the backbone and scalar/temporal readout family. The event-time segmentation block fixes the ETS-U-Net backbone for the main loss ablations and varies the objective or posterior parameterization: soft-label CE, CE+time, EventNLL latent likelihood, time-only and Wasserstein controls, a Gaussian-mixture observation kernel, and a survival-style hazard posterior.
 
 \section{Methods}
 
@@ -257,11 +260,11 @@ All neural models receive the same input normalization: for each 2~s trial windo
 
 \label{sec:baseline_regression}
 
-We begin with baselines that treat the task as direct reaction-time regression: a stimulus-locked 2~s EEG crop $X \in \mathbb{R}^{C \times T}$ with $T=200$ samples (100~Hz) is mapped to a scalar RT.
+We begin with baselines that keep the shared protocol in Section~\ref{sec:dataset_protocol} fixed and vary only how the EEG window is mapped to scalar RT. Direct scalar models output RT directly, whereas temporal-readout regression models produce a time-indexed readout but remain supervised by scalar RT error.
 
 Consistent with the low-SNR and distribution shift setting, we focus on lightweight backbones that are less prone to overfitting and enable extensive ablations, calibration, and ensembling.
 
-All direct-regression baselines use the fixed 2~s input window, the per-window standardization described above, batch size 128, patience 20, and the same release-separated train/development/holdout protocol. The default augmentation is the mild channel-dropout, temporal-cutout, and Gaussian-noise recipe described in the dataset protocol.
+Because normalization, augmentation, optimizer settings, batch sizes, early stopping, and evaluation are fixed in the dataset protocol, differences among these regression rows are intended to be architecture and readout differences.
 
 For clarity, we use mechanism-level names in the manuscript. MSP-CNN denotes a multiscale segment-pooling CNN. It maps the full EEG window to scalar RT through temporal segment statistics and an MLP head. These models serve as reference points for isolating the effect of making temporal structure explicit in Section~\ref{sec:rt_segmentation}. In contrast to the segmentation formulation, direct scalar regression treats the window as a static input-output regression problem, without an explicit representation of response timing.
 
@@ -316,10 +319,9 @@ ATCNet & conv/attention/TCN & \mbox{0.9686 $\pm$ 0.0183} & \mbox{0.9666 $\pm$ 0.
 \end{table}
 
 Despite strong performance and fast training, direct regression does not explicitly represent the event-timing structure
-of the task. Under heavier temporal jitter and cropping, optimization tended to over-focus on local waveform
-micro-structure rather than learning \emph{when} the response-related event occurs. This limitation motivated the
-segmentation reformulation in Section~\ref{sec:rt_segmentation}, which makes response timing explicit via an event-time
-distribution.
+of the task. Even when a temporal readout is present, supervision is still applied through scalar RT error rather than
+through a posterior over response time. This limitation motivated the segmentation reformulation in
+Section~\ref{sec:rt_segmentation}, which makes response timing explicit via an event-time distribution.
 
 
 
@@ -413,25 +415,26 @@ The release-separated comparison in Table~\ref{tab:r11_regression_baselines} sho
 \subsection{Event-Time Segmentation Framework}
 \label{sec:rt_segmentation}
 
-To make event timing explicit and to enable strong crop augmentation, RT prediction was reformulated as
-\emph{temporal segmentation}: instead of regressing a scalar directly, we predict a distribution over time bins and read
-out RT as its expectation (Figure~\ref{fig:ch1_pipeline}). Compared to distributional readouts used only as a final head, the key difference here is
-that supervision is defined in time coordinates and shifted consistently under crop jitter, so augmentation preserves
-the event-time target by construction. In practice, this produced a large performance gain and faster, more stable
-convergence, while making crop augmentation safer because the supervision explicitly encodes \emph{where} the event occurs.
-This is our RT instantiation of explicit temporal structure: behavior is modeled through event timing rather than static
-regression.
+To make event timing explicit while keeping the data protocol fixed, RT prediction was reformulated as
+\emph{temporal segmentation}: instead of regressing a scalar directly, we predict a distribution over time bins in the same
+2~s crop and read out RT as its expectation (Figure~\ref{fig:ch1_pipeline}). Compared to distributional readouts used only as a final head, the key difference here is
+that supervision itself is defined over time coordinates. In the reported main ablations, the crop start is fixed to the
+standard 0.5--2.5~s window; the methodological change is the internal target representation and loss, not a different
+sampling protocol. This is our RT instantiation of explicit temporal structure: behavior is modeled through event timing
+rather than static regression.
 
 \begin{figure}[!t]
     \centering
     \includegraphics[width=\linewidth]{img/ch1/ch1_pipeline.png}
-    \caption{Temporal segmentation pipeline for RT prediction.  For each trial we cache a longer stimulus-locked segment (4~s in our implementation) and sample a 2~s subwindow with start-time jitter for training; the RT label is shifted into the sampled window and a Gaussian soft target $q_t$ is formed. Per-time logits $z_t$ are produced by a 1-D segmentation model and are optimized with distribution-matching losses (e.g., soft-label CE, CDF-based Wasserstein-1, KL, and mild entropy penalty) or EventNLL objectives. The main readout is a temperature-scaled softmax posterior; hazard/survival readouts and alternate observation kernels are evaluated as compact extensions. RT is obtained by temperature-scaled soft-argmax, with $\tau^\star$ selected to minimize validation nRMSE.}
+    \caption{Temporal segmentation pipeline for RT prediction. For each trial, the standard 2~s crop is represented in crop-relative coordinates and the observed RT is converted into either a Gaussian soft target $q_t$ or a latent-event observation for EventNLL. Per-time logits $z_t$ are produced by a 1-D segmentation model and optimized with distribution-matching losses (e.g., soft-label CE, CDF-based Wasserstein-1, KL, and mild entropy penalty) or EventNLL objectives. The main readout is a temperature-scaled softmax posterior; survival-style hazard readouts and alternate observation kernels are evaluated as compact extensions. RT is obtained by temperature-scaled soft-argmax, with $\tau^\star$ selected to minimize validation nRMSE.}
     \label{fig:ch1_pipeline}
 \end{figure}
 
-\paragraph{Notation and crop sampling.}
+\paragraph{Notation and target construction.}
 Let a 2~s crop be $X \in \mathbb{R}^{C\times T}$ with $\mathrm{sfreq}=100$~Hz, $T=200$ and $\Delta t=1/\mathrm{sfreq}$.
-For training-time augmentation, we retain a longer stimulus-locked segment of length 4~s (0--4~s post-stimulus) and sample a 2~s subwindow from it, introducing temporal jitter while preserving trial identity. The crop start is clipped so that the labeled response remains inside the sampled 2~s window (label-preserving jitter). During validation and official inference, we always use the fixed stimulus-locked 2~s window with offset $t_0=0.5$~s (0.5--2.5~s), so that 
+For the main ablations, training, validation, and official inference all use the fixed stimulus-locked 2~s crop with offset
+$t_0=0.5$~s (0.5--2.5~s). The event-time target is therefore just the observed absolute RT shifted into crop coordinates,
+$y_{\mathrm{rel}}=y_{\mathrm{abs}}-t_0$, and predictions are converted back by
 $t_{\mathrm{abs}} = t_0 + t_{\mathrm{rel}}$.
 
 \paragraph{ETS-U-Net Architecture.}
@@ -541,7 +544,7 @@ distinct cross-channel inductive bias. The post-hoc distribution-aware stacking 
 \subsection{Soft-Label Distributional Supervision}
 
 \paragraph{Soft target distribution.}
-For a sampled crop, the ground-truth event time within the crop is represented as a relative time
+For each crop, the ground-truth event time within the crop is represented as a relative time
 $y_{\mathrm{rel}}\in[0,\mathrm{crop\_sec})$ with $\mathrm{crop\_sec}=2$.
 A smooth segmentation label is constructed using a Gaussian kernel with bandwidth $\sigma$:
 \begin{equation}
@@ -578,7 +581,7 @@ where
 D_{\mathrm{KL}}(q\|p)=\sum_{t=0}^{T-1} q_t \log\frac{q_t}{p_t}, \;
 H(p)=-\sum_{t=0}^{T-1} p_t \log p_t.
 \end{equation*}
-This expression defines an ablation family rather than a single mandatory loss cocktail. CE-only supervision sets the scalar time term to zero and asks the model to match a Gaussian soft event-time label. The hybrid objective combines CE with a soft-argmax time loss. The time-only ablation removes distributional matching while keeping the same readout, and the Wasserstein-only ablation tests whether a CDF-based geometry loss is sufficient on its own. The entropy, KL, focal, and related terms are best viewed as posterior-geometry controls rather than as the main contribution. We also evaluate a hazard-parameterized readout as an extension, mapping logits to a discrete-time survival process before forming the event-time posterior.
+This expression defines an ablation family rather than a single mandatory loss cocktail. CE-only supervision sets the scalar time term to zero and asks the model to match a Gaussian soft event-time label. The hybrid objective combines CE with a soft-argmax time loss. The time-only ablation removes distributional matching while keeping the same readout, and the Wasserstein-only ablation tests whether a CDF-based geometry loss is sufficient on its own. The entropy, KL, focal, and related terms are best viewed as posterior-geometry controls rather than as the main contribution. We also evaluate a survival-style hazard readout as an extension, mapping logits to a discrete-time survival process before forming the event-time posterior.
 
 \paragraph{Release-separated segmentation comparison.}
 Table~\ref{tab:r11_segmentation_losses} summarizes the event-time segmentation loss ablations, with the likelihood-family extensions defined in Section~\ref{sec:event_nll} included for comparison. The calibrated hybrid event-time segmentation model reaches 0.935573 nRMSE on R11, improving over the strongest direct-regression baseline. CE-only soft-label supervision is also strong. The Gaussian-mixture and hazard rows are compact EventNLL-family extensions: the former changes the observation kernel, while the latter changes the event-time posterior parameterization. This is the central empirical step in the narrative: once RT is represented as an event-time posterior, distributional supervision over time becomes more useful than treating RT as a scalar window label.
@@ -667,7 +670,7 @@ K(y\mid t)=(1-\alpha)\,\mathcal{N}(y;t_0+g_t,\sigma_{\mathrm{narrow}}^2)
 \end{equation}
 which keeps most probability mass in a narrow timing error while allowing a wider tail for occasional noisy RT observations. In the completed run, $\sigma_{\mathrm{narrow}}=0.10$~s, $\sigma_{\mathrm{wide}}=0.35$~s, and $\alpha=0.10$.
 
-As a readout extension, we also evaluate a hazard/survival parameterization. Instead of using logits only as unconstrained softmax scores, each temporal logit defines a conditional event probability
+As a readout extension, we also evaluate a survival-style hazard parameterization. Instead of using logits only as unconstrained softmax scores, each temporal logit defines a conditional event probability
 \begin{equation}
 \label{eq:hazard_readout}
 h_t=\sigma(z_t/\tau),\qquad
@@ -769,45 +772,17 @@ Wasserstein & 0.950 & 222 & 165 & 0.219 & 740 & 0.296 & 50 & 0.812 & 0.053 \\
 These metrics show that the losses induce different output semantics. CE+time and CE give the strongest scalar readouts, but their nominal 80\% intervals cover about 90\% of trials, indicating conservative over-coverage. EventNLL is not well calibrated as an uncertainty posterior: its nominal 80\% interval covers only 48\% of trials. Its value is instead localization-like concentration, with the narrowest Width80, the highest near-target mass, and the best fixed-kernel EventNLL score. Wasserstein has the smallest Coverage MAE and a Coverage80 value closest to 0.80, but this comes with weaker scalar nRMSE and lower near-target mass. Thus, posterior geometry reveals a trade-off among scalar accuracy, target concentration, and interval coverage that is hidden by nRMSE alone.
 
 \paragraph{Secondary ensemble use of posterior features.}
-The same posterior summaries can also serve as post-hoc ensemble features, but we treat this as a secondary analysis rather than as a main release-separated claim. The single-model R11 comparisons above are intentionally reported without stacking, so that the main evidence isolates the event-time objective, scalar readout, posterior geometry, and the shifted-crop diagnostic below. The stacker construction is described in Appendix~\ref{sec:rt_stacking}; in the original hidden-release CodaBench evaluation (Appendix Table~\ref{tab:appendix_codabench}), gradient boosting stacking achieved 0.91394 hidden nRMSE, compared with 0.92334 for the best single model, 0.91840 for manual blending, and 0.91539 for Ridge stacking. This supports posterior-derived meta-features as an ensemble calibration layer while keeping the paper's main claims tied to single-model release-separated analyses.
-
-\subsection{Shifted-Crop Localization Diagnostic}
-
-The posterior analyses above show that event-time losses produce different probability geometries, but they do not by themselves prove that a model has learned a within-crop event localizer. A fixed stimulus-locked window can still permit shortcut behavior: a model may predict trial difficulty, subject-level slowness, or stimulus-locked response tendency without moving its prediction when the crop is shifted. We therefore introduced a shifted-crop diagnostic on R11. For each trial, we used a 5~s EEG window and evaluated the same trained model on 2~s crops starting at $s\in\{0.2,0.3,\dots,0.8\}$~s. The reference crop is $s=0.5$~s, matching the training and main inference protocol. To avoid target-censoring effects, this analysis uses the common-inside subset where RT remains inside all shifted crops ($0.8\leq \mathrm{RT}\leq 2.2$~s; 14{,}183 trials).
-
-If the model truly localizes the response-relevant event within the crop, shifting the crop start by $\Delta s$ should move the predicted crop-relative event time by approximately $-\Delta s$, giving a raw shift slope near $-1$. A crop-invariant scalar regressor should instead have a slope near 0. Table~\ref{tab:shifted_crop_diagnostic} shows that the event-time segmentation models preserve or improve reference-crop accuracy and move in a more localizer-like direction than the best scalar regressor. EventNLL reaches a raw shift slope of $-0.292$ [95\% CI: $-0.311$, $-0.272$], compared with $-0.253$ [$-0.270$, $-0.235$] for ETR-CNN and $-0.172$ on average across regression baselines. The fraction of localizer-like trials also increases from 10.1\% for ETR-CNN to 14.8\% for CE and 15.9\% for EventNLL.
-
-This result should be interpreted as evidence for a representational shift, not as solved shift equivariance. The segmentation models remain far from the ideal slope of $-1$, indicating that fixed-window training still mixes event localization with scalar response-tendency shortcuts. That limitation is useful: it identifies shift-augmented, crop-relative event-time training as the natural next step if the goal is a stronger trial-wise neural event localizer.
-
-\begin{table}[!t]
-\centering
-\caption{Shifted-crop diagnostic on the R11 common-inside subset. The ideal within-crop event localizer has raw shift slope $-1$; a crop-invariant scalar shortcut has slope 0. Reference nRMSE is computed at the standard $s=0.5$~s crop.}
-\label{tab:shifted_crop_diagnostic}
-\scriptsize
-\setlength{\tabcolsep}{3pt}
-\renewcommand{\arraystretch}{1.12}
-\resizebox{\linewidth}{!}{%
-\begin{tabular}{@{} l c c c c c c @{}}
-\toprule
-\textbf{Model} & \textbf{Ref nRMSE} $\downarrow$ & \textbf{Ref MAE, s} $\downarrow$ & \textbf{Worst $\Delta$ nRMSE} & \textbf{Raw shift slope} & \textbf{Localizer-like trials} & \textbf{Invariant-like trials} \\
-\midrule
-ETR-CNN & 0.874 & 0.206 [0.199, 0.215] & 0.174 & $-0.253$ [$-0.270$, $-0.235$] & 10.1\% [9.0, 11.1] & 34.5\% \\
-ETS-U-Net CE & 0.856 & 0.201 [0.193, 0.209] & 0.193 & $-0.287$ [$-0.306$, $-0.267$] & 14.8\% [13.3, 16.3] & 34.4\% \\
-ETS-U-Net EventNLL & 0.859 & 0.201 [0.193, 0.210] & 0.198 & $-0.292$ [$-0.311$, $-0.272$] & 15.9\% [14.5, 17.3] & 33.3\% \\
-\bottomrule
-\end{tabular}%
-}
-\end{table}
+The same posterior summaries can also serve as post-hoc ensemble features, but we treat this as a secondary analysis rather than as a main release-separated claim. The single-model R11 comparisons above are intentionally reported without stacking, so that the main evidence isolates the event-time objective, scalar readout, and posterior geometry. The stacker construction is described in Appendix~\ref{sec:rt_stacking}; in the original hidden-release CodaBench evaluation (Appendix Table~\ref{tab:appendix_codabench}), gradient boosting stacking achieved 0.91394 hidden nRMSE, compared with 0.92334 for the best single model, 0.91840 for manual blending, and 0.91539 for Ridge stacking. This supports posterior-derived meta-features as an ensemble calibration layer while keeping the paper's main claims tied to single-model release-separated analyses.
 
 \section{Discussion}
 
 \subsection{RT Prediction as Event-Time Localization}
 
-The results support treating trial-wise RT prediction as event-time localization rather than as ordinary scalar regression. The label is the latency of a response within a post-stimulus interval, and models benefit when that timing structure is explicit in both the output space and the loss. The shifted-crop diagnostic adds a stricter check on this interpretation: event-time segmentation models move in a more event-like direction than scalar regression under temporal crop shifts, but their slopes remain far from perfect localizer behavior. This framing therefore connects naturally to response-locked EEG analyses while also making clear that fixed-window RT prediction is not the same as fully shift-equivariant event detection.
+The results support treating trial-wise RT prediction as event-time localization rather than as ordinary scalar regression. The label is the latency of a response within a post-stimulus interval, and models benefit when that timing structure is explicit in both the output space and the loss. This framing connects naturally to response-locked EEG analyses while keeping the empirical claim tied to the fixed-window release-separated protocol evaluated here.
 
 \subsection{Why Distributional Supervision Helps}
 
-Distributional supervision gives the model a local temporal target instead of a single global scalar penalty. CE-only and hybrid losses outperform the time-only loss, suggesting that the gain is not just a differentiable soft-argmax readout. The soft event-time target encourages probability mass near plausible response latencies and makes label-consistent temporal crop jitter easier to justify. EventNLL reaches a similar scalar-error regime through a different route: it marginalizes a latent event time instead of asking the model to imitate a hand-constructed Gaussian mask.
+Distributional supervision gives the model a local temporal target instead of a single global scalar penalty. CE-only and hybrid losses outperform the time-only loss, suggesting that the gain is not just a differentiable soft-argmax readout. Under the fixed-crop protocol, the soft event-time target encourages probability mass near plausible response latencies while keeping the training protocol matched to scalar regression. EventNLL reaches a similar scalar-error regime through a different route: it marginalizes a latent event time instead of asking the model to imitate a hand-constructed Gaussian mask.
 
 \subsection{Relation to EEG Backbones and Pretraining}
 
@@ -819,11 +794,11 @@ The event-time posterior contains more information than its expectation. Sharpne
 
 \subsection{Limitations}
 
-The main limitation is that all claims are tied to HBN-EEG CCD and the release-separated protocol used here. R11 is a stronger local holdout than reused validation performance, but it is still drawn from the same broader dataset family and preprocessing pipeline. The shifted-crop diagnostic shows partial localization, not full shift equivariance, so stronger claims about trial-wise neural event localization would require training protocols that explicitly randomize crop position and supervise crop-relative timing. The five-seed robustness checks support the main scalar-versus-event-time comparison, but they cover selected core recipes rather than every kernel, hazard, calibration, and architecture variant. The foundation-style comparisons also do not use pretrained weights or montage-specialized setup changes; they are controlled architecture baselines rather than a full evaluation of EEG foundation models.
+The main limitation is that all claims are tied to HBN-EEG CCD and the release-separated protocol used here. R11 is a stronger local holdout than reused validation performance, but it is still drawn from the same broader dataset family and preprocessing pipeline. The five-seed robustness checks support the main scalar-versus-event-time comparison, but they cover selected core recipes rather than every kernel, hazard, calibration, and architecture variant. The foundation-style comparisons also do not use pretrained weights or montage-specialized setup changes; they are controlled architecture baselines rather than a full evaluation of EEG foundation models.
 
 \section{Conclusion}
 
-We reformulated EEG-based reaction-time prediction as event-time distribution modeling and evaluated it under a release-separated HBN-EEG protocol. The results indicate that supervising an event-time posterior improves RT prediction beyond scalar regression and beyond a temporal-readout head alone. Loss ablations and five-seed robustness checks show that distributional event-time supervision matters, EventNLL provides a principled latent-variable likelihood alternative, and posterior-geometry plus shifted-crop analyses reveal output behavior that scalar nRMSE alone cannot capture.
+We reformulated EEG-based reaction-time prediction as event-time distribution modeling and evaluated it under a release-separated HBN-EEG protocol. The results indicate that supervising an event-time posterior improves RT prediction beyond scalar regression and beyond a temporal-readout head alone. Loss ablations and five-seed robustness checks show that distributional event-time supervision matters, EventNLL provides a principled latent-variable likelihood alternative, and posterior-geometry analyses reveal output behavior that scalar nRMSE alone cannot capture.
 
 \appendix
 
