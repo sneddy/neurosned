@@ -59,7 +59,7 @@ Metric conventions:
 | --- | --- | --- | --- |
 | Data protocol | `benchmarks/experiments/00_data_protocol/` | Split, support-filter, subject-disjointness, and package-version record. | Complete. |
 | Regression baselines | `benchmarks/configs/01_regression_baselines/` | Scalar RT and wrapped external EEG baselines. | Complete: 12/12 configs, 5 seeds each. |
-| Segmentation ablations | `benchmarks/configs/02_segmentation_ablations/` | ETS-U-Net event-time objective comparison. | Running: CE, EventNLL, time-only, and Wasserstein complete; hazard partial. |
+| Segmentation ablations | `benchmarks/configs/02_segmentation_ablations/` | ETS-U-Net event-time objective comparison. | Running: 6/7 objectives complete; CE+time pending. |
 | Posterior geometry | generated from `02_segmentation_ablations` outputs | Distributional output semantics beyond scalar nRMSE. | Pending filtered-protocol regeneration. |
 | Shifted-crop diagnostic | `evaluation.shifted_crop` in run configs plus post-hoc regression runner | Shortcut-vs-localization stress test. | Complete for scalar baselines; running for segmentation. |
 | Shift-jitter training | planned config group | Training-time removal of fixed-window shortcuts. | Planned. |
@@ -74,9 +74,9 @@ Metric conventions:
 | Regression repeated runs | `benchmarks/experiments/01_regression_baselines/` | Main scalar baseline table. | Complete: 12/12 configs, 5 seeds each. |
 | Regression leaderboard | `benchmarks/experiments/regression_leaderboard.md` | Camera-ready scalar baseline table. | Complete. |
 | Regression shifted-crop table | `benchmarks/experiments/regression_shifted_crop.md` | Scalar baseline shortcut/localization diagnostic. | Complete: 60/60 seed-runs. |
-| Segmentation repeated runs | `benchmarks/experiments/02_segmentation_ablations/` | Event-time objective table and shifted-crop summaries. | Running: 4 complete objectives plus partial hazard. |
+| Segmentation repeated runs | `benchmarks/experiments/02_segmentation_ablations/` | Event-time objective table and shifted-crop summaries. | Running: 6 complete objectives; CE+time pending. |
 | Segmentation leaderboard | `benchmarks/experiments/segmentation_leaderboard.md` | Current event-time objective table with scalar and shifted-crop metrics. | Running. |
-| Segmentation shifted-crop table | `benchmarks/experiments/segmentation_shifted_crop.md` | Event-time shortcut/localization diagnostic. | Running: 23 seed-runs available. |
+| Segmentation shifted-crop table | `benchmarks/experiments/segmentation_shifted_crop.md` | Event-time shortcut/localization diagnostic. | Running: 30 seed-runs available. |
 | Posterior geometry figures | TBD under `benchmarks/experiments/02_segmentation_ablations/figures/` | Camera-ready posterior profile panels. | Pending filtered-protocol regeneration. |
 | Shifted-crop summaries | per-run `shifted_eval/` folders | Crop-start robustness and localization diagnostics. | Complete for scalar baselines; running for segmentation. |
 | Stacking artifacts | TBD | Competition-style ensemble/calibration reproduction. | Planned. |
@@ -207,27 +207,27 @@ Current rows:
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | `ets_unet_ce` | 5/5 | 0.8763 +/- 0.0044 | 0.8774 +/- 0.0044 | 0.8753 +/- 0.0039 | -0.339 +/- 0.017 | 0.209 +/- 0.031 |
 | `ets_unet_event_nll` | 5/5 | 0.8769 +/- 0.0030 | 0.8805 +/- 0.0021 | 0.8772 +/- 0.0018 | -0.344 +/- 0.014 | 0.221 +/- 0.026 |
+| `ets_unet_event_nll_mixture` | 5/5 | 0.8744 +/- 0.0018 | 0.8785 +/- 0.0047 | 0.8745 +/- 0.0053 | -0.355 +/- 0.024 | 0.246 +/- 0.042 |
+| `ets_unet_hazard_event_nll` | 5/5 | 0.8755 +/- 0.0027 | 0.8776 +/- 0.0031 | 0.8778 +/- 0.0041 | -0.328 +/- 0.020 | 0.196 +/- 0.042 |
 | `ets_unet_time_only` | 5/5 | 0.8944 +/- 0.0048 | 0.8943 +/- 0.0025 | 0.8917 +/- 0.0046 | -0.301 +/- 0.043 | 0.160 +/- 0.066 |
 | `ets_unet_wasserstein` | 5/5 | 0.8997 +/- 0.0035 | 0.8995 +/- 0.0078 | 0.8896 +/- 0.0033 | -0.337 +/- 0.044 | 0.271 +/- 0.065 |
-| `ets_unet_hazard_event_nll` | 3/5 partial | 0.8743 +/- 0.0024 | 0.8783 +/- 0.0042 | 0.8786 +/- 0.0055 | -0.329 +/- 0.028 | 0.187 +/- 0.056 |
 | `ets_unet_ce_time` | pending | - | - | - | - | - |
-| `ets_unet_event_nll_mixture` | pending | - | - | - | - | - |
 
 Interpretation so far:
 
 - CE and EventNLL both outperform the strongest completed scalar regression
   baseline on R11 after temperature calibration.
-- CE is currently the best completed scalar readout row; EventNLL is very close
-  in scalar error and slightly more localizer-like than CE.
+- Mixture EventNLL has the best calibrated scalar readout so far
+  (`test_tau_nRMSE = 0.8745`) and the most localizer-like shift slope among the
+  likelihood-style objectives.
+- CE remains the simplest strong row; hazard EventNLL is competitive but does
+  not beat mixture/CE cleanly.
 - Time-only is clearly weaker than CE/EventNLL, which supports the claim that
   distributional event-time supervision matters beyond the soft-argmax scalar
   readout.
 - Wasserstein has the highest completed localizer-like fraction so far, but it
   pays for that with worse scalar nRMSE and worse shifted-crop nRMSE.
-- Hazard EventNLL is still partial; the first 3 seeds are competitive, but it
-  should not be used as a final claim until 5/5 seeds finish.
-- CE+time and mixture EventNLL remain pending before the loss-ablation story is
-  complete.
+- CE+time remains pending before the loss-ablation story is complete.
 
 Expected paper use:
 
@@ -319,20 +319,21 @@ Segmentation shifted-crop snapshot:
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | `ets_unet_ce` | 5/5 | 0.8593 +/- 0.0071 | 0.9470 +/- 0.0087 | 1.0655 +/- 0.0135 | -0.339 +/- 0.017 | 0.209 +/- 0.031 | 0.286 +/- 0.016 |
 | `ets_unet_event_nll` | 5/5 | 0.8656 +/- 0.0049 | 0.9514 +/- 0.0063 | 1.0616 +/- 0.0129 | -0.344 +/- 0.014 | 0.221 +/- 0.026 | 0.292 +/- 0.016 |
+| `ets_unet_event_nll_mixture` | 5/5 | 0.8623 +/- 0.0070 | 0.9520 +/- 0.0077 | 1.0678 +/- 0.0151 | -0.355 +/- 0.024 | 0.246 +/- 0.042 | 0.290 +/- 0.026 |
+| `ets_unet_hazard_event_nll` | 5/5 | 0.8605 +/- 0.0065 | 0.9434 +/- 0.0086 | 1.0466 +/- 0.0152 | -0.328 +/- 0.020 | 0.196 +/- 0.042 | 0.305 +/- 0.024 |
 | `ets_unet_time_only` | 5/5 | 0.8802 +/- 0.0034 | 0.9563 +/- 0.0113 | 1.0531 +/- 0.0224 | -0.301 +/- 0.043 | 0.160 +/- 0.066 | 0.323 +/- 0.046 |
 | `ets_unet_wasserstein` | 5/5 | 0.8851 +/- 0.0169 | 0.9810 +/- 0.0217 | 1.1083 +/- 0.0327 | -0.337 +/- 0.044 | 0.271 +/- 0.065 | 0.270 +/- 0.045 |
-| `ets_unet_hazard_event_nll` | 3/5 partial | 0.8639 +/- 0.0064 | 0.9445 +/- 0.0119 | 1.0422 +/- 0.0197 | -0.329 +/- 0.028 | 0.187 +/- 0.056 | 0.301 +/- 0.033 |
 
 Segmentation interpretation:
 
-- CE/EventNLL are the strongest completed scalar event-time rows at the
-  canonical crop and remain better than the scalar regression baselines.
+- CE/EventNLL/mixture/hazard are the strongest completed scalar event-time rows
+  at the canonical crop and remain better than the scalar regression baselines.
 - Segmentation is more localizer-like than regression overall, but it is still
   far from the ideal raw shift slope of `-1`.
 - Time-only underperforms CE/EventNLL, supporting the value of distributional
   event-time supervision.
-- Wasserstein improves localizer-like fraction, but worsens scalar and shifted
-  nRMSE; this is useful as a geometry tradeoff, not a clear best objective.
+- Mixture EventNLL gives the strongest likelihood-style shift slope; Wasserstein
+  improves localizer-like fraction, but worsens scalar and shifted nRMSE.
 
 Regression shifted-crop snapshot:
 `benchmarks/experiments/regression_shifted_crop.md`.
