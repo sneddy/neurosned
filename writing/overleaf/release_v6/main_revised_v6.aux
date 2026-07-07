@@ -1,0 +1,211 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\bibstyle{apalike}
+\citation{Jung1998SingleTrialERP,Ouyang2017LatencyReview}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{2}{section.1}\protected@file@percent }
+\citation{wang2024eegpt,Jiang2024LaBraM,Chen2024EEGFormer,Wang2025EEGMamba,ElOuahidi2025REVE,Yue2024BrainGPT}
+\citation{Shirazi2024HBNEEG}
+\citation{EEGFoundationChallengeArxiv2025,EEGChallengeWebsite2025}
+\citation{BigdelyShamlo2016HED}
+\citation{Jung1998SingleTrialERP}
+\citation{Ouyang2011RIDE,Ouyang2017LatencyReview}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Related Work}{4}{section.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Event-Centered EEG Analysis and Latency Variability}{4}{subsection.2.1}\protected@file@percent }
+\citation{Coles1989LRP}
+\citation{Gehring1993ErrorDetection,HolroydColes2002ERN}
+\citation{KornhuberDeecke1965BP,ShibasakiHallett2006BP}
+\citation{Ratcliff2008Diffusion,OConnell2012Supramodal,Kelly2013Internal}
+\citation{Chambon2019DOSED,TapiaRivas2024SEED}
+\citation{Wu2017RiemannianRT}
+\citation{Chowdhury2020RTSensors}
+\citation{EEGFoundationChallengeArxiv2025,EEGChallengeWebsite2025}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Fixed-Window EEG Decoding of Latency-Structured Targets}{5}{subsection.2.2}\protected@file@percent }
+\citation{Geng2016LabelDistributionLearning}
+\citation{Cox1972CoxPH,Lee2018DeepHit}
+\citation{Chapfuwa2023Calibration,Haider2020SurvivalDistributions}
+\citation{Barachant2012RiemannianBCI,Jayaram2016TransferLearningBCI,Zanini2018RiemannianTL,HeWu2020EuclideanAlignment}
+\citation{Ganin2016DANN,SunSaenko2016DeepCORAL,Kostas2021BENDR,wang2024eegpt,Jiang2024LaBraM,Chen2024EEGFormer,Wang2025EEGMamba,ElOuahidi2025REVE,Yue2024BrainGPT}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Distributional and Time-to-Event Output Modeling}{6}{subsection.2.3}\protected@file@percent }
+\citation{EEGChallengeWebsite2025,EEGFoundationChallengeArxiv2025}
+\citation{Shirazi2024HBNEEG}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4}Relation to EEG Backbones, Pretraining, and Robust Decoding}{7}{subsection.2.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3}Dataset and Evaluation Protocol}{7}{section.3}\protected@file@percent }
+\newlabel{sec:dataset_protocol}{{3}{7}{Dataset and Evaluation Protocol}{section.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}HBN-EEG CCD Reaction-Time Task}{7}{subsection.3.1}\protected@file@percent }
+\citation{EEGChallengeWebsite2025}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces HBN-EEG contrast change detection reaction-time task. Each trial provides a stimulus-locked EEG segment and a trial-wise RT target from stimulus onset to button press.}}{8}{figure.1}\protected@file@percent }
+\newlabel{fig:tasks}{{1}{8}{HBN-EEG contrast change detection reaction-time task. Each trial provides a stimulus-locked EEG segment and a trial-wise RT target from stimulus onset to button press}{figure.1}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Release-separated CCD protocol statistics after window construction and RT-support filtering. Prepared trials are 2~s CCD windows with stimulus and response annotations; analyzed trials additionally satisfy \(0.5 \leq \mathrm  {RT} \leq 2.5\)~s.}}{8}{table.1}\protected@file@percent }
+\newlabel{tab:ccd_protocol_stats}{{1}{8}{Release-separated CCD protocol statistics after window construction and RT-support filtering. Prepared trials are 2~s CCD windows with stimulus and response annotations; analyzed trials additionally satisfy \(0.5 \leq \mathrm {RT} \leq 2.5\)~s}{table.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Shared Evaluation Protocol}{8}{subsection.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Shared Training, Calibration, and Inference Protocol}{9}{subsection.3.3}\protected@file@percent }
+\newlabel{sec:shared_protocol}{{3.3}{9}{Shared Training, Calibration, and Inference Protocol}{subsection.3.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Methods}{9}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Scalar Regression Baselines}{9}{subsection.4.1}\protected@file@percent }
+\newlabel{sec:baseline_regression}{{4.1}{9}{Scalar Regression Baselines}{subsection.4.1}{}}
+\citation{braindecode}
+\citation{lawhern2018eegnet}
+\citation{kostas2020thinkerinvariance}
+\citation{song2023eegconformer}
+\citation{altaheri2022atcnet}
+\citation{wang2024eegpt}
+\citation{wang2024medformer}
+\citation{Jiang2024LaBraM}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Model-family-specific targets and readouts within the shared fixed-crop protocol.}}{10}{table.2}\protected@file@percent }
+\newlabel{tab:shared_protocol_by_family}{{2}{10}{Model-family-specific targets and readouts within the shared fixed-crop protocol}{table.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces MSP-CNN direct RT regression baseline architecture. A lightweight 1-D temporal ConvNet maps an EEG trial window to a scalar reaction-time prediction. A learned $1\times 1$ channel-squeeze layer (128$\rightarrow $48) is followed by residual depthwise-separable stages with anti-aliased temporal downsampling, segment-wise pooling (2 and 4 segments; mean+max), and an MLP head.}}{11}{figure.2}\protected@file@percent }
+\newlabel{fig:ch1_regression}{{2}{11}{MSP-CNN direct RT regression baseline architecture. A lightweight 1-D temporal ConvNet maps an EEG trial window to a scalar reaction-time prediction. A learned $1\times 1$ channel-squeeze layer (128$\rightarrow $48) is followed by residual depthwise-separable stages with anti-aliased temporal downsampling, segment-wise pooling (2 and 4 segments; mean+max), and an MLP head}{figure.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Direct-regression and wrapped external backbone baselines. Values are mean $\pm $ sample standard deviation over seeds 2025--2029.}}{11}{table.3}\protected@file@percent }
+\newlabel{tab:r11_regression_baselines}{{3}{11}{Direct-regression and wrapped external backbone baselines. Values are mean $\pm $ sample standard deviation over seeds 2025--2029}{table.3}{}}
+\@writefile{toc}{\contentsline {paragraph}{Regression baseline results.}{11}{section*.1}\protected@file@percent }
+\citation{nibali2018dsnt}
+\citation{yu2016dilated}
+\citation{ronneberger2015unet}
+\citation{he2016resnet}
+\citation{howard2017mobilenets,chollet2017xception}
+\citation{zhang2019shiftinvariant}
+\citation{yu2016dilated}
+\citation{vaswani2017attention}
+\citation{huang2016stochasticdepth}
+\citation{szegedy2015going}
+\citation{santamaria2020eeginception}
+\citation{rendle2010fm}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Temporal-Readout Regression}{12}{subsection.4.2}\protected@file@percent }
+\newlabel{sec:rt_reg_zoo}{{4.2}{12}{Temporal-Readout Regression}{subsection.4.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Event-Time Segmentation Framework}{12}{subsection.4.3}\protected@file@percent }
+\newlabel{sec:rt_segmentation}{{4.3}{12}{Event-Time Segmentation Framework}{subsection.4.3}{}}
+\newlabel{sec:ets_unet}{{4.3}{12}{ETS-U-Net Architecture}{section*.2}{}}
+\@writefile{toc}{\contentsline {paragraph}{ETS-U-Net Architecture.}{12}{figure.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces ETS-U-Net for RT segmentation. A lightweight 1-D U-Net maps an EEG trial window to per-time logits and an event-time distribution $p(t)$. The encoder applies a $1\times 1$ channel-squeeze layer followed by residual blocks with temporal downsampling (\texttt  {TimeDown}); a bottleneck aggregates context, and the decoder upsamples with skip connections to recover time-resolved outputs. The right panel shows an example prediction $p(t)$ and Gaussian soft target $q(t)$, together with the resulting predicted vs.\ true response time.}}{13}{figure.3}\protected@file@percent }
+\newlabel{fig:ets_unet}{{3}{13}{ETS-U-Net for RT segmentation. A lightweight 1-D U-Net maps an EEG trial window to per-time logits and an event-time distribution $p(t)$. The encoder applies a $1\times 1$ channel-squeeze layer followed by residual blocks with temporal downsampling (\texttt {TimeDown}); a bottleneck aggregates context, and the decoder upsamples with skip connections to recover time-resolved outputs. The right panel shows an example prediction $p(t)$ and Gaussian soft target $q(t)$, together with the resulting predicted vs.\ true response time}{figure.3}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Segmentation model variants used for reaction-time prediction. Each model outputs per-time logits and is trained under the same segmentation objective; architectural diversity is exploited for ensembling/stacking.}}{14}{table.4}\protected@file@percent }
+\newlabel{tab:rt_seg_models}{{4}{14}{Segmentation model variants used for reaction-time prediction. Each model outputs per-time logits and is trained under the same segmentation objective; architectural diversity is exploited for ensembling/stacking}{table.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Soft-Label Distributional Supervision}{14}{subsection.4.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Soft target distribution.}{14}{section*.3}\protected@file@percent }
+\newlabel{eq:rt_soft_target}{{1}{14}{Soft target distribution}{equation.1}{}}
+\@writefile{toc}{\contentsline {paragraph}{Model output and losses.}{14}{section*.4}\protected@file@percent }
+\newlabel{eq:rt_pred_dist}{{2}{14}{Model output and losses}{equation.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Completed event-time segmentation loss ablations under the release-separated protocol. ``Cal.'' denotes post-hoc temperature selection on R9-R10 and one-shot application to R11.}}{15}{table.5}\protected@file@percent }
+\newlabel{tab:r11_segmentation_losses}{{5}{15}{Completed event-time segmentation loss ablations under the release-separated protocol. ``Cal.'' denotes post-hoc temperature selection on R9-R10 and one-shot application to R11}{table.5}{}}
+\newlabel{eq:rt_loss}{{3}{15}{Model output and losses}{equation.3}{}}
+\@writefile{toc}{\contentsline {paragraph}{Release-separated segmentation comparison.}{15}{section*.5}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces R11 scalar readout performance with subject-bootstrap confidence intervals. The dashed vertical line marks the strongest direct-regression baseline. Several event-time losses improve scalar nRMSE while remaining close enough to motivate posterior-level analysis rather than ranking losses only by point-prediction error.}}{16}{figure.4}\protected@file@percent }
+\newlabel{fig:r11_performance_forest}{{4}{16}{R11 scalar readout performance with subject-bootstrap confidence intervals. The dashed vertical line marks the strongest direct-regression baseline. Several event-time losses improve scalar nRMSE while remaining close enough to motivate posterior-level analysis rather than ranking losses only by point-prediction error}{figure.4}{}}
+\@writefile{toc}{\contentsline {paragraph}{Objective ablations.}{16}{section*.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Seed robustness.}{16}{section*.7}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Five-seed robustness summary for selected core models. Values are mean $\pm $ sample standard deviation over seeds 2025--2029; R11 range is min--max across seeds. Posterior scores are reported only for event-time segmentation runs.}}{17}{table.6}\protected@file@percent }
+\newlabel{tab:seed_robustness}{{6}{17}{Five-seed robustness summary for selected core models. Values are mean $\pm $ sample standard deviation over seeds 2025--2029; R11 range is min--max across seeds. Posterior scores are reported only for event-time segmentation runs}{table.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}Latent Event-Time Likelihood}{17}{subsection.4.5}\protected@file@percent }
+\newlabel{sec:event_nll}{{4.5}{17}{Latent Event-Time Likelihood}{subsection.4.5}{}}
+\newlabel{eq:event_nll}{{4}{17}{Latent Event-Time Likelihood}{equation.4}{}}
+\@writefile{toc}{\contentsline {paragraph}{Observation-kernel and hazard extensions.}{17}{section*.8}\protected@file@percent }
+\newlabel{eq:event_nll_mixture_kernel}{{5}{17}{Observation-kernel and hazard extensions}{equation.5}{}}
+\newlabel{eq:hazard_readout}{{6}{17}{Observation-kernel and hazard extensions}{equation.6}{}}
+\citation{guo2017calibration}
+\@writefile{toc}{\contentsline {paragraph}{Likelihood-family comparison.}{18}{section*.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.6}Posterior Geometry and Readout Temperature Tuning}{18}{subsection.4.6}\protected@file@percent }
+\newlabel{eq:posterior_regularized_objective}{{7}{18}{Posterior Geometry and Readout Temperature Tuning}{equation.7}{}}
+\@writefile{toc}{\contentsline {paragraph}{Inference and temperature tuning.}{18}{section*.10}\protected@file@percent }
+\newlabel{eq:rt_soft_argmax}{{8}{18}{Inference and temperature tuning}{equation.8}{}}
+\newlabel{eq:rt_tau_tuning}{{9}{19}{Inference and temperature tuning}{equation.9}{}}
+\@writefile{toc}{\contentsline {paragraph}{Posterior geometry and interval coverage.}{19}{section*.11}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Posterior geometry differs across event-time losses even when scalar nRMSE is similar. Panel A reports R11 scalar readout after selecting the softmax temperature on R9--R10 to minimize nRMSE. Panel B aligns predicted posteriors to the true RT. Panels C--E summarize posterior width, near-target mass, and mode-mean disagreement. Panel F compares empirical coverage of central posterior intervals; the diagonal is ideal interval coverage.}}{20}{figure.5}\protected@file@percent }
+\newlabel{fig:posterior_geometry_main}{{5}{20}{Posterior geometry differs across event-time losses even when scalar nRMSE is similar. Panel A reports R11 scalar readout after selecting the softmax temperature on R9--R10 to minimize nRMSE. Panel B aligns predicted posteriors to the true RT. Panels C--E summarize posterior width, near-target mass, and mode-mean disagreement. Panel F compares empirical coverage of central posterior intervals; the diagonal is ideal interval coverage}{figure.5}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces Quantitative posterior geometry on R11 for matched event-time segmentation losses. Metrics are defined in the text. CRPS is reported in milliseconds. Fixed-kernel EventNLL uses a common Gaussian observation kernel for all models ($\sigma =0.15$~s). For Coverage80, values closer to 0.80 indicate better nominal 80\% interval coverage; for Coverage MAE, lower is better.}}{20}{table.7}\protected@file@percent }
+\newlabel{tab:posterior_geometry_metrics}{{7}{20}{Quantitative posterior geometry on R11 for matched event-time segmentation losses. Metrics are defined in the text. CRPS is reported in milliseconds. Fixed-kernel EventNLL uses a common Gaussian observation kernel for all models ($\sigma =0.15$~s). For Coverage80, values closer to 0.80 indicate better nominal 80\% interval coverage; for Coverage MAE, lower is better}{table.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Trial-sorted event-time posterior maps on R11 for matched segmentation losses. Rows are quantile bins of representable R11 trials sorted by observed RT; the x-axis is time from stimulus onset; color shows log-transformed posterior density averaged within each bin. The black curve marks the mean observed RT in each bin.}}{21}{figure.6}\protected@file@percent }
+\newlabel{fig:posterior_raster_main}{{6}{21}{Trial-sorted event-time posterior maps on R11 for matched segmentation losses. Rows are quantile bins of representable R11 trials sorted by observed RT; the x-axis is time from stimulus onset; color shows log-transformed posterior density averaged within each bin. The black curve marks the mean observed RT in each bin}{figure.6}{}}
+\@writefile{toc}{\contentsline {paragraph}{Secondary ensemble use of posterior features.}{21}{section*.12}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {8}{\ignorespaces Shifted-crop diagnostic on the R11 common-inside subset. The ideal within-crop event localizer has raw shift slope $-1$; a crop-invariant scalar shortcut has slope 0. Reference nRMSE is computed at the standard $s=0.5$~s crop.}}{22}{table.8}\protected@file@percent }
+\newlabel{tab:shifted_crop_diagnostic}{{8}{22}{Shifted-crop diagnostic on the R11 common-inside subset. The ideal within-crop event localizer has raw shift slope $-1$; a crop-invariant scalar shortcut has slope 0. Reference nRMSE is computed at the standard $s=0.5$~s crop}{table.8}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.7}Shifted-Crop Localization Diagnostic}{22}{subsection.4.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}Discussion}{22}{section.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}RT Prediction as Event-Time Localization}{22}{subsection.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Why Distributional Supervision Helps}{23}{subsection.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Relation to EEG Backbones and Pretraining}{23}{subsection.5.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Why Posterior Geometry Matters}{23}{subsection.5.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.5}Limitations}{23}{subsection.5.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}Conclusion}{24}{section.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {A}Distribution-Aware Stacking}{24}{appendix.A}\protected@file@percent }
+\newlabel{sec:rt_stacking}{{A}{24}{Distribution-Aware Stacking}{appendix.A}{}}
+\@writefile{toc}{\contentsline {paragraph}{Meta-features from logits and temperature-scaled probabilities.}{24}{section*.13}\protected@file@percent }
+\newlabel{eq:rt_stacking_logit_features}{{10}{24}{Meta-features from logits and temperature-scaled probabilities}{equation.10}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces OOF stacking for RT prediction from time-distribution outputs. Per-model logits/distributions are converted into meta-features (e.g., peak time, entropy/variance, temperature-conditioned expected times, and CDF quantiles) and combined by a second-stage stacker (Ridge/GBDT). Predictions from fold-trained stackers are aggregated at inference (median) to produce the final RT estimate.}}{25}{figure.7}\protected@file@percent }
+\newlabel{fig:Ch1_stacking}{{7}{25}{OOF stacking for RT prediction from time-distribution outputs. Per-model logits/distributions are converted into meta-features (e.g., peak time, entropy/variance, temperature-conditioned expected times, and CDF quantiles) and combined by a second-stage stacker (Ridge/GBDT). Predictions from fold-trained stackers are aggregated at inference (median) to produce the final RT estimate}{figure.7}{}}
+\@writefile{toc}{\contentsline {paragraph}{Meta-learner and inference.}{25}{section*.14}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {B}Original Hidden CodaBench Benchmark Results}{25}{appendix.B}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {C}Unwrapped External Backbone Sanity Checks}{25}{appendix.C}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {9}{\ignorespaces Original hidden-release CodaBench RT results from the earlier submission-oriented pipeline. These results are reported for historical comparison with the challenge setting.}}{26}{table.9}\protected@file@percent }
+\newlabel{tab:appendix_codabench}{{9}{26}{Original hidden-release CodaBench RT results from the earlier submission-oriented pipeline. These results are reported for historical comparison with the challenge setting}{table.9}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {10}{\ignorespaces Unwrapped external-backbone sanity checks. ``Wrapped'' means that the model receives the same per-window channel standardization used by our compact baselines. These checks diagnose scale sensitivity; the wrapped variants are the fair external comparisons used in the main results.}}{26}{table.10}\protected@file@percent }
+\newlabel{tab:appendix_unwrapped_external}{{10}{26}{Unwrapped external-backbone sanity checks. ``Wrapped'' means that the model receives the same per-window channel standardization used by our compact baselines. These checks diagnose scale sensitivity; the wrapped variants are the fair external comparisons used in the main results}{table.10}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {D}Additional Protocol Calibration Runs}{26}{appendix.D}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {E}Additional EventNLL Kernel and Hazard Robustness Checks}{26}{appendix.E}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {11}{\ignorespaces Additional EventNLL kernel and hazard robustness checks. ``Cal.'' denotes post-hoc temperature selection on R9--R10; the heteroscedastic run is reported at its base readout because it was not part of the calibrated kernel table.}}{27}{table.11}\protected@file@percent }
+\newlabel{tab:appendix_kernel_hazard_robustness}{{11}{27}{Additional EventNLL kernel and hazard robustness checks. ``Cal.'' denotes post-hoc temperature selection on R9--R10; the heteroscedastic run is reported at its base readout because it was not part of the calibrated kernel table}{table.11}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {F}Additional Architecture Ablations}{27}{appendix.F}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {G}Additional Posterior Geometry Examples}{27}{appendix.G}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Representative calibrated event-time posteriors. Dashed black lines denote the true RT, and dotted colored lines denote model-specific posterior means. The examples illustrate why scalar RT alone is insufficient: models can agree on the mean while assigning very different posterior width, or disagree strongly because the posterior is multimodal or skewed.}}{28}{figure.8}\protected@file@percent }
+\newlabel{fig:appendix_representative_posteriors}{{8}{28}{Representative calibrated event-time posteriors. Dashed black lines denote the true RT, and dotted colored lines denote model-specific posterior means. The examples illustrate why scalar RT alone is insufficient: models can agree on the mean while assigning very different posterior width, or disagree strongly because the posterior is multimodal or skewed}{figure.8}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Temperature sensitivity on the R9-R10 development split. Vertical lines mark selected temperatures. The curves show that different losses induce different confidence scales, motivating temperature calibration as posterior-geometry control before comparing scalar readouts or using posterior features downstream.}}{29}{figure.9}\protected@file@percent }
+\newlabel{fig:appendix_temperature_sensitivity}{{9}{29}{Temperature sensitivity on the R9-R10 development split. Vertical lines mark selected temperatures. The curves show that different losses induce different confidence scales, motivating temperature calibration as posterior-geometry control before comparing scalar readouts or using posterior features downstream}{figure.9}{}}
+\bibdata{../references}
+\bibcite{altaheri2022atcnet}{{1}{2022}{{Altaheri et~al.}}{{}}}
+\bibcite{EEGFoundationChallengeArxiv2025}{{2}{2025}{{Aristimunha et~al.}}{{}}}
+\bibcite{Barachant2012RiemannianBCI}{{3}{2012}{{Barachant et~al.}}{{}}}
+\bibcite{BigdelyShamlo2016HED}{{4}{2016}{{Bigdely-Shamlo et~al.}}{{}}}
+\bibcite{Chambon2019DOSED}{{5}{2019}{{Chambon et~al.}}{{}}}
+\bibcite{Chapfuwa2023Calibration}{{6}{2023}{{Chapfuwa et~al.}}{{}}}
+\bibcite{Chen2024EEGFormer}{{7}{2024}{{Chen et~al.}}{{}}}
+\bibcite{chollet2017xception}{{8}{2017}{{Chollet}}{{}}}
+\bibcite{Chowdhury2020RTSensors}{{9}{2020}{{Chowdhury et~al.}}{{}}}
+\bibcite{Coles1989LRP}{{10}{1989}{{Coles}}{{}}}
+\bibcite{Cox1972CoxPH}{{11}{1972}{{Cox}}{{}}}
+\bibcite{EEGChallengeWebsite2025}{{12}{2025}{{EEG Challenge}}{{}}}
+\bibcite{Ganin2016DANN}{{13}{2016}{{Ganin et~al.}}{{}}}
+\bibcite{Gehring1993ErrorDetection}{{14}{1993}{{Gehring et~al.}}{{}}}
+\bibcite{Geng2016LabelDistributionLearning}{{15}{2016}{{Geng}}{{}}}
+\bibcite{guo2017calibration}{{16}{2017}{{Guo et~al.}}{{}}}
+\bibcite{Haider2020SurvivalDistributions}{{17}{2020}{{Haider et~al.}}{{}}}
+\bibcite{HeWu2020EuclideanAlignment}{{18}{2020}{{He and Wu}}{{}}}
+\bibcite{he2016resnet}{{19}{2016}{{He et~al.}}{{}}}
+\bibcite{HolroydColes2002ERN}{{20}{2002}{{Holroyd and Coles}}{{}}}
+\bibcite{howard2017mobilenets}{{21}{2017}{{Howard et~al.}}{{}}}
+\bibcite{huang2016stochasticdepth}{{22}{2016}{{Huang et~al.}}{{}}}
+\bibcite{Jayaram2016TransferLearningBCI}{{23}{2016}{{Jayaram et~al.}}{{}}}
+\bibcite{Jiang2024LaBraM}{{24}{2024}{{Jiang et~al.}}{{}}}
+\bibcite{Jung1998SingleTrialERP}{{25}{1998}{{Jung et~al.}}{{}}}
+\bibcite{Kelly2013Internal}{{26}{2013}{{Kelly and O'Connell}}{{}}}
+\bibcite{KornhuberDeecke1965BP}{{27}{1965}{{Kornhuber and Deecke}}{{}}}
+\bibcite{Kostas2021BENDR}{{28}{2021}{{Kostas et~al.}}{{}}}
+\bibcite{kostas2020thinkerinvariance}{{29}{2020}{{Kostas and Rudzicz}}{{}}}
+\bibcite{lawhern2018eegnet}{{30}{2018}{{Lawhern et~al.}}{{}}}
+\bibcite{Lee2018DeepHit}{{31}{2018}{{Lee et~al.}}{{}}}
+\bibcite{nibali2018dsnt}{{32}{2018}{{Nibali et~al.}}{{}}}
+\bibcite{OConnell2012Supramodal}{{33}{2012}{{O'Connell et~al.}}{{}}}
+\bibcite{ElOuahidi2025REVE}{{34}{2025}{{Ouahidi et~al.}}{{}}}
+\bibcite{Ouyang2011RIDE}{{35}{2011}{{Ouyang et~al.}}{{}}}
+\bibcite{Ouyang2017LatencyReview}{{36}{2017}{{Ouyang et~al.}}{{}}}
+\bibcite{Ratcliff2008Diffusion}{{37}{2008}{{Ratcliff and McKoon}}{{}}}
+\bibcite{rendle2010fm}{{38}{2010}{{Rendle}}{{}}}
+\bibcite{ronneberger2015unet}{{39}{2015}{{Ronneberger et~al.}}{{}}}
+\bibcite{santamaria2020eeginception}{{40}{2020}{{Santamar{\'i}a-V{\'a}zquez et~al.}}{{}}}
+\bibcite{braindecode}{{41}{2017}{{Schirrmeister et~al.}}{{}}}
+\bibcite{ShibasakiHallett2006BP}{{42}{2006}{{Shibasaki and Hallett}}{{}}}
+\bibcite{Shirazi2024HBNEEG}{{43}{2024}{{Shirazi et~al.}}{{}}}
+\bibcite{song2023eegconformer}{{44}{2023}{{Song et~al.}}{{}}}
+\bibcite{SunSaenko2016DeepCORAL}{{45}{2016}{{Sun and Saenko}}{{}}}
+\bibcite{szegedy2015going}{{46}{2015}{{Szegedy et~al.}}{{}}}
+\bibcite{TapiaRivas2024SEED}{{47}{2024}{{Tapia-Rivas et~al.}}{{}}}
+\bibcite{vaswani2017attention}{{48}{2017}{{Vaswani et~al.}}{{}}}
+\bibcite{wang2024eegpt}{{49}{2024a}{{Wang et~al.}}{{}}}
+\bibcite{Wang2025EEGMamba}{{50}{2025}{{Wang et~al.}}{{}}}
+\bibcite{wang2024medformer}{{51}{2024b}{{Wang et~al.}}{{}}}
+\bibcite{Wu2017RiemannianRT}{{52}{2017}{{Wu et~al.}}{{}}}
+\bibcite{yu2016dilated}{{53}{2016}{{Yu and Koltun}}{{}}}
+\bibcite{Yue2024BrainGPT}{{54}{2025}{{Yue et~al.}}{{}}}
+\bibcite{Zanini2018RiemannianTL}{{55}{2018}{{Zanini et~al.}}{{}}}
+\bibcite{zhang2019shiftinvariant}{{56}{2019}{{Zhang}}{{}}}
+\gdef \@abspage@last{34}
