@@ -1,0 +1,55 @@
+% Archived from writing/overleaf/release_v6/main_revised_v6.tex.
+% Removed from the main text when the event-time experiments were narrowed to
+% a fixed ETS-U-Net backbone and controlled loss/formulation ablations.
+
+\begin{table}[t!]
+\caption{Segmentation architecture variants used for reaction-time prediction. Each variant outputs per-time logits compatible with the event-time objectives defined next; architectural diversity is used for ablation and secondary ensembling.}
+\label{tab:rt_seg_models}
+\small
+\centering
+\renewcommand{\arraystretch}{1.2}
+\setlength{\tabcolsep}{4pt} % tighter column padding -> prevents overlap
+
+% Make last two columns auto-wrap to fit the line
+\begin{tabularx}{\linewidth}{@{}
+  >{\RaggedRight\arraybackslash}p{0.20\linewidth}
+  >{\RaggedRight\arraybackslash}p{0.16\linewidth}
+  >{\RaggedRight\arraybackslash}X
+  >{\RaggedRight\arraybackslash}X
+@{}}
+\hline
+\textbf{Model} & \textbf{Architecture} & \textbf{Key features} & \textbf{Strengths} \\
+\hline
+
+ETS-U-Net-L (wide)
+& ETS-U-Net
+& wider encoder; depthwise-separable convs; 5 ResBlocks/level; dilated bottleneck
+& highest capacity; captures complex local temporal patterns \\
+
+ETS-U-Net-M
+& ETS-U-Net
+& moderate width; depthwise-separable convs; 5 ResBlocks/level; dilated bottleneck
+& best single-model accuracy--efficiency tradeoff \\
+
+ETS-U-Net-S
+& ETS-U-Net
+& lighter encoder; depthwise-separable convs; 3 ResBlocks/level; same bottleneck family
+& fast, low-variance; complements deeper models \\
+
+Attention ETS-U-Net (MHSA)
+& Attention ETS-U-Net
+& MHSA bottleneck (4 heads, depth=3); DropPath; positional depthwise conv
+& captures long-range temporal dependencies \\
+
+EEG-Inception Segmentation
+& EEG-Inception 1D
+& multi-branch temporal scales (0.5/0.25/0.125\,s) with feature fusion
+& strong multi-scale feature extraction \\
+
+Factorized ETS-U-Net
+& Factorized ETS-U-Net
+& FM-style cross-channel interactions at input; optional per-stage FM injection
+& distinct cross-channel inductive bias \\
+\hline
+\end{tabularx}
+\end{table}

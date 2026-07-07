@@ -267,30 +267,13 @@ EventNLL / likelihood variants & Observed RT under a latent event-time likelihoo
 
 \label{sec:baseline_regression}
 
-The regression baselines establish how far scalar supervision can go before introducing event-time targets. We use three complementary controls: MSP-CNN (multiscale segment-statistic pooling CNN), ETR-CNN (event-time readout CNN), and supervised external EEG backbones trained from scratch. Together, these baselines test whether performance is explained by architecture capacity or differentiable expectation readout before evaluating event-time distribution supervision.
+The regression baselines establish how far scalar supervision can go before introducing event-time targets. We separate two types of controls: compact task-specific temporal controls and supervised external EEG backbones trained from scratch under the same protocol.
 
-MSP-CNN maps the full EEG window to scalar RT through temporal segment statistics and an MLP head, providing the scalar counterpart to the event-time formulation in Section~\ref{sec:event_time_formulation}.
+The compact controls form a progression of window-level temporal inductive biases. MSP-CNN (multiscale segment-statistic pooling CNN; Figure~\ref{fig:ch1_regression}) explicitly accounts for temporal structure by collecting mean and max statistics from coarse temporal segments of the feature map. These segment-level summaries act as early/middle/late activation cues and are mapped to scalar RT. ETR-CNN (event-time readout CNN) turns this coarse temporal summary into a learned time-indexed readout: it preserves temporal scores over the input window and predicts RT as the expected time under learned time-bin weights. ETR-CNN large keeps the same readout while increasing feature capacity.
 
-The main MSP-CNN regression backbone (Figure~\ref{fig:ch1_regression}) is a lightweight 1-D temporal ConvNet with:
-(i) a learned channel-squeeze layer ($1\times1$ conv, 128$\rightarrow$48) that forms data-driven electrode mixtures,
-and (ii) an EfficientNet-like temporal hierarchy with widening stages of residual depthwise-separable blocks
-(48$\rightarrow$96$\rightarrow$192 channels) and anti-aliased temporal downsampling.
-Coarse timing cues are retained using segment-wise statistical pooling: the time axis is split into 2 and 4 segments,
-mean and max are computed per segment, and the resulting features are passed to a small MLP head.
+We compare these task-specific regressors with external EEG architectures adapted to scalar RT regression. These include classical convolutional EEG baselines, Deep4Net and ShallowFBCSPNet \citep{braindecode}; the compact EEGNet architecture \citep{lawhern2018eegnet}; TIDNet's thinker-invariant convolutional design \citep{kostas2020thinkerinvariance}; the convolutional-transformer EEGConformer \citep{song2023eegconformer}; the attention temporal convolutional ATCNet architecture \citep{altaheri2022atcnet}; EEGPT \citep{wang2024eegpt}; Medformer \citep{wang2024medformer}; and the LaBraM foundation-style architecture \citep{Jiang2024LaBraM}. All external architectures are trained from scratch; pretrained weights are not used.
 
-ETR-CNN is the matched temporal-readout counterpart, preserving a time-indexed representation and predicting RT as the expected time under learned crop-relative weights. ETR-CNN large keeps the same readout while increasing feature capacity.
-
-To contextualize these task-specific regressors against established EEG backbones, we also evaluate external architectures adapted to scalar RT regression. These include classical convolutional EEG baselines, Deep4Net and ShallowFBCSPNet \citep{braindecode}, the compact EEGNet architecture \citep{lawhern2018eegnet}, TIDNet's thinker-invariant convolutional design \citep{kostas2020thinkerinvariance}, the convolutional-transformer EEGConformer \citep{song2023eegconformer}, the attention temporal convolutional ATCNet architecture \citep{altaheri2022atcnet}, EEGPT \citep{wang2024eegpt}, Medformer \citep{wang2024medformer}, and the LaBraM foundation-style architecture \citep{Jiang2024LaBraM}. All external architectures are trained from scratch; pretrained weights are not used. The main tables report the wrapped/standardized variants, with unwrapped external runs treated as diagnostic checks in the Appendix.
-
-\begin{figure}[!t]
-    \centering
-    \includegraphics[width=\linewidth]{img/ch1/Ch1_regression.png}
-    \caption{MSP-CNN direct RT regression baseline architecture. A lightweight 1-D temporal ConvNet maps an EEG trial window to a scalar reaction-time prediction. A learned $1\times1$ channel-squeeze layer (128$\rightarrow$48) is followed by residual depthwise-separable stages with anti-aliased temporal downsampling, segment-wise pooling (2 and 4 segments; mean+max), and an MLP head.}
-    \label{fig:ch1_regression}
-\end{figure}
-
-\paragraph{Regression baseline results.}
-Table~\ref{tab:r11_regression_baselines} reports direct-regression and external-backbone baselines repeated over five seeds. The ETR-CNN large capacity variant is the strongest direct-regression baseline, while the compact MSP-CNN and base ETR-CNN models remain competitive. Wrapped external architectures are substantially better controlled than their unwrapped diagnostic counterparts, but remain behind the task-specific regression baselines on R11.
+Across five seeds, ETR-CNN large is the strongest scalar baseline, with MSP-CNN and base ETR-CNN close behind. The external EEG backbones train meaningfully but do not close the gap to these compact temporal controls, suggesting that task-specific temporal structure matters more for this RT task than generic backbone capacity alone. These results provide strong scalar controls for the next step: testing whether directly supervising an event-time distribution improves beyond scalar RT training.
 
 \begin{table}[!t]
 \centering
@@ -324,12 +307,12 @@ Medformer & larger transformer & \mbox{0.9623 $\pm$ 0.0046} & \mbox{0.9585 $\pm$
 \end{tabularx}
 \end{table}
 
-\subsection{Temporal-Readout Regression}
-\label{sec:rt_reg_zoo}
-
-Temporal-readout regression separates two ideas that are otherwise coupled in event-time segmentation: using an expectation-style readout and supervising a full event-time distribution. In ETR-CNN, the learned time-bin weights are only a readout parameterization for scalar RT regression. The model is optimized through scalar RT error, not by matching a crop-relative event-time posterior. This makes ETR-CNN a control for whether the later gains can be explained by soft-argmax-style coordinate regression alone \citep{nibali2018dsnt}, with dilated convolutions providing temporal context without changing the scalar-supervised objective \citep{yu2016dilated}.
-
-The results in Table~\ref{tab:r11_regression_baselines} show that temporal-readout regression improves over scalar segment pooling: ETR-CNN reaches a test nRMSE of 0.8977 $\pm$ 0.0068 versus 0.8998 $\pm$ 0.0080 for MSP-CNN, and the larger ETR-CNN variant improves further to 0.8928 $\pm$ 0.0042. Temporal capacity and expectation-style readout are therefore useful direct-regression controls, but the model is still trained through scalar RT error rather than to match the geometry of an event-time posterior.
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=\linewidth]{img/ch1/Ch1_regression.png}
+    \caption{MSP-CNN direct RT regression baseline architecture. A lightweight 1-D temporal ConvNet maps an EEG trial window to a scalar reaction-time prediction. A learned $1\times1$ channel-squeeze layer (128$\rightarrow$48) is followed by residual depthwise-separable stages with anti-aliased temporal downsampling, segment-wise pooling (2 and 4 segments; mean+max), and an MLP head.}
+    \label{fig:ch1_regression}
+\end{figure}
 
 \section{Event-Time Posterior Formulation}
 \label{sec:event_time_formulation}
@@ -338,6 +321,19 @@ To make response timing explicit, we reformulate RT prediction as event-time pos
 
 \subsection{Event-Time Segmentation Architectures}
 \label{sec:event_time_architectures}
+
+Our event-time experiments use a fixed ETS-U-Net backbone (event-time segmentation U-Net), which maps an EEG trial window
+$X\in\mathbb{R}^{C\times T}$ to per-time logits $z_{0:T-1}$ (Figure~\ref{fig:ets_unet}). We keep the backbone fixed across
+loss ablations so that differences in scalar accuracy, posterior geometry, and shifted-crop behavior can be attributed to
+the output objective rather than to architecture changes. ETS-U-Net follows a 1-D U-Net style encoder-decoder with skip
+connections for precise localization \citep{ronneberger2015unet}. The encoder progressively downsamples the temporal axis
+to build multi-scale context, while the decoder upsamples and fuses encoder features to recover per-time outputs at the
+input temporal resolution (internal down/up-sampling is used only to form multi-scale features). Each scale is refined
+with lightweight residual blocks (ResNet-style skips) \citep{he2016resnet} built from depthwise-separable 1-D convolutions
+for computational efficiency \citep{howard2017mobilenets,chollet2017xception}. To mitigate aliasing under temporal
+decimation, downsampling applies a fixed depthwise smoothing filter followed by strided averaging (``blur-pool'' style)
+\citep{zhang2019shiftinvariant}. A dilated bottleneck further enlarges the receptive field without additional downsampling
+\citep{yu2016dilated}.
 
 \begin{figure}[t]
     \centering
@@ -349,83 +345,6 @@ To make response timing explicit, we reformulate RT prediction as event-time pos
     target $q(t)$, together with the resulting predicted vs.\ true response time.}
     \label{fig:ets_unet}
 \end{figure}
-
-
-Our primary event-time segmentation architecture is ETS-U-Net (event-time segmentation U-Net), which maps an EEG trial window
-$X\in\mathbb{R}^{C\times T}$ to per-time logits $z_{0:T-1}$ (Figure~\ref{fig:ets_unet}). All segmentation variants follow a 1-D U-Net style encoder-decoder with skip
-connections for precise localization \citep{ronneberger2015unet}. The encoder progressively downsamples the temporal axis
-to build multi-scale context, while the decoder upsamples and fuses encoder features to recover per-time outputs at the
-input temporal resolution (internal down/up-sampling is used only to form multi-scale features). Each scale is refined
-with lightweight residual blocks (ResNet-style skips) \citep{he2016resnet} built from depthwise-separable 1-D convolutions
-for computational efficiency \citep{howard2017mobilenets,chollet2017xception}. To mitigate aliasing under temporal
-decimation, downsampling applies a fixed depthwise smoothing filter followed by strided averaging (``blur-pool'' style)
-\citep{zhang2019shiftinvariant}. A dilated bottleneck further enlarges the receptive field without additional downsampling
-\citep{yu2016dilated}.
-
-Table~\ref{tab:rt_seg_models} summarizes the architecture family. ETS-U-Net provides the main template, while attention,
-EEG-Inception, and factorized variants introduce complementary temporal and cross-channel inductive biases for ablation and
-secondary ensembling.
-
-
-\begin{table}[t!]
-\caption{Segmentation architecture variants used for reaction-time prediction. Each variant outputs per-time logits compatible with the event-time objectives defined next; architectural diversity is used for ablation and secondary ensembling.}
-\label{tab:rt_seg_models}
-\small
-\centering
-\renewcommand{\arraystretch}{1.2}
-\setlength{\tabcolsep}{4pt} % tighter column padding -> prevents overlap
-
-% Make last two columns auto-wrap to fit the line
-\begin{tabularx}{\linewidth}{@{}
-  >{\RaggedRight\arraybackslash}p{0.20\linewidth}
-  >{\RaggedRight\arraybackslash}p{0.16\linewidth}
-  >{\RaggedRight\arraybackslash}X
-  >{\RaggedRight\arraybackslash}X
-@{}}
-\hline
-\textbf{Model} & \textbf{Architecture} & \textbf{Key features} & \textbf{Strengths} \\
-\hline
-
-ETS-U-Net-L (wide)
-& ETS-U-Net
-& wider encoder; depthwise-separable convs; 5 ResBlocks/level; dilated bottleneck
-& highest capacity; captures complex local temporal patterns \\
-
-ETS-U-Net-M
-& ETS-U-Net
-& moderate width; depthwise-separable convs; 5 ResBlocks/level; dilated bottleneck
-& best single-model accuracy--efficiency tradeoff \\
-
-ETS-U-Net-S
-& ETS-U-Net
-& lighter encoder; depthwise-separable convs; 3 ResBlocks/level; same bottleneck family
-& fast, low-variance; complements deeper models \\
-
-Attention ETS-U-Net (MHSA)
-& Attention ETS-U-Net
-& MHSA bottleneck (4 heads, depth=3); DropPath; positional depthwise conv
-& captures long-range temporal dependencies \\
-
-EEG-Inception Segmentation
-& EEG-Inception 1D
-& multi-branch temporal scales (0.5/0.25/0.125\,s) with feature fusion
-& strong multi-scale feature extraction \\
-
-Factorized ETS-U-Net
-& Factorized ETS-U-Net
-& FM-style cross-channel interactions at input; optional per-stage FM injection
-& distinct cross-channel inductive bias \\
-\hline
-\end{tabularx}
-\end{table}
-
-
-
-
-
-These variants share the per-time-logit interface and differ only in architectural bias; the output objectives are defined
-in the next subsection. The post-hoc distribution-aware stacking procedure used for the secondary ensemble analysis is
-described in Appendix~\ref{sec:rt_stacking}.
 
 \subsection{Distributional Supervision Objectives}
 
