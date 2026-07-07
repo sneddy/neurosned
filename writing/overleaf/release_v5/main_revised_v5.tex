@@ -207,15 +207,11 @@ Taken together, prior work provides strong traditions for event-centered EEG ana
 
 \section{Dataset and Evaluation Protocol}
 
-\subsection{HBN-EEG Dataset and Reaction Time Task}
+\subsection{HBN-EEG CCD Reaction-Time Task}
 
-We use the reaction-time prediction task introduced by the NeurIPS EEG Foundation Challenge \citep{EEGChallengeWebsite2025,EEGFoundationChallengeArxiv2025}, based on curated releases of the HBN-EEG dataset \citep{Shirazi2024HBNEEG}. Our focus is trial-wise reaction-time prediction from the contrast change detection (CCD) paradigm. The challenge provides the standardized task definition; our main evaluation uses labeled HBN releases rather than the original hidden leaderboard. The broader HBN-EEG resource comprises recordings from more than 3{,}000 participants aged 5--21 collected across a standardized battery of six EEG tasks spanning both passive and active paradigms \citep{Shirazi2024HBNEEG,EEGChallengeWebsite2025}.
+We use the reaction-time prediction task introduced by the NeurIPS EEG Foundation Challenge \citep{EEGChallengeWebsite2025,EEGFoundationChallengeArxiv2025}, based on curated releases of the HBN-EEG dataset \citep{Shirazi2024HBNEEG}. Our analysis is restricted to the contrast change detection (CCD) reaction-time subset rather than the full multi-task HBN-EEG resource.
 
-HBN-EEG is distributed in a Brain Imaging Data Structure (BIDS)-compatible format with detailed event annotations using Hierarchical Event Descriptors (HED), enabling reproducible preprocessing and time-locked analyses \citep{Shirazi2024HBNEEG}. In the original acquisition, EEG was recorded in a sound-shielded environment using a high-density 128-channel EGI Geodesic HydroCel system at 500~Hz, referenced at Cz, with an online 0.1--100~Hz bandpass and electrode impedances maintained below 40~k$\Omega$. For the benchmark derivative, recordings are band-pass filtered (0.5--50~Hz) and downsampled to 100~Hz to standardize modeling across releases \citep{EEGChallengeWebsite2025}. The released derivatives include 129 channels (128 EEG channels plus a reference); throughout this work we train models on the 128 EEG channels and exclude the reference channel from the learnable input.
-
-The CCD task is the active HBN-EEG paradigm used in this study. In each trial, participants viewed two concentric, flickering grating stimuli, one left-tilted and one right-tilted. After a variable delay, the contrast of one stimulus increased, making it perceptually dominant. Participants were instructed to respond as quickly as possible to indicate whether the dominant grating was left- or right-tilted, after which they received immediate accuracy feedback.
-
-Each model input is a fixed-length 2~s EEG segment, represented as 128 EEG channels sampled at 100~Hz and time-locked to the stimulus event. The fixed inference window corresponds to 0.5--2.5~s after stimulus onset (Figure~\ref{fig:tasks}). The released target is a scalar RT for each trial, and scalar performance is evaluated using normalized RMSE (nRMSE), defined as RMSE divided by the standard deviation of the true targets \citep{EEGChallengeWebsite2025}. Because the label reflects when a response occurs after stimulus onset, this task naturally motivates modeling RT as an event-time quantity rather than as a static scalar regression target.
+In the CCD task, participants viewed two flickering grating stimuli and responded after a contrast change made one grating perceptually dominant. The released target is the trial-wise reaction time from stimulus onset to button press. Each model input for the main evaluation is a fixed 2~s stimulus-locked EEG window spanning 0.5--2.5~s after stimulus onset, sampled at 100~Hz from 128 EEG channels. Because RT marks when a response occurs within this post-stimulus window, the task naturally supports an event-time interpretation rather than only a window-level scalar regression view.
 
 \begin{figure}[!t]
     \centering
@@ -225,17 +221,35 @@ Each model input is a fixed-length 2~s EEG segment, represented as 128 EEG chann
 \end{figure}
 
 
-\subsection{Preprocessing and Evaluation Protocol}
+\subsection{Release-Separated Evaluation Protocol}
 
-We evaluate models using a fixed split over HBN releases. Releases R1--R8 are used for fitting the base EEG models. Releases R9--R10 form the development partition used for checkpointing, calibration, and protocol diagnostics. When optional stacking is reported, meta-model inputs on R9--R10 are generated using subject-disjoint out-of-fold predictions.
+We evaluate models using a fixed release-separated protocol. Releases R1--R8 are used for model fitting. Releases R9--R10 form the development partition used for early stopping, checkpoint selection, and temperature tuning. Release R11 is reserved for one-shot final holdout evaluation. R11 labels are not used for model fitting, checkpoint selection, temperature selection, calibration, or stacking; all R11 analyses apply choices fixed on R1--R10.
 
-Release R11 serves as the labeled test release for final reporting. Model development, calibration, and selection are completed before R11 scoring. Main performance results are reported on R11 with subject-level bootstrap confidence intervals. The original hidden CodaBench evaluation from the EEG Foundation Challenge is reported separately in the Appendix as benchmark context.
+Prepared trials are CCD windows with both stimulus and response annotations. The main analyzed set additionally applies the RT-support filter \(0.5 \leq \mathrm{RT} \leq 2.5\)~s, matching the fixed inference window and modeled event-time support. Table~\ref{tab:ccd_protocol_stats} reports the actual analysis sets; metadata checks confirmed zero subject overlap across the train, development, and R11 test partitions after filtering.
 
-For posterior-geometry analyses, we distinguish scalar RT evaluation from event-time support diagnostics. Scalar nRMSE is computed on all R11 trials, whereas posterior-shape summaries are restricted to trials whose observed RT lies inside the modeled event-time grid spanning 0.50--2.49~s from stimulus onset.
+\begin{table}[!t]
+\centering
+\caption{Release-separated CCD protocol statistics after window construction and RT-support filtering. Prepared trials are 2~s CCD windows with stimulus and response annotations; analyzed trials additionally satisfy \(0.5 \leq \mathrm{RT} \leq 2.5\)~s.}
+\label{tab:ccd_protocol_stats}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.12}
+\begin{tabularx}{\linewidth}{@{} l l >{\RaggedRight\arraybackslash}X r r r @{}}
+\toprule
+\textbf{Partition} & \textbf{Releases} & \textbf{Role} & \textbf{Prepared trials} & \textbf{Analyzed trials} & \textbf{Subjects} \\
+\midrule
+Train & R1--R8 & model fitting & 74{,}576 & 73{,}030 & 1{,}221 \\
+Development & R9--R10 & early stopping, checkpoint selection, temperature tuning & 17{,}867 & 17{,}348 & 308 \\
+Test & R11 & one-shot final holdout evaluation & 15{,}751 & 15{,}164 & 292 \\
+\bottomrule
+\end{tabularx}
+\end{table}
 
-All neural models receive the same input normalization. For each 2~s trial window and each EEG channel, we subtract that channel's temporal mean within the window and divide by its temporal standard deviation within the same window. This transformation is computed independently within each input window and is applied identically across models.
+Direct-regression baselines are trained from the prepared 2~s R1--R8 windows. Event-time models use the corresponding 5~s cache only to construct 2~s crops and temporal targets; in the main event-time ablations, the standard crop is fixed to the same 0.5--2.5~s interval used by the regression baselines. The 5~s cache differs from the 2~s training cache by three support-filtered training trials. All scalar comparisons use the same support-filtered R9--R10 development set and R11 test set. Diagnostic analyses that require different crop starts or stricter RT support are introduced separately in the corresponding sections.
 
-Unless otherwise stated, training uses a fixed mild augmentation recipe. Channel dropout is applied with probability 0.25 and removes at most 30\% of channels. Temporal cutout is applied with probability 0.25 and masks a contiguous 10--50 sample interval, corresponding to at most 0.5~s in a 2~s, 100~Hz window. Gaussian noise is applied with probability 0.3 with standard deviation sampled as $0.01 + U(0,0.01)$. Mixup and stronger corruption recipes are excluded from the default protocol and treated only as appendix diagnostics.
+Scalar performance is evaluated using normalized RMSE (nRMSE), defined as RMSE divided by the standard deviation of the true targets within the evaluated split \citep{EEGChallengeWebsite2025}. Main scalar results are computed on all support-filtered R11 trials. Posterior-geometry analyses use the same R11 support unless a diagnostic-specific subset is stated explicitly.
+
+All neural models receive the same input normalization: for each 2~s trial window and EEG channel, we subtract the channel's temporal mean within the window and divide by its temporal standard deviation within the same window. Unless otherwise stated, training uses one fixed mild augmentation profile so that regularization is part of the protocol rather than a model-specific tuning degree of freedom. Channel dropout is applied with probability 0.25 and removes at most 30\% of channels, temporal cutout is applied with probability 0.25 and masks a contiguous 10--50 sample interval, and Gaussian noise is applied with probability 0.3 and standard deviation \(0.01 + U(0,0.01)\). These perturbations approximate plausible electrode loss, brief local signal corruption, and measurement noise while preserving the trial-wise RT label.
 
 \section{Methods}
 
@@ -247,7 +261,7 @@ We begin with baselines that treat the task as direct reaction-time regression: 
 
 Consistent with the low-SNR and distribution shift setting, we focus on lightweight backbones that are less prone to overfitting and enable extensive ablations, calibration, and ensembling.
 
-All direct-regression baselines use the fixed 2~s input window, the per-window standardization described above, no mixup, batch size 128, patience 20, and the same release-separated train/development/holdout protocol. The default augmentation is the mild channel-dropout, temporal-cutout, and Gaussian-noise recipe described in the dataset protocol; stronger corruptions are retained only as appendix diagnostics.
+All direct-regression baselines use the fixed 2~s input window, the per-window standardization described above, batch size 128, patience 20, and the same release-separated train/development/holdout protocol. The default augmentation is the mild channel-dropout, temporal-cutout, and Gaussian-noise recipe described in the dataset protocol.
 
 For clarity, we use mechanism-level names in the manuscript. MSP-CNN denotes a multiscale segment-pooling CNN. It maps the full EEG window to scalar RT through temporal segment statistics and an MLP head. These models serve as reference points for isolating the effect of making temporal structure explicit in Section~\ref{sec:rt_segmentation}. In contrast to the segmentation formulation, direct scalar regression treats the window as a static input-output regression problem, without an explicit representation of response timing.
 
