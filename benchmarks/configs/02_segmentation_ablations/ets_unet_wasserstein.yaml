@@ -26,22 +26,19 @@ evaluation:
     save_predictions: false
 
 data:
-  train: data/new_validation/r1_r8_train_5sec.pkl
+  train: data/new_validation/r1_r8_train.pkl
   valid: data/new_validation/r9_r10_val.pkl
   test: data/new_validation/r11_test.pkl
   target_min: 0.5
   target_max: 2.5
   train_dataset:
     module_name: benchmarks.data.segmentation
-    class_name: TrainCroppingDataset
+    class_name: FixedWindowSegmentationDataset
     params:
       sfreq: 100
       crop_sec: 2.0
       sigma: 0.15
-      end_time: 5.0
       use_augmentation: true
-      cropping_offset: 0.25
-      crop_proba: 0.0
       scale_proba: 0.0
       scale_min: 0.8
       scale_max: 1.2

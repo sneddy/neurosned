@@ -43,7 +43,7 @@ this protocol.
 | group | path | role | status |
 | --- | --- | --- | --- |
 | Regression baselines | `benchmarks/configs/01_regression_baselines/` | Scalar RT and wrapped external EEG baselines. | Complete: 12/12 configs, 5 seeds each. |
-| Segmentation ablations | `benchmarks/configs/02_segmentation_ablations/` | ETS-U-Net event-time objective comparison. | Configs ready. |
+| Segmentation ablations | `benchmarks/configs/02_segmentation_ablations/` | ETS-U-Net event-time objective comparison. | Running: CE and EventNLL complete; time-only started. |
 
 ## Artifact Registry
 
@@ -51,7 +51,8 @@ this protocol.
 | --- | --- | --- | --- |
 | Regression repeated runs | `benchmarks/experiments/01_regression_baselines/` | Main scalar baseline table. | Complete: 12/12 configs, 5 seeds each. |
 | Regression leaderboard | `benchmarks/experiments/regression_leaderboard.md` | Camera-ready scalar baseline table. | Complete. |
-| Segmentation repeated runs | `benchmarks/experiments/02_segmentation_ablations/` | Event-time objective table and shifted-crop summaries. | Pending rerun. |
+| Segmentation repeated runs | `benchmarks/experiments/02_segmentation_ablations/` | Event-time objective table and shifted-crop summaries. | Running: CE and EventNLL complete; time-only started. |
+| Segmentation leaderboard | `benchmarks/experiments/segmentation_leaderboard.md` | Current event-time objective table with scalar and shifted-crop metrics. | Running. |
 | Old unfiltered protocol | `benchmarks/archive/unfiltered_protocol/` | Historical reference only. | Archived. |
 
 ## 01 Regression Baselines
@@ -129,7 +130,7 @@ All segmentation configs currently include:
 
 | component | value |
 | --- | --- |
-| train pickle | `data/new_validation/r1_r8_train_5sec.pkl` |
+| train pickle | `data/new_validation/r1_r8_train.pkl` |
 | valid pickle | `data/new_validation/r9_r10_val.pkl` |
 | test pickle | `data/new_validation/r11_test.pkl` |
 | target support | `0.5 <= RT <= 2.5` |
@@ -140,6 +141,32 @@ All segmentation configs currently include:
 | shifted-crop subset | `0.8 <= RT <= 2.2` |
 | shifted-crop starts | `0.2, 0.3, ..., 0.8` |
 | shifted-crop per-trial predictions | disabled by default |
+
+Current repeated-run snapshot is also maintained as a standalone leaderboard at
+`benchmarks/experiments/segmentation_leaderboard.md`.
+
+Current rows:
+
+| model | seeds | valid nRMSE mean +/- std | R11 nRMSE mean +/- std | R11 tau nRMSE mean +/- std | shift slope mean +/- std | localizer-like mean +/- std |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `ets_unet_ce` | 5/5 | 0.8763 +/- 0.0044 | 0.8774 +/- 0.0044 | 0.8753 +/- 0.0039 | -0.339 +/- 0.017 | 0.209 +/- 0.031 |
+| `ets_unet_event_nll` | 5/5 | 0.8769 +/- 0.0030 | 0.8805 +/- 0.0021 | 0.8772 +/- 0.0018 | -0.344 +/- 0.014 | 0.221 +/- 0.026 |
+| `ets_unet_time_only` | 0/5 (+1 marked running) | - | - | - | - | - |
+| `ets_unet_ce_time` | pending | - | - | - | - | - |
+| `ets_unet_wasserstein` | pending | - | - | - | - | - |
+| `ets_unet_event_nll_mixture` | pending | - | - | - | - | - |
+| `ets_unet_hazard_event_nll` | pending | - | - | - | - | - |
+
+Interpretation so far:
+
+- CE and EventNLL both outperform the strongest completed scalar regression
+  baseline on R11 after temperature calibration.
+- CE is currently the best scalar readout row; EventNLL is very close in scalar
+  error and slightly more localizer-like in the shifted-crop diagnostic.
+- Both completed event-time rows move in a more localizer-like direction than a
+  crop-invariant shortcut, but neither is close to ideal shift equivariance.
+- Time-only, Wasserstein, CE+time, mixture EventNLL, and hazard EventNLL are
+  still needed before the loss-ablation story is complete.
 
 Expected paper use:
 

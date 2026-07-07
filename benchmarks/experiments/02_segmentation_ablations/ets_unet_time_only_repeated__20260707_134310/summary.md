@@ -1,0 +1,5 @@
+# Benchmark Runs
+
+| created_at | experiment | config | task | model | seed | best_epoch | best_metric | test_nrmse | test_nrmse_ci_low | test_nrmse_ci_high | test_posterior_crps | test_posterior_fixed_kernel_event_nll | calibration_temperature | calibration_temperature_valid_nrmse | test_tau_nrmse | test_tau_nrmse_ci_low | test_tau_nrmse_ci_high | test_tau_posterior_crps | test_tau_posterior_fixed_kernel_event_nll | last_epoch | training_wall_seconds | time_to_best_seconds | gpu_util_mean_pct | gpu_memory_peak_mb | gpu_samples | status | run_dir |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-07-07T13:43:18Z | 02_segmentation_ablations | ets_unet_time_only | segmentation | SneddySegUNet1D | 2025 | 8 | 0.9015301257896882 |  |  |  |  |  |  |  |  |  |  |  |  | 15 | 434.7213841870107 | 230.1492688290018 |  |  | 0 | running | benchmarks/experiments/02_segmentation_ablations/ets_unet_time_only_repeated__20260707_134310/seed2025 |

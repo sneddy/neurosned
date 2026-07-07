@@ -26,11 +26,11 @@ All configs use:
 
 | component | value |
 | --- | --- |
-| train split | R1-R8 5 s windows |
+| train split | R1-R8 fixed 2 s windows |
 | valid split | R9-R10 fixed 2 s windows |
 | test split | R11 fixed 2 s windows |
 | target support | `0.5 <= RT <= 2.5` |
-| crop used for main training | fixed 2 s crop at `0.5-2.5 s` |
+| main training window | fixed `0.5-2.5 s` post-stimulus window |
 | train batch size | 128 |
 | optimizer | Adam, lr `1e-3`, weight decay `0` |
 | early stopping | validation NRMSE, patience 20 |
