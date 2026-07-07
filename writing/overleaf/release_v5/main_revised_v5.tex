@@ -287,25 +287,30 @@ Table~\ref{tab:r11_regression_baselines} reports direct-regression and external-
 
 \begin{table}[!t]
 \centering
-\caption{Direct-regression and wrapped external backbone baselines under the release-separated protocol. Values are mean $\pm$ sample standard deviation over seeds 2025--2029. Lower nRMSE is better.}
+\caption{Direct-regression and wrapped external backbone baselines under the release-separated protocol. Values are mean $\pm$ sample standard deviation over seeds 2025--2029.}
 \label{tab:r11_regression_baselines}
-\scriptsize
-\setlength{\tabcolsep}{3pt}
+\footnotesize
+\setlength{\tabcolsep}{2pt}
 \renewcommand{\arraystretch}{1.15}
-\begin{tabularx}{\linewidth}{@{} >{\RaggedRight\arraybackslash}p{0.22\linewidth} Y c c @{}}
+\begin{tabularx}{\linewidth}{@{} >{\RaggedRight\arraybackslash}p{0.22\linewidth} Y >{\centering\arraybackslash}p{0.215\linewidth} >{\centering\arraybackslash}p{0.215\linewidth} @{}}
 \toprule
 \textbf{Model} & \textbf{Role} & \textbf{Valid nRMSE} $\downarrow$ & \textbf{R11 nRMSE} $\downarrow$ \\
 \midrule
-MSP-CNN & compact scalar regression baseline & 0.900595 $\pm$ 0.005096 & 0.899795 $\pm$ 0.008045 \\
-ETR-CNN & temporal-readout direct regression & 0.900822 $\pm$ 0.006043 & 0.897679 $\pm$ 0.006773 \\
-ETR-CNN large & capacity ablation & 0.897233 $\pm$ 0.004022 & 0.892783 $\pm$ 0.004161 \\
-TIDNet wrapped & strongest external supervised baseline in this comparison & 0.923506 $\pm$ 0.002357 & 0.919204 $\pm$ 0.002739 \\
-EEGConformer wrapped & modern supervised transformer-style baseline & 0.918845 $\pm$ 0.002634 & 0.928656 $\pm$ 0.005658 \\
-EEGNet wrapped & canonical compact EEG baseline & 0.935037 $\pm$ 0.005384 & 0.933504 $\pm$ 0.002832 \\
-LaBraM wrapped & foundation-style architecture from scratch & 0.930388 $\pm$ 0.006065 & 0.932722 $\pm$ 0.008568 \\
-Deep4Net wrapped & classical convolutional baseline & 0.926883 $\pm$ 0.004521 & 0.925972 $\pm$ 0.004354 \\
-ShallowFBCSPNet wrapped & classical filter-bank spatial convolution baseline & 0.932353 $\pm$ 0.001632 & 0.934285 $\pm$ 0.002423 \\
-ATCNet wrapped & supervised conv/attention/TCN baseline & 0.968640 $\pm$ 0.018283 & 0.966578 $\pm$ 0.015093 \\
+\multicolumn{4}{@{}l}{\textit{Task-specific regression baselines}} \\
+\addlinespace[0.15em]
+MSP-CNN & segment-pooling scalar & \mbox{0.9006 $\pm$ 0.0051} & \mbox{0.8998 $\pm$ 0.0080} \\
+ETR-CNN & temporal readout & \mbox{0.9008 $\pm$ 0.0060} & \mbox{0.8977 $\pm$ 0.0068} \\
+ETR-CNN large & capacity ablation & \mbox{0.8972 $\pm$ 0.0040} & \mbox{0.8928 $\pm$ 0.0042} \\
+\midrule
+\multicolumn{4}{@{}l}{\textit{External regression baselines}} \\
+\addlinespace[0.15em]
+TIDNet & thinker-invariant CNN & \mbox{0.9235 $\pm$ 0.0024} & \mbox{0.9192 $\pm$ 0.0027} \\
+EEGConformer & conv-transformer & \mbox{0.9188 $\pm$ 0.0026} & \mbox{0.9287 $\pm$ 0.0057} \\
+EEGNet & compact CNN & \mbox{0.9350 $\pm$ 0.0054} & \mbox{0.9335 $\pm$ 0.0028} \\
+LaBraM & foundation-style & \mbox{0.9304 $\pm$ 0.0061} & \mbox{0.9327 $\pm$ 0.0086} \\
+Deep4Net & deep ConvNet & \mbox{0.9269 $\pm$ 0.0045} & \mbox{0.9260 $\pm$ 0.0044} \\
+ShallowFBCSPNet & shallow FBCSP CNN & \mbox{0.9324 $\pm$ 0.0016} & \mbox{0.9343 $\pm$ 0.0024} \\
+ATCNet & conv/attention/TCN & \mbox{0.9686 $\pm$ 0.0183} & \mbox{0.9666 $\pm$ 0.0151} \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -619,7 +624,7 @@ Table~\ref{tab:seed_robustness} shows that the central event-time supervision ga
 
 \begin{table}[!t]
 \centering
-\caption{Five-seed robustness summary for selected core models. Values are mean $\pm$ sample standard deviation over seeds 2025--2029; R11 range is min--max across seeds. Posterior scores are reported only for event-time segmentation runs. Lower is better for all metrics.}
+\caption{Five-seed robustness summary for selected core models. Values are mean $\pm$ sample standard deviation over seeds 2025--2029; R11 range is min--max across seeds. Posterior scores are reported only for event-time segmentation runs.}
 \label{tab:seed_robustness}
 \scriptsize
 \setlength{\tabcolsep}{3pt}
@@ -888,7 +893,7 @@ Unwrapped external architectures are useful for diagnosing scale sensitivity. Be
 
 \begin{table}[!t]
 \centering
-\caption{Unwrapped external-backbone sanity checks. ``Wrapped'' means that the model receives the same per-window channel standardization used by our compact baselines. Lower nRMSE is better. These checks diagnose scale sensitivity; the wrapped variants are the fair external comparisons used in the main results.}
+\caption{Unwrapped external-backbone sanity checks. ``Wrapped'' means that the model receives the same per-window channel standardization used by our compact baselines. These checks diagnose scale sensitivity; the wrapped variants are the fair external comparisons used in the main results.}
 \label{tab:appendix_unwrapped_external}
 \scriptsize
 \setlength{\tabcolsep}{3pt}
@@ -916,7 +921,7 @@ The main text keeps the event-time segmentation table focused on the core CE, Ev
 
 \begin{table}[!t]
 \centering
-\caption{Additional EventNLL kernel and hazard robustness checks. Lower nRMSE is better. ``Cal.'' denotes post-hoc temperature selection on R9--R10; the heteroscedastic run is reported at its base readout because it was not part of the calibrated kernel table.}
+\caption{Additional EventNLL kernel and hazard robustness checks. ``Cal.'' denotes post-hoc temperature selection on R9--R10; the heteroscedastic run is reported at its base readout because it was not part of the calibrated kernel table.}
 \label{tab:appendix_kernel_hazard_robustness}
 \scriptsize
 \setlength{\tabcolsep}{3pt}
