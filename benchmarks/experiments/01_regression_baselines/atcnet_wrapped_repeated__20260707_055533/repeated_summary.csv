@@ -1,0 +1,6 @@
+seed,run_name,run_dir,status,best_epoch,best_metric,test_nrmse,test_nrmse_ci_low,test_nrmse_ci_high,test_posterior_crps,test_posterior_fixed_kernel_event_nll,test_tau_nrmse,test_tau_nrmse_ci_low,test_tau_nrmse_ci_high,test_tau_posterior_crps,test_tau_posterior_fixed_kernel_event_nll
+2025,seed2025,benchmarks/experiments/01_regression_baselines/atcnet_wrapped_repeated__20260707_055533/seed2025,training_finished,25,0.9650880048778151,0.9646363877551691,0.9555917874555298,0.9747173497469882,,,,,,,
+2026,seed2026,benchmarks/experiments/01_regression_baselines/atcnet_wrapped_repeated__20260707_055533/seed2026,training_finished,37,0.9576410400942215,0.9573778569436188,0.9466836243433662,0.9695846533250246,,,,,,,
+2027,seed2027,benchmarks/experiments/01_regression_baselines/atcnet_wrapped_repeated__20260707_055533/seed2027,training_finished,25,0.9688763766156729,0.9655335272853202,0.955135553835497,0.9769434954383931,,,,,,,
+2028,seed2028,benchmarks/experiments/01_regression_baselines/atcnet_wrapped_repeated__20260707_055533/seed2028,training_finished,6,0.9992582299893836,0.9920029781425459,0.9897605658950143,0.9948228823076918,,,,,,,
+2029,seed2029,benchmarks/experiments/01_regression_baselines/atcnet_wrapped_repeated__20260707_055533/seed2029,training_finished,79,0.9523340825099577,0.9533376108889187,0.9403759017373298,0.9674271020679708,,,,,,,

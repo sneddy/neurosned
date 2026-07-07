@@ -6,9 +6,32 @@ data/new_validation/*.pkl
 data/new_validation/prepare_manifest.json
 data/new_validation/reload_*_manifest.json
 release_data/
-experiments/
 artefacts
 *.pth
+
+# Benchmark experiment outputs.
+# Keep paper-facing summaries, tables, configs, and figures under
+# benchmarks/experiments trackable; ignore heavy/runtime artifacts.
+benchmarks/experiments/**/seed*/
+benchmarks/experiments/**/logs/
+benchmarks/experiments/**/monitoring/
+benchmarks/experiments/**/predictions/
+benchmarks/experiments/**/*_predictions.csv
+benchmarks/experiments/**/*.pt
+benchmarks/experiments/**/*.ckpt
+benchmarks/experiments/**/*.npy
+benchmarks/experiments/**/*.npz
+benchmarks/experiments/**/*.pkl
+benchmarks/experiments/**/*.h5
+benchmarks/experiments/**/*.hdf5
+benchmarks/experiments/**/*.parquet
+benchmarks/experiments/**/*.feather
+benchmarks/experiments/**/*.joblib
+benchmarks/experiments/**/model.txt
+
+# Frozen protocol archives keep already tracked paper artifacts, but should not
+# expose old raw run outputs when the generic experiments/ ignore is removed.
+benchmarks/archive/**/experiments/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

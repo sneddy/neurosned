@@ -1,0 +1,6 @@
+seed,run_name,run_dir,status,best_epoch,best_metric,test_nrmse,test_nrmse_ci_low,test_nrmse_ci_high,test_posterior_crps,test_posterior_fixed_kernel_event_nll,test_tau_nrmse,test_tau_nrmse_ci_low,test_tau_nrmse_ci_high,test_tau_posterior_crps,test_tau_posterior_fixed_kernel_event_nll
+2025,seed2025,benchmarks/experiments/01_regression_baselines/eegnet_wrapped_repeated__20260707_021052/seed2025,training_finished,29,0.9383501848726367,0.9370479867632467,0.9245090046571796,0.9500360921333737,,,,,,,
+2026,seed2026,benchmarks/experiments/01_regression_baselines/eegnet_wrapped_repeated__20260707_021052/seed2026,training_finished,85,0.9344198084356266,0.9342680863320048,0.9219809895048037,0.9480401734431293,,,,,,,
+2027,seed2027,benchmarks/experiments/01_regression_baselines/eegnet_wrapped_repeated__20260707_021052/seed2027,training_finished,45,0.9329143687143091,0.9331259198582335,0.9209773037980791,0.9459030514620641,,,,,,,
+2028,seed2028,benchmarks/experiments/01_regression_baselines/eegnet_wrapped_repeated__20260707_021052/seed2028,training_finished,80,0.9276818440941735,0.9291854804472086,0.9172215338135121,0.9417921278782941,,,,,,,
+2029,seed2029,benchmarks/experiments/01_regression_baselines/eegnet_wrapped_repeated__20260707_021052/seed2029,training_finished,36,0.941819750258039,0.9338904964271271,0.9217195908009131,0.9470263879672833,,,,,,,

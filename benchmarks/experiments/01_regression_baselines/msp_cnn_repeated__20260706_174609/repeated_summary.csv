@@ -1,0 +1,6 @@
+seed,run_name,run_dir,status,best_epoch,best_metric,test_nrmse,test_nrmse_ci_low,test_nrmse_ci_high,test_posterior_crps,test_posterior_fixed_kernel_event_nll,test_tau_nrmse,test_tau_nrmse_ci_low,test_tau_nrmse_ci_high,test_tau_posterior_crps,test_tau_posterior_fixed_kernel_event_nll
+2025,seed2025,benchmarks/experiments/01_regression_baselines/msp_cnn_repeated__20260706_174609/seed2025,training_finished,23,0.9005105719942024,0.8949556670779274,0.8789574692605284,0.911631900165819,,,,,,,
+2026,seed2026,benchmarks/experiments/01_regression_baselines/msp_cnn_repeated__20260706_174609/seed2026,training_finished,23,0.8943079596357363,0.8927321127165808,0.8788930266116184,0.90735995940525,,,,,,,
+2027,seed2027,benchmarks/experiments/01_regression_baselines/msp_cnn_repeated__20260706_174609/seed2027,training_finished,41,0.9060128327460466,0.9111672456768629,0.893602792678505,0.9282627807500673,,,,,,,
+2028,seed2028,benchmarks/experiments/01_regression_baselines/msp_cnn_repeated__20260706_174609/seed2028,training_finished,27,0.905227118148588,0.9053572149662744,0.8893607455487436,0.9219575227947295,,,,,,,
+2029,seed2029,benchmarks/experiments/01_regression_baselines/msp_cnn_repeated__20260706_174609/seed2029,training_finished,18,0.8969140877248649,0.8947603522276273,0.880393410522077,0.9097479535941073,,,,,,,

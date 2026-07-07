@@ -1,0 +1,6 @@
+seed,run_name,run_dir,status,best_epoch,best_metric,test_nrmse,test_nrmse_ci_low,test_nrmse_ci_high,test_posterior_crps,test_posterior_fixed_kernel_event_nll,test_tau_nrmse,test_tau_nrmse_ci_low,test_tau_nrmse_ci_high,test_tau_posterior_crps,test_tau_posterior_fixed_kernel_event_nll
+2025,seed2025,benchmarks/experiments/01_regression_baselines/etr_cnn_repeated__20260706_183507/seed2025,training_finished,13,0.8920169088112818,0.8922140390235502,0.8776729644462804,0.9074939153322144,,,,,,,
+2026,seed2026,benchmarks/experiments/01_regression_baselines/etr_cnn_repeated__20260706_183507/seed2026,training_finished,11,0.9020661489400952,0.8935898339895302,0.8794440618091108,0.9082584697677075,,,,,,,
+2027,seed2027,benchmarks/experiments/01_regression_baselines/etr_cnn_repeated__20260706_183507/seed2027,training_finished,8,0.8976918663835055,0.8939714224794224,0.879728065210254,0.9081080229457026,,,,,,,
+2028,seed2028,benchmarks/experiments/01_regression_baselines/etr_cnn_repeated__20260706_183507/seed2028,training_finished,34,0.9059884308086,0.9085063334094778,0.8922627982517899,0.9248716741796223,,,,,,,
+2029,seed2029,benchmarks/experiments/01_regression_baselines/etr_cnn_repeated__20260706_183507/seed2029,training_finished,33,0.9063468131608968,0.900111658150791,0.8841625614797274,0.9157855474402098,,,,,,,
