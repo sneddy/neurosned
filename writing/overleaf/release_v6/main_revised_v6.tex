@@ -144,25 +144,19 @@ Beyond point prediction, the event-time posterior makes temporally resolved eval
 
 \section{Introduction}
 
-Behavioral timing provides a direct link between neural dynamics and behavior. In a reaction-time task, the observed response latency is not only a behavioral score; it is the observable outcome of sensory encoding, decision formation, motor preparation, and response execution unfolding over hundreds of milliseconds. This makes reaction time (RT) a natural test case for asking how supervised EEG models should represent temporally structured behavioral evidence.
+Behavioral timing provides a direct link between neural dynamics and behavior. In reaction-time (RT) tasks, the observed response latency reflects sensory encoding, decision formation, motor preparation, and response execution unfolding over hundreds of milliseconds. EEG analyses often exploit this temporal structure through event alignment, response locking, and latency variability; trial-to-trial latency variation can carry behaviorally meaningful information that is obscured by averaging or by models that collapse temporal structure into window-level labels \citep{Jung1998SingleTrialERP,Ouyang2017LatencyReview}.
 
-Many EEG analyses already exploit temporal structure through event alignment, response locking, and latency variability. Across stimulus-locked ERPs, response-locked error signals, and movement-related potentials, timing is often part of the scientific object being studied, not just a nuisance to be averaged away. Trial-to-trial latency variability can carry behaviorally meaningful information and may be obscured both by averaging and by supervised models that collapse temporal structure into window-level labels \citep{Jung1998SingleTrialERP,Ouyang2017LatencyReview}.
+Supervised EEG decoding, however, often treats a fixed stimulus-locked window as an input to a class label or scalar behavioral variable. For RT decoding, this means that a delayed behavioral event is treated as a property of the whole EEG segment. A scalar predictor may therefore achieve low error by learning subject-level slowness, trial difficulty, or stimulus-locked response tendencies without representing when the response-relevant event occurs within the window.
 
-Supervised EEG decoding often uses this temporal signal in a less explicit way. A fixed stimulus-locked EEG window is mapped to a class label or scalar behavioral variable, even when the target has a natural time-of-occurrence interpretation. In RT decoding, this means that a delayed behavioral event is treated as a property of the whole EEG segment. A scalar predictor may therefore achieve low error by learning subject-level slowness, trial difficulty, or stimulus-locked response tendencies, without representing when the response-relevant event occurs within the window.
+We address this mismatch by treating behavioral RT as weak event-time supervision. The button press is not a direct annotation of neural event onset; it is a noisy behavioral observation produced by sensory, decision, and motor processes. Nevertheless, it constrains the timing of response-relevant dynamics. Given an EEG window \(X\), the model estimates a posterior distribution \(p(t_{\mathrm{event}}\mid X)\) over response-relevant event times and derives the scalar RT prediction as the posterior expectation. This keeps compatibility with standard scalar metrics such as nRMSE while making the timing semantics of RT explicit.
 
-We address this issue by treating behavioral RT as weak event-time supervision. The supervision is weak because the button press is not a direct annotation of neural event onset; it is a noisy behavioral observation produced by sensory, decision, and motor processes. Nevertheless, it constrains the timing of response-relevant dynamics. Given an EEG window \(X\), the model estimates a posterior distribution \(p(t_{\mathrm{event}}\mid X)\) over response-relevant event times and derives the scalar RT prediction as the posterior expectation, preserving compatibility with standard scalar metrics such as nRMSE while making the timing semantics of RT explicit.
+This formulation is complementary to work on stronger EEG architectures, self-supervised pretraining, and foundation-style EEG models, which target representation learning across subjects, tasks, and recording setups \citep{wang2024eegpt,Jiang2024LaBraM,Chen2024EEGFormer,Wang2025EEGMamba,ElOuahidi2025REVE,Yue2024BrainGPT}. We ask a different question: when the target is a behavioral latency, does the representation of the target itself matter, beyond backbone capacity or pretraining?
 
-This formulation is complementary to recent work on stronger EEG architectures, self-supervised pretraining, and foundation-style EEG models, which aim to improve representation learning across subjects, tasks, and recording setups \citep{wang2024eegpt,Jiang2024LaBraM,Chen2024EEGFormer,Wang2025EEGMamba,ElOuahidi2025REVE,Yue2024BrainGPT}. We focus on a different question: when the target is a behavioral latency, does the representation of the target also matter, not only the representation capacity of the backbone? For latency-structured EEG targets, the bottleneck may lie not only in architecture scale or pretraining, but also in whether the learning objective matches the temporal semantics of the label.
+We study this question on the Healthy Brain Network contrast change detection EEG task \citep{Shirazi2024HBNEEG}, following the RT prediction setting introduced by the EEG Foundation Challenge \citep{EEGFoundationChallengeArxiv2025,EEGChallengeWebsite2025}. Under a subject-disjoint, release-separated protocol, we compare direct scalar regression, temporal-readout regression, time-only segmentation, and distributionally supervised event-time models. This control structure separates architecture capacity, differentiable expectation readout, scalar timing loss with a temporal head, and full posterior supervision.
 
-We study this question using the Healthy Brain Network contrast change detection EEG task \citep{Shirazi2024HBNEEG}, following the reaction-time prediction setting introduced by the EEG Foundation Challenge \citep{EEGFoundationChallengeArxiv2025,EEGChallengeWebsite2025}. Each trial provides a fixed 2~s stimulus-locked EEG window, and the goal is to predict the participant's RT. We evaluate models under a subject-disjoint, release-separated protocol, using earlier HBN releases for training and development and a held-out labeled release for final reporting.
+The posterior view also changes what can be evaluated from each trial. Posterior width, target-aligned mass, mode-mean disagreement, and interval coverage characterize localization, uncertainty, and calibration even when scalar errors are similar. We further introduce shifted-crop inference as a shortcut-vs-localization diagnostic: a crop-relative event localizer should shift its predicted crop-relative event time opposite to the crop shift, whereas a crop-invariant scalar shortcut should remain closer to fixed absolute timing.
 
-This distinction determines the control structure of our experiments. We compare direct scalar regression, temporal-readout regression, time-only segmentation, and distributionally supervised event-time models to separate architecture capacity, differentiable expectation readout, scalar timing loss with a temporal head, and full posterior supervision. The central test is whether supervising the event-time distribution provides a better inductive bias than treating RT as an ordinary scalar label.
-
-The posterior is also scientifically useful because it changes what can be evaluated from each trial. Posterior width, target-aligned mass, mode-mean disagreement, and interval coverage characterize localization, uncertainty, and calibration, distinguishing models with similar scalar error. We further introduce shifted-crop inference as a shortcut-vs-localization diagnostic: a crop-relative event localizer should shift its predicted crop-relative event time opposite to the crop shift, whereas a crop-invariant scalar shortcut should remain closer to fixed absolute timing.
-
-Our results support this formulation-first view. Compact task-specific scalar models provide strong baselines, and larger supervised or foundation-style architectures trained from scratch do not by themselves close the gap. Distributional event-time supervision improves held-out prediction over scalar and temporal-readout controls and remains stable in five-seed checks, while time-only and readout ablations show that the gain is not explained by soft-argmax alone. Posterior-geometry and shifted-crop analyses further reveal temporal evidence and partial localization behavior hidden by scalar metrics.
-
-Although our experiments focus on RT prediction, the broader claim is that neural or behavioral targets with time-of-occurrence semantics should not automatically be reduced to static scalar regression. Event-time posteriors may also be useful for ERP latency estimation, movement onset decoding, error-related responses, and other latency-varying EEG phenomena.
+Our results support this event-time formulation. Distributional event-time supervision improves held-out prediction over scalar and temporal-readout controls, remains stable in five-seed checks, and is not explained by soft-argmax alone. Posterior-geometry and shifted-crop analyses reveal temporal evidence and partial localization behavior hidden by scalar metrics. Although our experiments focus on RT prediction, the same event-time view is relevant to EEG targets with latency semantics, including ERP latency estimation, movement onset decoding, error-related responses, and other latency-varying phenomena.
 
 Our contributions are:
 \begin{enumerate}
@@ -175,34 +169,26 @@ Our contributions are:
 \section{Related Work}
 
 \subsection{Event-Centered EEG Analysis and Latency Variability}
-EEG is often analyzed through events and latencies. Stimulus onset, response execution, error-related activity, movement onset, ERP component timing, and other temporally localized phenomena define not only what occurs in a trial, but also when task-relevant neural or behavioral processes unfold. This event-centered view is reflected in annotation practice: for example, Hierarchical Event Descriptors were introduced to describe laboratory and real-world EEG events in a machine-readable way for large-scale EEG analysis \citep{BigdelyShamlo2016HED}. It is also central to single-trial ERP analysis, where averaging can obscure latency variability across trials. ERP-image visualization and related single-trial methods show that sorting trials by reaction time can reveal performance-linked temporal structure \citep{Jung1998SingleTrialERP}, while RIDE and subsequent reviews emphasize that intra-subject ERP latency variability can be estimated and can carry behaviorally meaningful information \citep{Ouyang2011RIDE,Ouyang2017LatencyReview}.
+EEG is often analyzed through events and latencies. Stimulus onset, response execution, error-related activity, movement onset, ERP component timing, and other temporally localized phenomena define not only what occurs in a trial, but also when task-relevant neural or behavioral processes unfold. This event-centered view appears in annotation systems such as Hierarchical Event Descriptors \citep{BigdelyShamlo2016HED} and in single-trial ERP analysis, where ERP-image visualization and related methods show that sorting trials by RT can reveal performance-linked temporal structure \citep{Jung1998SingleTrialERP}. RIDE and subsequent reviews further emphasize that intra-subject ERP latency variability can be estimated and can carry behavioral meaning \citep{Ouyang2011RIDE,Ouyang2017LatencyReview}.
 
-Response- and movement-related EEG provide additional examples of event-centered analysis. Lateralized readiness potentials have been used to study response preparation and response execution in time-resolved EEG \citep{Coles1989LRP}, and error-related negativities provide response-locked signatures of error commission and performance monitoring \citep{Gehring1993ErrorDetection,HolroydColes2002ERN}. Movement-related cortical potentials, including the Bereitschaftspotential, further show that EEG dynamics can be organized around movement onset and premovement preparation \citep{KornhuberDeecke1965BP,ShibasakiHallett2006BP}. This body of work motivates the broader premise that latency and event timing are not incidental details of EEG analysis; they are often part of the scientific object being studied.
+Response- and movement-related EEG provide related examples. Lateralized readiness potentials index response preparation and execution \citep{Coles1989LRP}; error-related negativities provide response-locked signatures of error commission and performance monitoring \citep{Gehring1993ErrorDetection,HolroydColes2002ERN}; and movement-related cortical potentials, including the Bereitschaftspotential, organize EEG dynamics around movement onset and premovement preparation \citep{KornhuberDeecke1965BP,ShibasakiHallett2006BP}. Decision-time models make a related point at the behavioral level by treating RT variability as a consequence of latent temporal dynamics in evidence accumulation and decision formation \citep{Ratcliff2008Diffusion,OConnell2012Supramodal,Kelly2013Internal}. We do not fit such a cognitive process model; we use the weaker premise that observed RT is a noisy behavioral latency associated with an unobserved response-relevant event time.
 
-This perspective also connects to decision-time accounts of behavior. Diffusion and accumulation-to-bound models treat RT variability as a consequence of latent temporal dynamics in evidence accumulation and decision formation \citep{Ratcliff2008Diffusion,OConnell2012Supramodal,Kelly2013Internal}. We do not fit a cognitive process model in this work. Instead, we use the weaker and more task-agnostic premise that an observed RT is a noisy behavioral latency associated with an unobserved response-relevant event time.
-
-Explicit EEG event detection is also well established in settings where annotated onsets, offsets, or intervals are available. Sleep-event detectors, for example, estimate when transient events such as spindles and K-complexes occur rather than predicting only a window-level label \citep{Chambon2019DOSED,TapiaRivas2024SEED}. These settings show that event detection is natural for EEG. However, they typically rely on explicit event annotations, such as expert-marked onsets, offsets, intervals, or external sensors. Our setting is different: we do not begin with manually annotated neural event times. We begin with a behavioral latency, RT, which is recorded as a scalar but implicitly provides a weak time-of-occurrence label. Thus, the behavioral response provides timing evidence, but not a manually annotated neural event onset.
+Explicit EEG event detection is also well established when annotated onsets, offsets, or intervals are available. Sleep-event detectors, for example, estimate when transient events such as spindles and K-complexes occur rather than predicting only a window-level label \citep{Chambon2019DOSED,TapiaRivas2024SEED}. Our setting differs because we do not begin with manually annotated neural event times; RT is recorded as a scalar but provides weak time-of-occurrence evidence.
 
 \subsection{Fixed-Window EEG Decoding of Latency-Structured Targets}
-Modern supervised EEG decoding often maps a fixed stimulus-locked or task-locked EEG window to a scalar or class label. This formulation is convenient and aligns with standard benchmark metrics, but it can collapse temporal structure when the target itself has a time-of-occurrence interpretation. Reaction time is a clear example: it is evaluated as one scalar per trial, but it denotes the latency of a behavioral response following stimulus onset.
+Modern supervised EEG decoding often maps a fixed stimulus-locked or task-locked EEG window to a scalar or class label. This formulation is convenient and aligns with benchmark metrics, but it can collapse temporal structure when the target itself has time-of-occurrence semantics. RT is evaluated as one scalar per trial, yet it denotes the latency of a behavioral response following stimulus onset.
 
-EEG-based RT estimation has commonly been treated in this scalar-prediction form. Prior work has estimated RT from EEG using regression-oriented feature pipelines, including Riemannian geometry features for BCI regression \citep{Wu2017RiemannianRT}, as well as deep single-trial EEG models trained to predict visual-stimulus reaction time directly \citep{Chowdhury2020RTSensors}. The EEG Foundation Challenge provides a standardized scalar benchmark for trial-wise RT prediction, using normalized RMSE as the evaluation metric \citep{EEGFoundationChallengeArxiv2025,EEGChallengeWebsite2025}. We keep this scalar evaluation protocol. Our question is complementary: because RT is a response latency inside the post-stimulus EEG window, can the same label be used internally as weak event-time supervision? In this view, the challenge task is not a limitation but a useful testbed for comparing scalar regression, temporal-readout regression, and event-time posterior modeling under the same metric.
-
-This distinction matters for model interpretation. A scalar regressor may learn trial difficulty, subject-level response tendency, or stimulus-locked temporal priors without representing where the response-relevant event occurs inside the input window. A temporal readout alone does not fully resolve this issue: a model can predict weights over time bins and use a soft-argmax expectation while still being trained only through scalar RT error. Our work separates these possibilities by comparing direct scalar regression, temporal-readout regression, time-only segmentation, and distributionally supervised event-time models.
+EEG-based RT estimation has commonly followed this scalar-prediction form, including regression pipelines based on Riemannian geometry features \citep{Wu2017RiemannianRT} and deep single-trial EEG models for visual-stimulus RT prediction \citep{Chowdhury2020RTSensors}. The EEG Foundation Challenge provides a standardized scalar benchmark using normalized RMSE \citep{EEGFoundationChallengeArxiv2025,EEGChallengeWebsite2025}. We keep this scalar evaluation protocol, but ask whether the same label can be used internally as weak event-time supervision. This distinction matters because a scalar regressor may learn trial difficulty, subject-level response tendency, or stimulus-locked temporal priors without representing where the response-relevant event occurs. A temporal soft-argmax readout alone also does not resolve the issue if the model is still trained only through scalar RT error.
 
 \subsection{Distributional and Time-to-Event Output Modeling}
-From a machine-learning perspective, latency-structured EEG targets motivate output distributions rather than only point estimates. Label distribution learning replaces a single hard label with a distribution over related labels, which is useful when neighboring labels share metric structure or when target ambiguity is meaningful \citep{Geng2016LabelDistributionLearning}. For RT, neighboring labels are ordered time bins rather than unrelated classes, making a smoothed event-time distribution a natural supervision target.
+Latency-structured EEG targets also motivate output distributions rather than only point estimates. Label distribution learning replaces a hard label with a distribution over related labels, which is useful when neighboring labels share metric structure or when ambiguity is meaningful \citep{Geng2016LabelDistributionLearning}. For RT, neighboring labels are ordered time bins, making a smoothed event-time distribution a natural supervision target.
 
-Time-to-event modeling provides a complementary probabilistic language for output distributions over ordered event times. Classical survival analysis and modern neural time-to-event models estimate distributions over event times rather than only scalar predictions or risk scores \citep{Cox1972CoxPH,Lee2018DeepHit}. Distributional evaluation also makes calibration and uncertainty part of the modeling problem: posterior width, coverage, likelihood scores, and proper scoring rules can distinguish models with similar point errors but different uncertainty behavior \citep{Chapfuwa2023Calibration,Haider2020SurvivalDistributions}.
-
-We use this literature as an output-distribution language for finite EEG windows rather than as a standard survival-analysis setting. We do not study long-horizon risk, censoring, or competing clinical outcomes. Each trial provides a finite post-stimulus EEG window and an observed behavioral latency. We therefore use the time-to-event view locally: the model predicts a posterior over response-relevant event times within the represented window, and the scalar RT prediction is obtained as the posterior expectation. EventNLL gives a probabilistic version of this formulation by treating observed RT as a noisy realization of a latent response-relevant event time.
+Time-to-event modeling provides a complementary probabilistic language for ordered event times. Classical survival analysis and neural time-to-event models estimate distributions over event times rather than only scalar predictions or risk scores \citep{Cox1972CoxPH,Lee2018DeepHit}. Distributional evaluation also makes uncertainty and calibration observable through posterior width, coverage, likelihood scores, and proper scoring rules \citep{Chapfuwa2023Calibration,Haider2020SurvivalDistributions}. We use this literature locally for finite EEG windows, not as a standard survival-analysis setting with long-horizon risk, censoring, or competing clinical outcomes. EventNLL instantiates this view by treating observed RT as a noisy realization of a latent response-relevant event time.
 
 \subsection{Relation to EEG Backbones, Pretraining, and Robust Decoding}
 A separate line of EEG decoding work addresses cross-subject, cross-session, and cross-dataset variability through stronger input representations. Classical approaches include Riemannian covariance-based decoding and alignment methods for reducing subject or session mismatch \citep{Barachant2012RiemannianBCI,Jayaram2016TransferLearningBCI,Zanini2018RiemannianTL,HeWu2020EuclideanAlignment}. Deep learning approaches pursue related goals through domain adaptation, moment matching, supervised EEG architectures, self-supervised pretraining, and foundation-style EEG backbones \citep{Ganin2016DANN,SunSaenko2016DeepCORAL,Kostas2021BENDR,wang2024eegpt,Jiang2024LaBraM,Chen2024EEGFormer,Wang2025EEGMamba,ElOuahidi2025REVE,Yue2024BrainGPT}.
 
-Our contribution is complementary to these input-representation approaches. We do not propose a new general-purpose EEG backbone, invariant representation loss, or pretraining strategy. Instead, we focus on the output representation and supervision. When the target is a latency, the label is not only a scalar value to regress; it is also a weak annotation of when a relevant event occurred. In our experiments, external EEG architectures and foundation-style models trained from scratch serve as controlled architecture baselines. The main question is whether aligning the learning objective with the event-time semantics of RT improves decoding and yields more interpretable trial-wise temporal evidence.
-
-Taken together, prior work provides strong traditions for event-centered EEG analysis, fixed-window supervised decoding, explicit EEG event detection, and time-to-event modeling. What remains missing is a controlled EEG RT formulation that connects scalar benchmark evaluation, temporal-readout controls, distributional event-time supervision, and posterior-level diagnostics. We fill this gap by treating behavioral latency as weak event-time supervision, learning a posterior over response-relevant latencies, and evaluating that posterior as temporal evidence rather than only as a source of a scalar RT estimate.
+Our contribution is complementary to these input-representation approaches. We do not propose a new general-purpose EEG backbone, invariant representation loss, or pretraining strategy. Instead, we focus on output representation and supervision: when the target is a latency, the label is not only a scalar value to regress, but also weak evidence about when a relevant event occurred. External EEG architectures and foundation-style models trained from scratch therefore serve as controlled architecture baselines. What remains missing in prior work is a controlled EEG RT formulation that connects scalar benchmark evaluation, temporal-readout controls, distributional event-time supervision, and posterior-level diagnostics. We fill this gap by learning a posterior over response-relevant latencies and evaluating it as temporal evidence rather than only as a source of a scalar RT estimate.
 
 
 \section{Dataset and Evaluation Protocol}
@@ -281,9 +267,9 @@ EventNLL / likelihood variants & Observed RT under a latent event-time likelihoo
 
 \label{sec:baseline_regression}
 
-The regression baselines establish how far scalar supervision can go before introducing event-time targets. We use three complementary controls: a compact segment-pooling regressor (MSP-CNN), a matched temporal-readout regressor (ETR-CNN), and supervised external EEG backbones trained from scratch. Together, these baselines test whether performance is explained by architecture capacity or differentiable expectation readout before attributing gains to event-time distribution supervision.
+The regression baselines establish how far scalar supervision can go before introducing event-time targets. We use three complementary controls: a compact segment-pooling regressor (MSP-CNN), a matched temporal-readout regressor (ETR-CNN), and supervised external EEG backbones trained from scratch. Together, these baselines test whether performance is explained by architecture capacity or differentiable expectation readout before evaluating event-time distribution supervision.
 
-MSP-CNN denotes a multiscale segment-pooling CNN. It maps the full EEG window to scalar RT through temporal segment statistics and an MLP head. These models serve as reference points for isolating the effect of making temporal structure explicit in Section~\ref{sec:rt_segmentation}. In contrast to the segmentation formulation, direct scalar regression treats the window as a static input-output regression problem, without an explicit representation of response timing.
+MSP-CNN denotes a multiscale segment-pooling CNN. It maps the full EEG window to scalar RT through temporal segment statistics and an MLP head, providing the scalar counterpart to the event-time formulation in Section~\ref{sec:event_time_formulation}.
 
 The main MSP-CNN regression backbone (Figure~\ref{fig:ch1_regression}) is a lightweight 1-D temporal ConvNet with:
 (i) a learned channel-squeeze layer ($1\times1$ conv, 128$\rightarrow$48) that forms data-driven electrode mixtures,
@@ -292,9 +278,9 @@ and (ii) an EfficientNet-like temporal hierarchy with widening stages of residua
 Coarse timing cues are retained using segment-wise statistical pooling: the time axis is split into 2 and 4 segments,
 mean and max are computed per segment, and the resulting features are passed to a small MLP head.
 
-ETR-CNN is the matched temporal-readout counterpart. It keeps scalar RT supervision, but avoids collapsing the temporal feature map with segment statistics before prediction. Instead, a dilated depthwise-separable backbone preserves a time-indexed representation, predicts weights over crop-relative time bins, and outputs RT as the expected time under those weights. Thus ETR-CNN tests whether a differentiable expectation readout and expanded temporal receptive field are sufficient without event-time posterior supervision. ETR-CNN large keeps the same readout while increasing feature capacity.
+ETR-CNN is the matched temporal-readout counterpart, preserving a time-indexed representation and predicting RT as the expected time under learned crop-relative weights. ETR-CNN large keeps the same readout while increasing feature capacity.
 
-To contextualize these task-specific regressors against established EEG backbones, we also evaluate external architectures adapted to scalar RT regression. These include classical convolutional EEG baselines, Deep4Net and ShallowFBCSPNet \citep{braindecode}, the compact EEGNet architecture \citep{lawhern2018eegnet}, TIDNet's thinker-invariant convolutional design \citep{kostas2020thinkerinvariance}, the convolutional-transformer EEGConformer \citep{song2023eegconformer}, the attention temporal convolutional ATCNet architecture \citep{altaheri2022atcnet}, EEGPT \citep{wang2024eegpt}, Medformer \citep{wang2024medformer}, and the LaBraM foundation-style architecture \citep{Jiang2024LaBraM}. All external architectures are trained from scratch; pretrained weights are not used. The main tables report the wrapped/standardized variants, with unwrapped external runs treated as sanity checks in the Appendix.
+To contextualize these task-specific regressors against established EEG backbones, we also evaluate external architectures adapted to scalar RT regression. These include classical convolutional EEG baselines, Deep4Net and ShallowFBCSPNet \citep{braindecode}, the compact EEGNet architecture \citep{lawhern2018eegnet}, TIDNet's thinker-invariant convolutional design \citep{kostas2020thinkerinvariance}, the convolutional-transformer EEGConformer \citep{song2023eegconformer}, the attention temporal convolutional ATCNet architecture \citep{altaheri2022atcnet}, EEGPT \citep{wang2024eegpt}, Medformer \citep{wang2024medformer}, and the LaBraM foundation-style architecture \citep{Jiang2024LaBraM}. All external architectures are trained from scratch; pretrained weights are not used. The main tables report the wrapped/standardized variants, with unwrapped external runs treated as diagnostic checks in the Appendix.
 
 \begin{figure}[!t]
     \centering
@@ -304,7 +290,7 @@ To contextualize these task-specific regressors against established EEG backbone
 \end{figure}
 
 \paragraph{Regression baseline results.}
-Table~\ref{tab:r11_regression_baselines} reports direct-regression and external-backbone baselines repeated over five seeds. The ETR-CNN large capacity variant is the strongest direct-regression baseline, while the compact MSP-CNN and base ETR-CNN models remain competitive. Wrapped external architectures are substantially better controlled than their unwrapped sanity-check counterparts, but remain behind the task-specific regression baselines on R11.
+Table~\ref{tab:r11_regression_baselines} reports direct-regression and external-backbone baselines repeated over five seeds. The ETR-CNN large capacity variant is the strongest direct-regression baseline, while the compact MSP-CNN and base ETR-CNN models remain competitive. Wrapped external architectures are substantially better controlled than their unwrapped diagnostic counterparts, but remain behind the task-specific regression baselines on R11.
 
 \begin{table}[!t]
 \centering
@@ -338,28 +324,20 @@ Medformer & larger transformer & \mbox{0.9623 $\pm$ 0.0046} & \mbox{0.9585 $\pm$
 \end{tabularx}
 \end{table}
 
-Despite strong performance and fast training, direct regression does not explicitly supervise where within the analysis
-window the response-related event occurs. This limitation motivated the
-segmentation reformulation in Section~\ref{sec:rt_segmentation}, which makes response timing explicit via an event-time
-distribution.
-
 \subsection{Temporal-Readout Regression}
 \label{sec:rt_reg_zoo}
 
-Temporal-readout regression separates two ideas that are otherwise coupled in event-time segmentation: using an expectation-style readout and supervising a full event-time distribution. In ETR-CNN, the learned time-bin weights are only a readout parameterization for scalar RT regression. The model is optimized through scalar RT error, not by matching a crop-relative event-time posterior. This makes ETR-CNN a control for whether the gains below can be explained by soft-argmax-style coordinate regression alone \citep{nibali2018dsnt}, with dilated convolutions providing temporal context without changing the scalar-supervised objective \citep{yu2016dilated}.
+Temporal-readout regression separates two ideas that are otherwise coupled in event-time segmentation: using an expectation-style readout and supervising a full event-time distribution. In ETR-CNN, the learned time-bin weights are only a readout parameterization for scalar RT regression. The model is optimized through scalar RT error, not by matching a crop-relative event-time posterior. This makes ETR-CNN a control for whether the later gains can be explained by soft-argmax-style coordinate regression alone \citep{nibali2018dsnt}, with dilated convolutions providing temporal context without changing the scalar-supervised objective \citep{yu2016dilated}.
 
-The results in Table~\ref{tab:r11_regression_baselines} show that temporal-readout regression improves over scalar segment pooling: ETR-CNN reaches a test nRMSE of 0.8977 $\pm$ 0.0068 versus 0.8998 $\pm$ 0.0080 for MSP-CNN, and the larger ETR-CNN variant improves further to 0.8928 $\pm$ 0.0042. This indicates that temporal capacity and expectation-style readout are useful direct-regression controls. However, the model is still trained through scalar RT error rather than to match the geometry of an event-time posterior. These considerations motivate the segmentation formulation below, which makes response timing explicit via event-time supervision and distribution-matching losses.
+The results in Table~\ref{tab:r11_regression_baselines} show that temporal-readout regression improves over scalar segment pooling: ETR-CNN reaches a test nRMSE of 0.8977 $\pm$ 0.0068 versus 0.8998 $\pm$ 0.0080 for MSP-CNN, and the larger ETR-CNN variant improves further to 0.8928 $\pm$ 0.0042. Temporal capacity and expectation-style readout are therefore useful direct-regression controls, but the model is still trained through scalar RT error rather than to match the geometry of an event-time posterior.
 
-\section{Event-Time Posterior Models}
-\label{sec:event_time_models}
-
-\subsection{Event-Time Segmentation Framework}
-\label{sec:rt_segmentation}
+\section{Event-Time Posterior Formulation}
+\label{sec:event_time_formulation}
 
 To make response timing explicit, we reformulate RT prediction as event-time posterior modeling. Instead of predicting a scalar directly, the model produces per-time logits and a posterior distribution over response-relevant event times; scalar RT is then read out as the posterior expectation. The key distinction from temporal-readout regression is that the objective directly supervises the distributional event-time representation, either through a soft target or through a latent-event likelihood, rather than using a temporal head only as a scalar-regression readout.
 
-\paragraph{ETS-U-Net Architecture.}
-\label{sec:ets_unet}
+\subsection{Event-Time Segmentation Architectures}
+\label{sec:event_time_architectures}
 
 \begin{figure}[t]
     \centering
@@ -373,7 +351,7 @@ To make response timing explicit, we reformulate RT prediction as event-time pos
 \end{figure}
 
 
-The ETS-U-Net family is used to map an EEG trial window
+Our primary event-time segmentation architecture is ETS-U-Net, which maps an EEG trial window
 $X\in\mathbb{R}^{C\times T}$ to per-time logits $z_{0:T-1}$ (Figure~\ref{fig:ets_unet}). All segmentation variants follow a 1-D U-Net style encoder-decoder with skip
 connections for precise localization \citep{ronneberger2015unet}. The encoder progressively downsamples the temporal axis
 to build multi-scale context, while the decoder upsamples and fuses encoder features to recover per-time outputs at the
@@ -384,21 +362,13 @@ decimation, downsampling applies a fixed depthwise smoothing filter followed by 
 \citep{zhang2019shiftinvariant}. A dilated bottleneck further enlarges the receptive field without additional downsampling
 \citep{yu2016dilated}.
 
-
-
-\textbf{Segmentation model zoo.} Table~\ref{tab:rt_seg_models} lists the variants used for ensembling/stacking.
-ETS-U-Net-L/M/S share the same ETS-U-Net template and vary width and the number of residual refinement blocks per level.
-Attention ETS-U-Net replaces the bottleneck with temporal multi-head self-attention (MHSA) \citep{vaswani2017attention} and uses
-stochastic depth (DropPath) regularization \citep{huang2016stochasticdepth} to stabilize training at higher capacity.
-EEG-Inception Segmentation replaces single-path temporal filtering with Inception-style multi-branch temporal kernels
-\citep{szegedy2015going}, following the EEG-Inception design for ERP feature extraction \citep{santamaria2020eeginception}.
-Finally, Factorized ETS-U-Net augments the channel-mixing front-end with factorized cross-channel interactions inspired by
-Factorization Machines (FM) \citep{rendle2010fm}, optionally also injected within encoder stages to introduce a distinct
-cross-channel inductive bias.
+Table~\ref{tab:rt_seg_models} summarizes the architecture family. ETS-U-Net provides the main template, while attention,
+EEG-Inception, and factorized variants introduce complementary temporal and cross-channel inductive biases for ablation and
+secondary ensembling.
 
 
 \begin{table}[t!]
-\caption{Segmentation model variants used for reaction-time prediction. Each model outputs per-time logits and is trained under the same segmentation objective; architectural diversity is exploited for ensembling/stacking.}
+\caption{Segmentation architecture variants used for reaction-time prediction. Each variant outputs per-time logits compatible with the event-time objectives defined next; architectural diversity is used for ablation and secondary ensembling.}
 \label{tab:rt_seg_models}
 \small
 \centering
@@ -424,7 +394,7 @@ ETS-U-Net-L (wide)
 ETS-U-Net-M
 & ETS-U-Net
 & moderate width; depthwise-separable convs; 5 ResBlocks/level; dilated bottleneck
-& best single-model accuracy / efficiency tradeoff \\
+& best single-model accuracy--efficiency tradeoff \\
 
 ETS-U-Net-S
 & ETS-U-Net
@@ -453,16 +423,11 @@ Factorized ETS-U-Net
 
 
 
-Architectural diversity is introduced to improve ensembling and stacking. ETS-U-Net-L (wide) uses a wider encoder and
-5 residual blocks per level, providing the highest capacity. ETS-U-Net-M retains the same depth (5 blocks/level) with a
-more moderate width for a stronger accuracy--efficiency trade-off, while ETS-U-Net-S uses a lighter encoder
-(3 blocks/level) and yields faster, lower-variance base learners. Long-range temporal interactions are emphasized in
-Attention ETS-U-Net (MHSA) via a multi-head self-attention bottleneck. EEG-Inception Segmentation replaces single-path temporal filtering
-with multi-branch kernels for multi-scale feature extraction. Finally, Factorized ETS-U-Net augments the standard channel-mixing
-front-end with an FM-style factorized interaction module (optionally also injected within encoder stages), providing a
-distinct cross-channel inductive bias. The post-hoc distribution-aware stacking procedure used for the secondary ensemble analysis is described in Appendix~\ref{sec:rt_stacking}.
+These variants share the per-time-logit interface and differ only in architectural bias; the output objectives are defined
+in the next subsection. The post-hoc distribution-aware stacking procedure used for the secondary ensemble analysis is
+described in Appendix~\ref{sec:rt_stacking}.
 
-\subsection{Soft-Label Distributional Supervision}
+\subsection{Distributional Supervision Objectives}
 
 \paragraph{Soft target distribution.}
 For a sampled crop, the ground-truth event time within the crop is represented as a relative time
@@ -504,7 +469,38 @@ H(p)=-\sum_{t=0}^{T-1} p_t \log p_t.
 \end{equation*}
 This expression defines an ablation family rather than a single mandatory loss cocktail. CE-only supervision sets the scalar time term to zero and asks the model to match a Gaussian soft event-time label. The hybrid objective combines CE with a soft-argmax time loss. The time-only ablation removes distributional matching while keeping the same readout, and the Wasserstein-only ablation tests whether a CDF-based geometry loss is sufficient on its own. The entropy, KL, focal, and related terms are best viewed as posterior-geometry controls rather than as the main contribution. We also evaluate a hazard-parameterized readout as an extension, mapping logits to a discrete-time survival process before forming the event-time posterior.
 
-\paragraph{Release-separated segmentation comparison.}
+\subsection{Latent Event-Time Likelihood}
+\label{sec:event_nll}
+
+As a probabilistic alternative to soft Gaussian-label supervision, we also evaluate a latent event-time likelihood. The temporal softmax defines a posterior over latent event bins, and the observed scalar RT is modeled as a noisy realization of the latent event time:
+\begin{equation}
+\label{eq:event_nll}
+p(y\mid X)
+= \sum_{t=0}^{T-1} p_t(X)\,
+\mathcal{N}\!\left(y;\,t_0 + g_t,\,\sigma_y^2\right),
+\qquad
+\mathcal{L}_{\mathrm{EventNLL}} = -\log p(y\mid X).
+\end{equation}
+This objective keeps the same event-time interpretation but replaces the artificial target mask $q_t$ with a marginal likelihood over latent response-relevant event times. We therefore present EventNLL primarily as a more principled latent-variable objective, not as the scalar-NRMSE winner among the evaluated losses.
+
+\paragraph{Observation-kernel and hazard extensions.}
+The EventNLL formulation separates the latent event-time posterior $p_t(X)$ from the observation model $K(y\mid t)$. The default model uses a single Gaussian observation kernel, but we also evaluate a two-scale Gaussian mixture,
+\begin{equation}
+\label{eq:event_nll_mixture_kernel}
+K(y\mid t)=(1-\alpha)\,\mathcal{N}(y;t_0+g_t,\sigma_{\mathrm{narrow}}^2)
++\alpha\,\mathcal{N}(y;t_0+g_t,\sigma_{\mathrm{wide}}^2),
+\end{equation}
+which keeps most probability mass in a narrow timing error while allowing a wider tail for occasional noisy RT observations. In the completed run, $\sigma_{\mathrm{narrow}}=0.10$~s, $\sigma_{\mathrm{wide}}=0.35$~s, and $\alpha=0.10$.
+
+As a readout extension, we also evaluate a hazard/survival parameterization. Instead of using logits only as unconstrained softmax scores, each temporal logit defines a conditional event probability
+\begin{equation}
+\label{eq:hazard_readout}
+h_t=\sigma(z_t/\tau),\qquad
+p_t^{\mathrm{haz}} \propto h_t\prod_{k<t}(1-h_k),
+\end{equation}
+with the resulting event-bin probabilities normalized over the represented window. This keeps the same event-time likelihood in Eq.~\ref{eq:event_nll}, but changes the posterior parameterization from a categorical softmax to a discrete-time survival process. This extension tests whether the event-time formulation is tied to one softmax implementation.
+
+\subsection{Formulation Comparison and Robustness}
 Table~\ref{tab:r11_segmentation_losses} summarizes the event-time segmentation loss ablations, with the likelihood-family extensions defined in Section~\ref{sec:event_nll} included for comparison. The calibrated hybrid event-time segmentation model reaches 0.935573 nRMSE on R11, improving over the strongest direct-regression baseline. CE-only soft-label supervision is also strong. The Gaussian-mixture and hazard rows are compact EventNLL-family extensions: the former changes the observation kernel, while the latter changes the event-time posterior parameterization. This is the central empirical step in the narrative: once RT is represented as an event-time posterior, distributional supervision over time becomes more useful than treating RT as a scalar window label.
 
 \begin{figure}[!t]
@@ -541,6 +537,8 @@ Wasserstein only, cal. & event-time CDF distance only & 2.95 & 0.936941 & 0.9497
 \paragraph{Objective ablations.}
 The loss ablations separate the value of the temporal readout from the value of distributional supervision. The time-only model directly optimizes soft-argmax error but removes distribution matching; it is weaker than CE-only and hybrid segmentation. The Wasserstein-only run is a useful negative control: not every distributional distance recovers the gain. CE, CE+time, and EventNLL remain in the same performance band, supporting the view that the main gain comes from the event-time formulation rather than from a single hand-tuned loss. The hazard EventNLL result further shows that the formulation is not tied to a categorical softmax readout: a survival-style posterior reaches the same scalar-performance regime while preserving the event-time likelihood view.
 
+The EventNLL rows in Table~\ref{tab:r11_segmentation_losses} show that the event-time NLL run nearly matches CE-only and hybrid segmentation without requiring a hand-weighted CE+time objective. We therefore present it as a principled latent-variable likelihood rather than as a claim of best scalar nRMSE. The Gaussian-mixture kernel improves the EventNLL-family scalar readout relative to the fixed Gaussian kernel, while the hazard EventNLL extension reaches CE-level R11 performance without reverting to scalar regression. The posterior-geometry analysis in Table~\ref{tab:posterior_geometry_metrics} further shows that EventNLL produces a much narrower posterior than CE or CE+time and places more mass near the target, but it also under-covers nominal central intervals. This makes it scientifically useful: it reveals that similar scalar errors can correspond to different posterior geometries.
+
 \paragraph{Seed robustness.}
 To test whether the main comparison depends on a favorable random initialization, we repeated selected core recipes over five seeds (2025--2029). This analysis is a reliability check rather than a new model-selection stage: it focuses on the strongest temporal-readout regression baseline, the strongest wrapped external baseline, the two main distributional event-time objectives, and the time-only segmentation control.
 
@@ -567,40 +565,6 @@ ETS-U-Net time-only & soft-argmax time loss control & 0.9371 $\pm$ 0.0020 & 0.94
 \end{tabular}%
 }
 \end{table}
-
-\subsection{Latent Event-Time Likelihood}
-\label{sec:event_nll}
-
-As a probabilistic alternative to soft Gaussian-label supervision, we also evaluate a latent event-time likelihood. The temporal softmax defines a posterior over latent event bins, and the observed scalar RT is modeled as a noisy realization of the latent event time:
-\begin{equation}
-\label{eq:event_nll}
-p(y\mid X)
-= \sum_{t=0}^{T-1} p_t(X)\,
-\mathcal{N}\!\left(y;\,t_0 + g_t,\,\sigma_y^2\right),
-\qquad
-\mathcal{L}_{\mathrm{EventNLL}} = -\log p(y\mid X).
-\end{equation}
-This objective keeps the same event-time interpretation but replaces the artificial target mask $q_t$ with a marginal likelihood over latent response-relevant event times. We therefore present EventNLL primarily as a more principled latent-variable objective, not as the scalar-NRMSE winner among the evaluated losses.
-
-\paragraph{Observation-kernel and hazard extensions.}
-The EventNLL formulation separates the latent event-time posterior $p_t(X)$ from the observation model $K(y\mid t)$. The default model uses a single Gaussian observation kernel, but we also evaluate a two-scale Gaussian mixture,
-\begin{equation}
-\label{eq:event_nll_mixture_kernel}
-K(y\mid t)=(1-\alpha)\,\mathcal{N}(y;t_0+g_t,\sigma_{\mathrm{narrow}}^2)
-+\alpha\,\mathcal{N}(y;t_0+g_t,\sigma_{\mathrm{wide}}^2),
-\end{equation}
-which keeps most probability mass in a narrow timing error while allowing a wider tail for occasional noisy RT observations. In the completed run, $\sigma_{\mathrm{narrow}}=0.10$~s, $\sigma_{\mathrm{wide}}=0.35$~s, and $\alpha=0.10$.
-
-As a readout extension, we also evaluate a hazard/survival parameterization. Instead of using logits only as unconstrained softmax scores, each temporal logit defines a conditional event probability
-\begin{equation}
-\label{eq:hazard_readout}
-h_t=\sigma(z_t/\tau),\qquad
-p_t^{\mathrm{haz}} \propto h_t\prod_{k<t}(1-h_k),
-\end{equation}
-with the resulting event-bin probabilities normalized over the represented window. This keeps the same event-time likelihood in Eq.~\ref{eq:event_nll}, but changes the posterior parameterization from a categorical softmax to a discrete-time survival process. This extension tests whether the event-time formulation is tied to one softmax implementation.
-
-\paragraph{Likelihood-family comparison.}
-The EventNLL rows in Table~\ref{tab:r11_segmentation_losses} show that the event-time NLL run nearly matches CE-only and hybrid segmentation without requiring a hand-weighted CE+time objective. We therefore present it as a principled latent-variable likelihood rather than as a claim of best scalar nRMSE. The Gaussian-mixture kernel improves the EventNLL-family scalar readout relative to the fixed Gaussian kernel, while the hazard EventNLL extension reaches CE-level R11 performance without reverting to scalar regression. The posterior-geometry analysis in Table~\ref{tab:posterior_geometry_metrics} further shows that EventNLL produces a much narrower posterior than CE or CE+time and places more mass near the target, but it also under-covers nominal central intervals. This makes it scientifically useful: it reveals that similar scalar errors can correspond to different posterior geometries.
 
 \section{Posterior Readout and Diagnostics}
 \label{sec:posterior_diagnostics}
@@ -781,8 +745,8 @@ t^\star = \arg\max_{t} z_t,\qquad
 z_{\max} = \max_t z_t,\qquad
 m_{\mathrm{top2}} = z_{\max} - \max_{t\neq t^\star} z_t.
 \end{equation}
-For each $\tau\in\mathcal{T}_{\text{meta}}$, probabilities are formed as $p(\tau)=\mathrm{softmax}(\mathbf{z}/\tau)$ (Eq.~\ref{eq:rt_pred_dist}, Sec.~\ref{sec:rt_segmentation}), where $\mathbf{z}=(z_0,\dots,z_{T-1})$ denotes the per-time logit vector for a given model and window. Distributional summaries
-are computed, including the soft-argmax time (Eq.~\ref{eq:rt_soft_argmax}, Sec.~\ref{sec:rt_segmentation}), entropy $H(p(\tau))$, peak probability
+For each $\tau\in\mathcal{T}_{\text{meta}}$, probabilities are formed as $p(\tau)=\mathrm{softmax}(\mathbf{z}/\tau)$ (Eq.~\ref{eq:rt_pred_dist}, Sec.~\ref{sec:event_time_formulation}), where $\mathbf{z}=(z_0,\dots,z_{T-1})$ denotes the per-time logit vector for a given model and window. Distributional summaries
+are computed, including the soft-argmax time (Eq.~\ref{eq:rt_soft_argmax}, Sec.~\ref{sec:event_time_formulation}), entropy $H(p(\tau))$, peak probability
 $p_{\max}(\tau)$, time variance $\mathrm{Var}_{p(\tau)}[g]$, and CDF time-quantiles (10/50/90\%). In our implementation,
 $\mathcal{T}_{\text{meta}}=\{0.7,1.0,1.3\}$.
 
