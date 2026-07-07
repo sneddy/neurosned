@@ -1,0 +1,290 @@
+\begin{thebibliography}{}
+
+\bibitem[Aristimunha et~al., 2025]{EEGFoundationChallengeArxiv2025}
+Aristimunha, B., Truong, D., Guetschel, P., Shirazi, S.~Y., Guyon, I., Franco,
+  A.~R., Milham, M.~P., Dotan, A., Makeig, S., Gramfort, A., King, J.-R.,
+  Corsi, M.-C., Valdés-Sosa, P.~A., Majumdar, A., Evans, A., Sejnowski, T.~J.,
+  Shriki, O., Chevallier, S., and Delorme, A. (2025).
+\newblock Eeg foundation challenge: From cross-task to cross-subject eeg
+  decoding.
+
+\bibitem[Barachant et~al., 2012]{Barachant2012RiemannianBCI}
+Barachant, A., Bonnet, S., Congedo, M., and Jutten, C. (2012).
+\newblock Multiclass brain--computer interface classification by {R}iemannian
+  geometry.
+\newblock {\em IEEE Transactions on Biomedical Engineering}, 59(4):920--928.
+
+\bibitem[Chapfuwa et~al., 2023]{Chapfuwa2023Calibration}
+Chapfuwa, P., Tao, C., Li, C., Khan, I., Chandross, K.~J., Pencina, M.~J.,
+  Carin, L., and Henao, R. (2023).
+\newblock Calibration and uncertainty in neural time-to-event modeling.
+\newblock {\em IEEE Transactions on Neural Networks and Learning Systems},
+  34(4):1666--1680.
+
+\bibitem[Chen et~al., 2024]{Chen2024EEGFormer}
+Chen, Y., Ren, K., Song, K., Wang, Y., Wang, Y., Li, D., and Qiu, L. (2024).
+\newblock Eegformer: Towards transferable and interpretable large-scale eeg
+  foundation model.
+
+\bibitem[Chollet, 2017]{chollet2017xception}
+Chollet, F. (2017).
+\newblock Xception: Deep learning with depthwise separable convolutions.
+\newblock In {\em Proceedings of the IEEE Conference on Computer Vision and
+  Pattern Recognition (CVPR)}.
+
+\bibitem[Chowdhury et~al., 2020]{Chowdhury2020RTSensors}
+Chowdhury, M. S.~N., Dutta, A., Robison, M.~K., Blais, C., Brewer, G., and
+  Bliss, D.~W. (2020).
+\newblock Deep neural network for visual stimulus-based reaction time
+  estimation using the periodogram of single-trial {EEG}.
+\newblock {\em Sensors}, 20(21):6090.
+
+\bibitem[Cox, 1972]{Cox1972CoxPH}
+Cox, D.~R. (1972).
+\newblock Regression models and life-tables.
+\newblock {\em Journal of the Royal Statistical Society: Series B
+  (Methodological)}, 34(2):187--202.
+
+\bibitem[EEG Challenge, 2025]{EEGChallengeWebsite2025}
+EEG Challenge (2025).
+\newblock Eeg challenge (2025): Neurips eeg foundation challenge.
+\newblock \url{https://eeg2025.github.io/}.
+\newblock Accessed 2026-02-04.
+
+\bibitem[Ganin et~al., 2016]{Ganin2016DANN}
+Ganin, Y., Ustinova, E., Ajakan, H., Germain, P., Larochelle, H., Laviolette,
+  F., Marchand, M., and Lempitsky, V. (2016).
+\newblock Domain-adversarial training of neural networks.
+\newblock {\em Journal of Machine Learning Research}, 17:1--35.
+\newblock arXiv:1505.07818.
+
+\bibitem[Geng, 2016]{Geng2016LabelDistributionLearning}
+Geng, X. (2016).
+\newblock Label distribution learning.
+\newblock {\em IEEE Transactions on Knowledge and Data Engineering},
+  28(7):1734--1748.
+
+\bibitem[Graves, 2016]{graves2016act}
+Graves, A. (2016).
+\newblock Adaptive computation time for recurrent neural networks.
+\newblock {\em CoRR}, abs/1603.08983.
+
+\bibitem[Guo et~al., 2017]{guo2017calibration}
+Guo, C., Pleiss, G., Sun, Y., and Weinberger, K.~Q. (2017).
+\newblock On calibration of modern neural networks.
+\newblock In {\em Proceedings of the 34th International Conference on Machine
+  Learning}, volume~70 of {\em Proceedings of Machine Learning Research}, pages
+  1321--1330. PMLR.
+
+\bibitem[Haider et~al., 2020]{Haider2020SurvivalDistributions}
+Haider, H., Hoehn, B., Davis, S., and Greiner, R. (2020).
+\newblock Effective ways to build and evaluate individual survival
+  distributions.
+\newblock {\em Journal of Machine Learning Research}, 21(85):1--63.
+
+\bibitem[He and Wu, 2020]{HeWu2020EuclideanAlignment}
+He, H. and Wu, D. (2020).
+\newblock Transfer learning for brain--computer interfaces: A {E}uclidean space
+  data alignment approach.
+\newblock {\em IEEE Transactions on Biomedical Engineering}, 67(2):399--410.
+
+\bibitem[He et~al., 2016]{he2016resnet}
+He, K., Zhang, X., Ren, S., and Sun, J. (2016).
+\newblock Deep residual learning for image recognition.
+\newblock In {\em Proceedings of the IEEE Conference on Computer Vision and
+  Pattern Recognition (CVPR)}.
+
+\bibitem[Howard et~al., 2017]{howard2017mobilenets}
+Howard, A.~G., Zhu, M., Chen, B., Kalenichenko, D., Wang, W., Weyand, T.,
+  Andreetto, M., and Adam, H. (2017).
+\newblock Mobilenets: Efficient convolutional neural networks for mobile vision
+  applications.
+\newblock {\em CoRR}, abs/1704.04861.
+
+\bibitem[Huang et~al., 2016]{huang2016stochasticdepth}
+Huang, G., Sun, Y., Liu, Z., Sedra, D., and Weinberger, K.~Q. (2016).
+\newblock Deep networks with stochastic depth.
+\newblock In {\em Proceedings of the European Conference on Computer Vision
+  (ECCV)}, pages 646--661.
+
+\bibitem[Jayaram et~al., 2016]{Jayaram2016TransferLearningBCI}
+Jayaram, V., Alamgir, M., Altun, Y., Sch{\"o}lkopf, B., and Grosse-Wentrup, M.
+  (2016).
+\newblock Transfer learning in brain--computer interfaces.
+\newblock {\em IEEE Computational Intelligence Magazine}, 11(1):20--31.
+
+\bibitem[Jiang et~al., 2024]{Jiang2024LaBraM}
+Jiang, W., Zhao, L., and liang Lu, B. (2024).
+\newblock Large brain model for learning generic representations with
+  tremendous {EEG} data in {BCI}.
+\newblock In {\em The Twelfth International Conference on Learning
+  Representations}.
+
+\bibitem[Jung et~al., 1998]{Jung1998SingleTrialERP}
+Jung, T.-P., Makeig, S., Westerfield, M., Townsend, J., Courchesne, E., and
+  Sejnowski, T.~J. (1998).
+\newblock Analyzing and visualizing single-trial event-related potentials.
+\newblock In {\em Advances in Neural Information Processing Systems},
+  volume~11, pages 118--124.
+
+\bibitem[Kelly and O'Connell, 2013]{Kelly2013Internal}
+Kelly, S.~P. and O'Connell, R.~G. (2013).
+\newblock Internal and external influences on the rate of sensory evidence
+  accumulation in the human brain.
+\newblock {\em Journal of Neuroscience}, 33(50):19434--19441.
+
+\bibitem[Kostas et~al., 2021]{Kostas2021BENDR}
+Kostas, D., Aroca-Ouellette, S., and Rudzicz, F. (2021).
+\newblock {BENDR}: Using transformers and a contrastive self-supervised
+  learning task to learn from massive amounts of {EEG} data.
+\newblock {\em Frontiers in Human Neuroscience}, 15:653659.
+
+\bibitem[Lee et~al., 2018]{Lee2018DeepHit}
+Lee, C., Zame, W.~R., Yoon, J., and van~der Schaar, M. (2018).
+\newblock {DeepHit}: A deep learning approach to survival analysis with
+  competing risks.
+\newblock In {\em Proceedings of the AAAI Conference on Artificial
+  Intelligence}, volume~32, pages 2314--2321.
+
+\bibitem[Nibali et~al., 2018]{nibali2018dsnt}
+Nibali, A., He, Z., Morgan, S., and Prendergast, L. (2018).
+\newblock Numerical coordinate regression with convolutional neural networks.
+\newblock {\em CoRR}, abs/1801.07372.
+
+\bibitem[O'Connell et~al., 2012]{OConnell2012Supramodal}
+O'Connell, R.~G., Dockree, P.~M., and Kelly, S.~P. (2012).
+\newblock A supramodal accumulation-to-bound signal that determines perceptual
+  decisions in humans.
+\newblock {\em Nature Neuroscience}, 15(12):1729--1735.
+
+\bibitem[Ouahidi et~al., 2025]{ElOuahidi2025REVE}
+Ouahidi, Y.~E., Lys, J., Thölke, P., Farrugia, N., Pasdeloup, B., Gripon, V.,
+  Jerbi, K., and Lioi, G. (2025).
+\newblock Reve: A foundation model for eeg -- adapting to any setup with
+  large-scale pretraining on 25,000 subjects.
+
+\bibitem[Ouyang et~al., 2017]{Ouyang2017LatencyReview}
+Ouyang, G., Hildebrandt, A., Sommer, W., and Zhou, C. (2017).
+\newblock Exploiting the intra-subject latency variability from single-trial
+  event-related potentials in the {P3} time range: A review and comparative
+  evaluation of methods.
+\newblock {\em Neuroscience and Biobehavioral Reviews}, 75:1--21.
+
+\bibitem[Perez et~al., 2018]{perez2018film}
+Perez, E., Strub, F., de~Vries, H., Dumoulin, V., and Courville, A. (2018).
+\newblock Film: Visual reasoning with a general conditioning layer.
+\newblock In {\em Proceedings of the AAAI Conference on Artificial Intelligence
+  (AAAI)}.
+
+\bibitem[Ratcliff and McKoon, 2008]{Ratcliff2008Diffusion}
+Ratcliff, R. and McKoon, G. (2008).
+\newblock The diffusion decision model: Theory and data for two-choice decision
+  tasks.
+\newblock {\em Neural Computation}, 20(4):873--922.
+
+\bibitem[Rendle, 2010]{rendle2010fm}
+Rendle, S. (2010).
+\newblock Factorization machines.
+\newblock In {\em 2010 IEEE International Conference on Data Mining (ICDM)},
+  pages 995--1000. IEEE.
+
+\bibitem[Ronneberger et~al., 2015]{ronneberger2015unet}
+Ronneberger, O., Fischer, P., and Brox, T. (2015).
+\newblock U-net: Convolutional networks for biomedical image segmentation.
+\newblock In {\em Medical Image Computing and Computer-Assisted Intervention
+  (MICCAI)}, volume 9351 of {\em Lecture Notes in Computer Science}, pages
+  234--241. Springer.
+
+\bibitem[Santamar{\'i}a-V{\'a}zquez et~al., 2020]{santamaria2020eeginception}
+Santamar{\'i}a-V{\'a}zquez, E., Mart{\'i}nez-Cagigal, V., Vaquerizo-Villar, F.,
+  and Hornero, R. (2020).
+\newblock Eeg-inception: A novel deep convolutional neural network for
+  assistive erp-based brain-computer interfaces.
+\newblock {\em IEEE Transactions on Neural Systems and Rehabilitation
+  Engineering}, 28(12):2773--2782.
+
+\bibitem[Shirazi et~al., 2024]{Shirazi2024HBNEEG}
+Shirazi, S.~Y., Franco, A., Hoffmann, M.~S., Esper, N., Truong, D., Delorme,
+  A., Milham, M., and Makeig, S. (2024).
+\newblock Hbn-eeg: The fair implementation of the healthy brain network (hbn)
+  electroencephalography dataset.
+\newblock {\em bioRxiv}.
+
+\bibitem[Sun and Saenko, 2016]{SunSaenko2016DeepCORAL}
+Sun, B. and Saenko, K. (2016).
+\newblock Deep {CORAL}: Correlation alignment for deep domain adaptation.
+\newblock In {\em Proceedings of the European Conference on Computer Vision
+  (ECCV)}.
+
+\bibitem[Szegedy et~al., 2015]{szegedy2015going}
+Szegedy, C., Liu, W., Jia, Y., Sermanet, P., Reed, S., Anguelov, D., Erhan, D.,
+  Vanhoucke, V., and Rabinovich, A. (2015).
+\newblock Going deeper with convolutions.
+\newblock In {\em Proceedings of the IEEE Conference on Computer Vision and
+  Pattern Recognition (CVPR)}.
+
+\bibitem[Tapia-Rivas et~al., 2024]{TapiaRivas2024SEED}
+Tapia-Rivas, N.~I., Estevez, P.~A., and Cortes-Briones, J.~A. (2024).
+\newblock A robust deep learning detector for sleep spindles and {K}-complexes:
+  Towards population norms.
+\newblock {\em Scientific Reports}, 14:263.
+
+\bibitem[Vaswani et~al., 2017]{vaswani2017attention}
+Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A.~N.,
+  Kaiser, {\L}., and Polosukhin, I. (2017).
+\newblock Attention is all you need.
+\newblock In {\em Advances in Neural Information Processing Systems (NeurIPS)}.
+
+\bibitem[Wang et~al., 2024]{wang2024eegpt}
+Wang, G., Liu, W., He, Y., Xu, C., Ma, L., and Li, H. (2024).
+\newblock Eegpt: Pretrained transformer for universal and reliable
+  representation of eeg signals.
+\newblock In Globerson, A., Mackey, L., Belgrave, D., Fan, A., Paquet, U.,
+  Tomczak, J., and Zhang, C., editors, {\em Advances in Neural Information
+  Processing Systems}, volume~37, pages 39249--39280. Curran Associates, Inc.
+
+\bibitem[Wang et~al., 2025]{Wang2025EEGMamba}
+Wang, J., Zhao, S., Luo, Z., Zhou, Y., Li, S., and Pan, G. (2025).
+\newblock Eegmamba: An eeg foundation model with mamba.
+\newblock {\em Neural Networks}, 192:107816.
+
+\bibitem[Wang et~al., 2016]{wang2016tsn}
+Wang, L., Xiong, Y., Wang, Z., Qiao, Y., Lin, D., Tang, X., and Van~Gool, L.
+  (2016).
+\newblock Temporal segment networks: Towards good practices for deep action
+  recognition.
+\newblock In {\em Computer Vision -- ECCV 2016}, volume 9912 of {\em Lecture
+  Notes in Computer Science}, pages 20--36. Springer.
+
+\bibitem[Wu et~al., 2017]{Wu2017RiemannianRT}
+Wu, D., Lance, B.~J., Lawhern, V.~J., Gordon, S., Jung, T.-P., and Lin, C.-T.
+  (2017).
+\newblock {EEG}-based user reaction time estimation using riemannian geometry
+  features.
+\newblock {\em IEEE Transactions on Neural Systems and Rehabilitation
+  Engineering}, 25(11):2157--2168.
+
+\bibitem[Yu and Koltun, 2016]{yu2016dilated}
+Yu, F. and Koltun, V. (2016).
+\newblock Multi-scale context aggregation by dilated convolutions.
+\newblock In {\em International Conference on Learning Representations (ICLR)}.
+
+\bibitem[Yue et~al., 2025]{Yue2024BrainGPT}
+Yue, T., Gao, X., Xue, S., Tang, Y., Guo, L., Jiang, J., and Liu, J. (2025).
+\newblock Braingpt: Unleashing the potential of eeg generalist foundation model
+  by autoregressive pre-training.
+
+\bibitem[Zanini et~al., 2018]{Zanini2018RiemannianTL}
+Zanini, P., Congedo, M., Jutten, C., Said, S., and Berthoumieu, Y. (2018).
+\newblock Transfer learning: A {R}iemannian geometry framework with
+  applications to brain--computer interfaces.
+\newblock {\em IEEE Transactions on Biomedical Engineering}, 65(5):1107--1116.
+
+\bibitem[Zhang, 2019]{zhang2019shiftinvariant}
+Zhang, R. (2019).
+\newblock Making convolutional networks shift-invariant again.
+\newblock In Chaudhuri, K. and Salakhutdinov, R., editors, {\em Proceedings of
+  the 36th International Conference on Machine Learning}, volume~97 of {\em
+  Proceedings of Machine Learning Research}, pages 7324--7334. PMLR.
+
+\end{thebibliography}
