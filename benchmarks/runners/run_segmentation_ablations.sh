@@ -17,7 +17,6 @@ run_repeated() {
 }
 
 run_repeated benchmarks/configs/02_segmentation_ablations/ets_unet_ce.yaml
-run_repeated benchmarks/configs/02_segmentation_ablations/ets_unet_ce_time.yaml
 run_repeated benchmarks/configs/02_segmentation_ablations/ets_unet_event_nll.yaml
 run_repeated benchmarks/configs/02_segmentation_ablations/ets_unet_time_only.yaml
 run_repeated benchmarks/configs/02_segmentation_ablations/ets_unet_wasserstein.yaml

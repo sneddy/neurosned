@@ -59,10 +59,10 @@ Metric conventions:
 | --- | --- | --- | --- |
 | Data protocol | `benchmarks/experiments/00_data_protocol/` | Split, support-filter, subject-disjointness, and package-version record. | Complete. |
 | Regression baselines | `benchmarks/configs/01_regression_baselines/` | Scalar RT and wrapped external EEG baselines. | Complete: 12/12 configs, 5 seeds each. |
-| Segmentation ablations | `benchmarks/configs/02_segmentation_ablations/` | ETS-U-Net event-time objective comparison. | Running: 6/7 objectives complete; CE+time pending. |
+| Segmentation ablations | `benchmarks/configs/02_segmentation_ablations/` | ETS-U-Net event-time objective comparison. | Complete for selected paper-facing objectives. |
 | Posterior geometry | generated from `02_segmentation_ablations` outputs | Distributional output semantics beyond scalar nRMSE. | Pending filtered-protocol regeneration. |
 | Shifted-crop diagnostic | `evaluation.shifted_crop` in run configs plus post-hoc regression runner | Shortcut-vs-localization stress test. | Complete for scalar baselines; running for segmentation. |
-| Shift-jitter training | planned config group | Training-time removal of fixed-window shortcuts. | Planned. |
+| Shift-jitter training | `benchmarks/configs/03_crop_shift_jitter/` | Training-time removal of fixed-window shortcuts. | Configs ready, not run. |
 | Final training recipe | planned config group | Optional final model recipe after ablations are fixed. | Planned. |
 | Distribution-aware stacking | planned artifacts under stacking experiments | Test whether posterior/logit features add reusable information. | Planned. |
 
@@ -74,9 +74,10 @@ Metric conventions:
 | Regression repeated runs | `benchmarks/experiments/01_regression_baselines/` | Main scalar baseline table. | Complete: 12/12 configs, 5 seeds each. |
 | Regression leaderboard | `benchmarks/experiments/regression_leaderboard.md` | Camera-ready scalar baseline table. | Complete. |
 | Regression shifted-crop table | `benchmarks/experiments/regression_shifted_crop.md` | Scalar baseline shortcut/localization diagnostic. | Complete: 60/60 seed-runs. |
-| Segmentation repeated runs | `benchmarks/experiments/02_segmentation_ablations/` | Event-time objective table and shifted-crop summaries. | Running: 6 complete objectives; CE+time pending. |
-| Segmentation leaderboard | `benchmarks/experiments/segmentation_leaderboard.md` | Current event-time objective table with scalar and shifted-crop metrics. | Running. |
+| Segmentation repeated runs | `benchmarks/experiments/02_segmentation_ablations/` | Event-time objective table and shifted-crop summaries. | Complete for selected paper-facing objectives. |
+| Segmentation leaderboard | `benchmarks/experiments/segmentation_leaderboard.md` | Current event-time objective table with scalar and shifted-crop metrics. | Complete for selected paper-facing objectives. |
 | Segmentation shifted-crop table | `benchmarks/experiments/segmentation_shifted_crop.md` | Event-time shortcut/localization diagnostic. | Running: 30 seed-runs available. |
+| Shift-jitter repeated runs | `benchmarks/experiments/03_crop_shift_jitter/` | Jitter-trained event-time localization test. | Planned. |
 | Posterior geometry figures | TBD under `benchmarks/experiments/02_segmentation_ablations/figures/` | Camera-ready posterior profile panels. | Pending filtered-protocol regeneration. |
 | Shifted-crop summaries | per-run `shifted_eval/` folders | Crop-start robustness and localization diagnostics. | Complete for scalar baselines; running for segmentation. |
 | Stacking artifacts | TBD | Competition-style ensemble/calibration reproduction. | Planned. |
@@ -175,7 +176,6 @@ Paper-facing configs:
 | config | paper name | role |
 | --- | --- | --- |
 | `ets_unet_ce.yaml` | ETS-U-Net CE | Soft-label event-time CE baseline. |
-| `ets_unet_ce_time.yaml` | ETS-U-Net CE+time | Hybrid CE plus soft-argmax time loss. |
 | `ets_unet_event_nll.yaml` | ETS-U-Net EventNLL | Latent event-time likelihood with Gaussian observation kernel. |
 | `ets_unet_event_nll_mixture.yaml` | ETS-U-Net mixture EventNLL | Two-scale Gaussian observation-kernel extension. |
 | `ets_unet_hazard_event_nll.yaml` | ETS-U-Net hazard EventNLL | Hazard/survival posterior parameterization with EventNLL. |
@@ -211,7 +211,6 @@ Current rows:
 | `ets_unet_hazard_event_nll` | 5/5 | 0.8755 +/- 0.0027 | 0.8776 +/- 0.0031 | 0.8778 +/- 0.0041 | -0.328 +/- 0.020 | 0.196 +/- 0.042 |
 | `ets_unet_time_only` | 5/5 | 0.8944 +/- 0.0048 | 0.8943 +/- 0.0025 | 0.8917 +/- 0.0046 | -0.301 +/- 0.043 | 0.160 +/- 0.066 |
 | `ets_unet_wasserstein` | 5/5 | 0.8997 +/- 0.0035 | 0.8995 +/- 0.0078 | 0.8896 +/- 0.0033 | -0.337 +/- 0.044 | 0.271 +/- 0.065 |
-| `ets_unet_ce_time` | pending | - | - | - | - | - |
 
 Interpretation so far:
 
@@ -227,12 +226,11 @@ Interpretation so far:
   readout.
 - Wasserstein has the highest completed localizer-like fraction so far, but it
   pays for that with worse scalar nRMSE and worse shifted-crop nRMSE.
-- CE+time remains pending before the loss-ablation story is complete.
 
 Expected paper use:
 
-- Main segmentation table: CE, CE+time, EventNLL, time-only, Wasserstein,
-  mixture EventNLL, hazard EventNLL.
+- Main segmentation table: CE, EventNLL, mixture EventNLL, hazard EventNLL,
+  time-only, Wasserstein.
 - Appendix/internal only unless needed: Laplace EventNLL, Student-t EventNLL,
   heteroscedastic EventNLL, exact-bin hazard NLL. These remain in the archived
   unfiltered protocol and should not be mixed into the new main table without
@@ -364,6 +362,12 @@ Regression interpretation:
 
 ## 05 Shift-Jitter Training
 
+Runner:
+
+```bash
+sh /home/sneddy/sneddy_projects/neurosned/benchmarks/runners/run_crop_shift_jitter.sh
+```
+
 Planned role:
 
 - Turn the shifted-crop diagnostic into a training intervention.
@@ -382,6 +386,29 @@ Expected story if it works:
   controls.
 - This would support the claim that the event-time formulation is useful when
   the protocol actually demands temporal localization.
+
+Paper-facing configs:
+
+| config | paper role |
+| --- | --- |
+| `ets_unet_ce_shift_jitter.yaml` | Soft-label event-time CE under shift-jitter training. |
+| `ets_unet_event_nll_shift_jitter.yaml` | Latent EventNLL under shift-jitter training. |
+| `ets_unet_event_nll_mixture_shift_jitter.yaml` | Best current likelihood-style objective under shift-jitter training. |
+| `ets_unet_hazard_event_nll_shift_jitter.yaml` | Hazard/survival event-time parameterization under shift-jitter training. |
+| `ets_unet_time_only_shift_jitter.yaml` | Soft-argmax scalar control under shift-jitter training. |
+| `ets_unet_wasserstein_shift_jitter.yaml` | Wasserstein geometry control under shift-jitter training. |
+
+Protocol details:
+
+| component | value |
+| --- | --- |
+| train pickle | `data/new_validation/r1_r8_train_5sec.pkl` |
+| train wrapper | `TrainCroppingDataset` |
+| train/eval support | `0.8 <= RT <= 2.2` |
+| crop duration | `2.0` s |
+| sampled crop starts | `0.2 <= start <= 0.8` |
+| canonical valid/test windows | `data/new_validation/r9_r10_val.pkl`, `data/new_validation/r11_test.pkl` |
+| shifted-crop eval | enabled on `data/new_validation/r11_test_5sec.pkl` |
 
 Metrics:
 

@@ -1,0 +1,5 @@
+# Benchmark Runs
+
+| created_at | experiment | config | task | model | seed | best_epoch | best_metric | test_nrmse | test_nrmse_ci_low | test_nrmse_ci_high | test_posterior_crps | test_posterior_fixed_kernel_event_nll | calibration_temperature | calibration_temperature_valid_nrmse | test_tau_nrmse | test_tau_nrmse_ci_low | test_tau_nrmse_ci_high | test_tau_posterior_crps | test_tau_posterior_fixed_kernel_event_nll | last_epoch | training_wall_seconds | time_to_best_seconds | gpu_util_mean_pct | gpu_memory_peak_mb | gpu_samples | status | run_dir |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-07-07T20:03:04Z | 03_crop_shift_jitter | ets_unet_ce_shift_jitter | segmentation | SneddySegUNet1D | 2025 | 10 | 0.8489038815398151 |  |  |  |  |  |  |  |  |  |  |  |  | 13 | 356.3335011010058 | 273.7072651720082 |  |  | 0 | running | benchmarks/experiments/03_crop_shift_jitter/ets_unet_ce_shift_jitter_repeated__20260707_200255/seed2025 |

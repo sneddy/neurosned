@@ -21,10 +21,10 @@ experiments:
     artifacts: benchmarks/experiments/02_segmentation_ablations
     comment: Clean one-factor SneddyUNet ablations under the frozen segmentation protocol.
 
-  - name: 03_component_ablations
-    configs: benchmarks/configs/03_component_ablations
-    artifacts: benchmarks/experiments/03_component_ablations
-    comment: Legacy placeholder for broader component ablations; prefer 02_segmentation_ablations for segmentation-specific runs.
+  - name: 03_crop_shift_jitter
+    configs: benchmarks/configs/03_crop_shift_jitter
+    artifacts: benchmarks/experiments/03_crop_shift_jitter
+    comment: Shift-jitter training on 5 s windows to test crop-relative localization.
 
   - name: 04_advanced_training_protocol
     configs: benchmarks/configs/04_advanced_training_protocol

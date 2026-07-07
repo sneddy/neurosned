@@ -6,4 +6,3 @@
 | ETS-U-Net hazard EventNLL | hazard/survival posterior parameterization | 5/5 | 0.8755 +/- 0.0027 | 0.8776 +/- 0.0031 | 0.8778 +/- 0.0041 | -0.328 +/- 0.020 | 0.196 +/- 0.042 |
 | ETS-U-Net time-only | soft-argmax scalar control | 5/5 | 0.8944 +/- 0.0048 | 0.8943 +/- 0.0025 | 0.8917 +/- 0.0046 | -0.301 +/- 0.043 | 0.160 +/- 0.066 |
 | ETS-U-Net Wasserstein | CDF-distance event-time control | 5/5 | 0.8997 +/- 0.0035 | 0.8995 +/- 0.0078 | 0.8896 +/- 0.0033 | -0.337 +/- 0.044 | 0.271 +/- 0.065 |
-| ETS-U-Net CE+time | hybrid CE plus time-readout loss | pending | - | - | - | - | - |

@@ -9,7 +9,6 @@ protocol remain archived under `benchmarks/archive/unfiltered_protocol/`.
 | config | paper name | role |
 | --- | --- | --- |
 | `ets_unet_ce.yaml` | ETS-U-Net CE | Soft-label event-time CE baseline. |
-| `ets_unet_ce_time.yaml` | ETS-U-Net CE+time | Hybrid CE plus soft-argmax time loss. |
 | `ets_unet_event_nll.yaml` | ETS-U-Net EventNLL | Latent event-time likelihood with a Gaussian observation kernel. |
 | `ets_unet_event_nll_mixture.yaml` | ETS-U-Net mixture EventNLL | Two-scale Gaussian observation-kernel extension. |
 | `ets_unet_hazard_event_nll.yaml` | ETS-U-Net hazard EventNLL | Hazard/survival posterior parameterization with continuous EventNLL. |
