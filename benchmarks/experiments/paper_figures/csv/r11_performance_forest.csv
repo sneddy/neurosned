@@ -1,0 +1,8 @@
+label,group,nrmse_mean,nrmse_std,n_runs,source,color
+ETR-CNN large,Scalar regression,0.8927830865250129,0.00416142016365441,5,benchmarks/experiments/01_regression_baselines/etr_cnn_large_repeated__20260706_200136,#555555
+ETS-U-Net CE,Event-time,0.8753442853344403,0.003935530647294529,5,benchmarks/experiments/02_segmentation_ablations/ets_unet_ce_repeated__20260707_110450,#1f77b4
+ETS-U-Net EventNLL,Event-time,0.8772315339251092,0.0017680645223312921,5,benchmarks/experiments/02_segmentation_ablations/ets_unet_event_nll_repeated__20260707_122055,#2ca02c
+ETS-U-Net mixture EventNLL,Event-time,0.874451994469489,0.005250109682922569,5,benchmarks/experiments/02_segmentation_ablations/ets_unet_event_nll_mixture_repeated__20260707_180808,#17becf
+ETS-U-Net hazard EventNLL,Event-time,0.8778469304600016,0.004070119275362247,5,benchmarks/experiments/02_segmentation_ablations/ets_unet_hazard_event_nll_repeated__20260707_164645,#9467bd
+ETS-U-Net time-only,Event-time,0.8916517033298893,0.004555010415017715,5,benchmarks/experiments/02_segmentation_ablations/ets_unet_time_only_repeated__20260707_134310,#d62728
+ETS-U-Net Wasserstein,Event-time,0.8895946741800591,0.0032686773665475755,5,benchmarks/experiments/02_segmentation_ablations/ets_unet_wasserstein_repeated__20260707_150717,#8c564b

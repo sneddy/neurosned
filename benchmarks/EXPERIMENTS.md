@@ -72,11 +72,11 @@ Metric conventions:
 | --- | --- | --- | --- |
 | Data protocol summary | `benchmarks/experiments/00_data_protocol/protocol_summary.md` | Canonical split/support table for the filtered protocol. | Complete. |
 | Regression repeated runs | `benchmarks/experiments/01_regression_baselines/` | Main scalar baseline table. | Complete: 12/12 configs, 5 seeds each. |
-| Regression leaderboard | `benchmarks/experiments/regression_leaderboard.md` | Camera-ready scalar baseline table. | Complete. |
-| Regression shifted-crop table | `benchmarks/experiments/regression_shifted_crop.md` | Scalar baseline shortcut/localization diagnostic. | Complete: 60/60 seed-runs. |
+| Regression leaderboard | `benchmarks/experiments/paper_tables/regression_leaderboard.md` | Camera-ready scalar baseline table. | Complete. |
+| Regression shifted-crop table | `benchmarks/experiments/paper_tables/regression_shifted_crop.md` | Scalar baseline shortcut/localization diagnostic. | Complete: 60/60 seed-runs. |
 | Segmentation repeated runs | `benchmarks/experiments/02_segmentation_ablations/` | Event-time objective table and shifted-crop summaries. | Complete for selected paper-facing objectives. |
-| Segmentation leaderboard | `benchmarks/experiments/segmentation_leaderboard.md` | Current event-time objective table with scalar and shifted-crop metrics. | Complete for selected paper-facing objectives. |
-| Segmentation shifted-crop table | `benchmarks/experiments/segmentation_shifted_crop.md` | Event-time shortcut/localization diagnostic. | Running: 30 seed-runs available. |
+| Segmentation leaderboard | `benchmarks/experiments/paper_tables/segmentation_leaderboard.md` | Current event-time objective table with scalar and shifted-crop metrics. | Complete for selected paper-facing objectives. |
+| Segmentation shifted-crop table | `benchmarks/experiments/paper_tables/segmentation_shifted_crop.md` | Event-time shortcut/localization diagnostic. | Running: 30 seed-runs available. |
 | Shift-jitter repeated runs | `benchmarks/experiments/03_crop_shift_jitter/` | Jitter-trained event-time localization test. | Planned. |
 | Posterior geometry figures | TBD under `benchmarks/experiments/02_segmentation_ablations/figures/` | Camera-ready posterior profile panels. | Pending filtered-protocol regeneration. |
 | Shifted-crop summaries | per-run `shifted_eval/` folders | Crop-start robustness and localization diagnostics. | Complete for scalar baselines; running for segmentation. |
@@ -132,7 +132,7 @@ Paper-facing configs:
 | `medformer_wrapped.yaml` | Larger transformer/time-series baseline. |
 
 Current repeated-run snapshot is also maintained as a standalone leaderboard at
-`benchmarks/experiments/regression_leaderboard.md`.
+`benchmarks/experiments/paper_tables/regression_leaderboard.md`.
 
 Final 5-seed rows:
 
@@ -199,7 +199,7 @@ All segmentation configs currently include:
 | shifted-crop per-trial predictions | disabled by default |
 
 Current repeated-run snapshot is also maintained as a standalone leaderboard at
-`benchmarks/experiments/segmentation_leaderboard.md`.
+`benchmarks/experiments/paper_tables/segmentation_leaderboard.md`.
 
 Current rows:
 
@@ -311,7 +311,7 @@ Current interpretation constraints:
   shift-jitter training materially improves the slope metrics.
 
 Segmentation shifted-crop snapshot:
-`benchmarks/experiments/segmentation_shifted_crop.md`.
+`benchmarks/experiments/paper_tables/segmentation_shifted_crop.md`.
 
 | model | seeds | ref nRMSE @0.5 | mean shifted nRMSE | worst shifted nRMSE | raw shift slope | localizer-like | invariant-like |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -334,7 +334,7 @@ Segmentation interpretation:
   improves localizer-like fraction, but worsens scalar and shifted nRMSE.
 
 Regression shifted-crop snapshot:
-`benchmarks/experiments/regression_shifted_crop.md`.
+`benchmarks/experiments/paper_tables/regression_shifted_crop.md`.
 
 | model | seeds | ref nRMSE @0.5 | mean shifted nRMSE | worst shifted nRMSE | raw shift slope | localizer-like | invariant-like |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -484,7 +484,7 @@ exist:
 
 1. Let the remaining segmentation ablations finish through
    `benchmarks/runners/run_segmentation_ablations.sh`.
-2. Refresh `benchmarks/experiments/segmentation_leaderboard.md` after each
+2. Refresh `benchmarks/experiments/paper_tables/segmentation_leaderboard.md` after each
    completed repeated run.
 3. Recompute posterior geometry from filtered segmentation predictions/logits.
 4. Recompute shifted-crop comparison for the final scalar regression baselines.
