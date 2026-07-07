@@ -42,15 +42,15 @@ this protocol.
 
 | group | path | role | status |
 | --- | --- | --- | --- |
-| Regression baselines | `benchmarks/configs/01_regression_baselines/` | Scalar RT and wrapped external EEG baselines. | Running: 9/12 configs complete; LaBraM partial. |
+| Regression baselines | `benchmarks/configs/01_regression_baselines/` | Scalar RT and wrapped external EEG baselines. | Complete: 12/12 configs, 5 seeds each. |
 | Segmentation ablations | `benchmarks/configs/02_segmentation_ablations/` | ETS-U-Net event-time objective comparison. | Configs ready. |
 
 ## Artifact Registry
 
 | artifact | canonical path | role | status |
 | --- | --- | --- | --- |
-| Regression repeated runs | `benchmarks/experiments/01_regression_baselines/` | Main scalar baseline table. | Running: 9/12 configs complete; LaBraM 3/5 finished. |
-| Regression leaderboard | `benchmarks/experiments/regression_leaderboard.md` | Maintained current scalar baseline ranking. | Running: completed rows plus partial LaBraM state. |
+| Regression repeated runs | `benchmarks/experiments/01_regression_baselines/` | Main scalar baseline table. | Complete: 12/12 configs, 5 seeds each. |
+| Regression leaderboard | `benchmarks/experiments/regression_leaderboard.md` | Camera-ready scalar baseline table. | Complete. |
 | Segmentation repeated runs | `benchmarks/experiments/02_segmentation_ablations/` | Event-time objective table and shifted-crop summaries. | Pending rerun. |
 | Old unfiltered protocol | `benchmarks/archive/unfiltered_protocol/` | Historical reference only. | Archived. |
 
@@ -82,7 +82,7 @@ Paper-facing configs:
 Current repeated-run snapshot is also maintained as a standalone leaderboard at
 `benchmarks/experiments/regression_leaderboard.md`.
 
-Completed 5/5 rows:
+Final 5-seed rows:
 
 | model | seeds | valid nRMSE mean +/- std | R11 nRMSE mean +/- std | R11 range |
 | --- | ---: | ---: | ---: | ---: |
@@ -92,17 +92,12 @@ Completed 5/5 rows:
 | `tidnet_wrapped` | 5/5 | 0.9235 +/- 0.0024 | 0.9192 +/- 0.0027 | 0.9146-0.9219 |
 | `deep4net_wrapped` | 5/5 | 0.9269 +/- 0.0045 | 0.9260 +/- 0.0044 | 0.9210-0.9309 |
 | `eegconformer_wrapped` | 5/5 | 0.9188 +/- 0.0026 | 0.9287 +/- 0.0057 | 0.9225-0.9342 |
+| `labram_wrapped` | 5/5 | 0.9304 +/- 0.0061 | 0.9327 +/- 0.0086 | 0.9247-0.9462 |
 | `eegnet_wrapped` | 5/5 | 0.9350 +/- 0.0054 | 0.9335 +/- 0.0028 | 0.9292-0.9370 |
 | `shallowfbcspnet_wrapped` | 5/5 | 0.9324 +/- 0.0016 | 0.9343 +/- 0.0024 | 0.9316-0.9372 |
+| `eegpt_wrapped` | 5/5 | 0.9616 +/- 0.0201 | 0.9584 +/- 0.0185 | 0.9420-0.9878 |
+| `medformer_wrapped` | 5/5 | 0.9623 +/- 0.0046 | 0.9585 +/- 0.0051 | 0.9542-0.9674 |
 | `atcnet_wrapped` | 5/5 | 0.9686 +/- 0.0183 | 0.9666 +/- 0.0151 | 0.9533-0.9920 |
-
-Partial / pending rows:
-
-| model | state | partial valid nRMSE | partial R11 nRMSE | notes |
-| --- | --- | ---: | ---: | --- |
-| `labram_wrapped` | 3/5 finished, seed 2028 running | 0.9313 +/- 0.0083 | 0.9357 +/- 0.0100 | Not ranked until all 5 seeds finish. |
-| `eegpt_wrapped` | pending | - | - | Starts after LaBraM. |
-| `medformer_wrapped` | pending | - | - | Starts after EEGPT. |
 
 Interpretation so far:
 
@@ -112,10 +107,9 @@ Interpretation so far:
 - Wrapped external architectures train meaningfully under the fixed
   normalization protocol but are currently weaker than the compact scalar
   models.
-- Partial `labram_wrapped` results are in the same range as the weaker wrapped
-  CNN baselines, but should not be used as a final ranked row yet.
-- Do not update manuscript regression tables until the runner finishes all
-  listed configs.
+- LaBraM is the strongest foundation-style wrapped baseline in this filtered
+  protocol, while EEGPT and Medformer remain weaker than the compact
+  task-specific scalar baselines.
 
 ## 02 Segmentation Ablations
 
@@ -197,11 +191,10 @@ exist:
 
 ## Immediate Next Steps
 
-1. Let `run_regression_baselines.sh` finish LaBraM, EEGPT, and Medformer.
-2. Add a segmentation runner for `benchmarks/configs/02_segmentation_ablations/`
+1. Add a segmentation runner for `benchmarks/configs/02_segmentation_ablations/`
    or run the seven configs manually with `run_repeated.py`.
-3. Recompute posterior geometry from filtered segmentation predictions/logits.
-4. Recompute shifted-crop comparison from filtered scalar and segmentation
+2. Recompute posterior geometry from filtered segmentation predictions/logits.
+3. Recompute shifted-crop comparison from filtered scalar and segmentation
    runs.
-5. Update `writing/overleaf/release_v3/main_revised_v3.tex` only after the
+4. Update `writing/overleaf/release_v4/main_revised_v4.tex` only after the
    corresponding filtered-protocol artifacts are complete.

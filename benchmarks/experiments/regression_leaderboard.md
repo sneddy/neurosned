@@ -10,3 +10,5 @@
 | Deep4Net wrapped | classical convolutional baseline | 0.926883 +/- 0.004521 | 0.925972 +/- 0.004354 |
 | ShallowFBCSPNet wrapped | classical filter-bank spatial convolution baseline | 0.932353 +/- 0.001632 | 0.934285 +/- 0.002423 |
 | ATCNet wrapped | supervised conv/attention/TCN baseline | 0.968640 +/- 0.018283 | 0.966578 +/- 0.015093 |
+| EEGPT wrapped | foundation-style architecture from scratch | 0.961615 +/- 0.020110 | 0.958448 +/- 0.018547 |
+| Medformer wrapped | larger transformer/time-series baseline | 0.962349 +/- 0.004576 | 0.958536 +/- 0.005125 |
