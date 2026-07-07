@@ -65,6 +65,8 @@
 \newlabel{tab:r11_regression_baselines}{{3}{10}{Direct-regression and wrapped external backbone baselines. Values are mean $\pm $ sample standard deviation over seeds 2025--2029}{table.3}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Temporal-Readout Regression}{10}{subsection.4.2}\protected@file@percent }
 \newlabel{sec:rt_reg_zoo}{{4.2}{10}{Temporal-Readout Regression}{subsection.4.2}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Event-Time Posterior Formulation}{10}{section.5}\protected@file@percent }
+\newlabel{sec:event_time_formulation}{{5}{10}{Event-Time Posterior Formulation}{section.5}{}}
 \citation{ronneberger2015unet}
 \citation{he2016resnet}
 \citation{howard2017mobilenets,chollet2017xception}
@@ -72,8 +74,6 @@
 \citation{yu2016dilated}
 \@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces ETS-U-Net for RT segmentation. A lightweight 1-D U-Net maps an EEG trial window to per-time logits and an event-time distribution $p(t)$. The encoder applies a $1\times 1$ channel-squeeze layer followed by residual blocks with temporal downsampling (\texttt  {TimeDown}); a bottleneck aggregates context, and the decoder upsamples with skip connections to recover time-resolved outputs. The right panel shows an example prediction $p(t)$ and Gaussian soft target $q(t)$, together with the resulting predicted vs.\ true response time.}}{11}{figure.3}\protected@file@percent }
 \newlabel{fig:ets_unet}{{3}{11}{ETS-U-Net for RT segmentation. A lightweight 1-D U-Net maps an EEG trial window to per-time logits and an event-time distribution $p(t)$. The encoder applies a $1\times 1$ channel-squeeze layer followed by residual blocks with temporal downsampling (\texttt {TimeDown}); a bottleneck aggregates context, and the decoder upsamples with skip connections to recover time-resolved outputs. The right panel shows an example prediction $p(t)$ and Gaussian soft target $q(t)$, together with the resulting predicted vs.\ true response time}{figure.3}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {5}Event-Time Posterior Formulation}{11}{section.5}\protected@file@percent }
-\newlabel{sec:event_time_formulation}{{5}{11}{Event-Time Posterior Formulation}{section.5}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Event-Time Segmentation Architectures}{11}{subsection.5.1}\protected@file@percent }
 \newlabel{sec:event_time_architectures}{{5.1}{11}{Event-Time Segmentation Architectures}{subsection.5.1}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Segmentation architecture variants used for reaction-time prediction. Each variant outputs per-time logits compatible with the event-time objectives defined next; architectural diversity is used for ablation and secondary ensembling.}}{12}{table.4}\protected@file@percent }
@@ -81,22 +81,23 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Distributional Supervision Objectives}{12}{subsection.5.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Soft target distribution.}{12}{section*.2}\protected@file@percent }
 \newlabel{eq:rt_soft_target}{{1}{12}{Soft target distribution}{equation.1}{}}
-\@writefile{toc}{\contentsline {paragraph}{Model output and losses.}{13}{section*.3}\protected@file@percent }
-\newlabel{eq:rt_pred_dist}{{2}{13}{Model output and losses}{equation.2}{}}
+\@writefile{toc}{\contentsline {paragraph}{Model output and losses.}{12}{section*.3}\protected@file@percent }
+\newlabel{eq:rt_pred_dist}{{2}{12}{Model output and losses}{equation.2}{}}
 \newlabel{eq:rt_loss}{{3}{13}{Model output and losses}{equation.3}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Latent Event-Time Likelihood}{13}{subsection.5.3}\protected@file@percent }
 \newlabel{sec:event_nll}{{5.3}{13}{Latent Event-Time Likelihood}{subsection.5.3}{}}
 \newlabel{eq:event_nll}{{4}{13}{Latent Event-Time Likelihood}{equation.4}{}}
 \@writefile{toc}{\contentsline {paragraph}{Observation-kernel and hazard extensions.}{13}{section*.4}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Completed event-time segmentation loss ablations under the release-separated protocol. ``Cal.'' denotes post-hoc temperature selection on R9-R10 and one-shot application to R11.}}{14}{table.5}\protected@file@percent }
-\newlabel{tab:r11_segmentation_losses}{{5}{14}{Completed event-time segmentation loss ablations under the release-separated protocol. ``Cal.'' denotes post-hoc temperature selection on R9-R10 and one-shot application to R11}{table.5}{}}
-\newlabel{eq:event_nll_mixture_kernel}{{5}{14}{Observation-kernel and hazard extensions}{equation.5}{}}
+\newlabel{eq:event_nll_mixture_kernel}{{5}{13}{Observation-kernel and hazard extensions}{equation.5}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces R11 scalar readout performance with subject-bootstrap confidence intervals. The dashed vertical line marks the strongest direct-regression baseline. Several event-time losses improve scalar nRMSE while remaining close enough to motivate posterior-level analysis rather than ranking losses only by point-prediction error.}}{14}{figure.4}\protected@file@percent }
+\newlabel{fig:r11_performance_forest}{{4}{14}{R11 scalar readout performance with subject-bootstrap confidence intervals. The dashed vertical line marks the strongest direct-regression baseline. Several event-time losses improve scalar nRMSE while remaining close enough to motivate posterior-level analysis rather than ranking losses only by point-prediction error}{figure.4}{}}
 \newlabel{eq:hazard_readout}{{6}{14}{Observation-kernel and hazard extensions}{equation.6}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Formulation Comparison and Robustness}{14}{subsection.5.4}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces R11 scalar readout performance with subject-bootstrap confidence intervals. The dashed vertical line marks the strongest direct-regression baseline. Several event-time losses improve scalar nRMSE while remaining close enough to motivate posterior-level analysis rather than ranking losses only by point-prediction error.}}{15}{figure.4}\protected@file@percent }
-\newlabel{fig:r11_performance_forest}{{4}{15}{R11 scalar readout performance with subject-bootstrap confidence intervals. The dashed vertical line marks the strongest direct-regression baseline. Several event-time losses improve scalar nRMSE while remaining close enough to motivate posterior-level analysis rather than ranking losses only by point-prediction error}{figure.4}{}}
-\@writefile{toc}{\contentsline {paragraph}{Objective ablations.}{15}{section*.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Objective ablations.}{14}{section*.5}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Completed event-time segmentation loss ablations under the release-separated protocol. ``Cal.'' denotes post-hoc temperature selection on R9-R10 and one-shot application to R11.}}{15}{table.5}\protected@file@percent }
+\newlabel{tab:r11_segmentation_losses}{{5}{15}{Completed event-time segmentation loss ablations under the release-separated protocol. ``Cal.'' denotes post-hoc temperature selection on R9-R10 and one-shot application to R11}{table.5}{}}
 \@writefile{toc}{\contentsline {paragraph}{Seed robustness.}{15}{section*.6}\protected@file@percent }
+\citation{guo2017calibration}
 \@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Five-seed robustness summary for selected core models. Values are mean $\pm $ sample standard deviation over seeds 2025--2029; R11 range is min--max across seeds. Posterior scores are reported only for event-time segmentation runs.}}{16}{table.6}\protected@file@percent }
 \newlabel{tab:seed_robustness}{{6}{16}{Five-seed robustness summary for selected core models. Values are mean $\pm $ sample standard deviation over seeds 2025--2029; R11 range is min--max across seeds. Posterior scores are reported only for event-time segmentation runs}{table.6}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {6}Posterior Readout and Diagnostics}{16}{section.6}\protected@file@percent }
@@ -105,7 +106,6 @@
 \newlabel{eq:posterior_regularized_objective}{{7}{16}{Posterior Geometry and Readout Temperature Tuning}{equation.7}{}}
 \@writefile{toc}{\contentsline {paragraph}{Inference and temperature tuning.}{16}{section*.7}\protected@file@percent }
 \newlabel{eq:rt_soft_argmax}{{8}{16}{Inference and temperature tuning}{equation.8}{}}
-\citation{guo2017calibration}
 \newlabel{eq:rt_tau_tuning}{{9}{17}{Inference and temperature tuning}{equation.9}{}}
 \@writefile{toc}{\contentsline {paragraph}{Posterior geometry and interval coverage.}{17}{section*.8}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Posterior geometry differs across event-time losses even when scalar nRMSE is similar. Panel A reports R11 scalar readout after selecting the softmax temperature on R9--R10 to minimize nRMSE. Panel B aligns predicted posteriors to the true RT. Panels C--E summarize posterior width, near-target mass, and mode-mean disagreement. Panel F compares empirical coverage of central posterior intervals; the diagonal is ideal interval coverage.}}{18}{figure.5}\protected@file@percent }
@@ -118,26 +118,26 @@
 \@writefile{lot}{\contentsline {table}{\numberline {8}{\ignorespaces Shifted-crop diagnostic on the R11 common-inside subset. The ideal within-crop event localizer has raw shift slope $-1$; a crop-invariant scalar shortcut has slope 0. Reference nRMSE is computed at the standard $s=0.5$~s crop.}}{20}{table.8}\protected@file@percent }
 \newlabel{tab:shifted_crop_diagnostic}{{8}{20}{Shifted-crop diagnostic on the R11 common-inside subset. The ideal within-crop event localizer has raw shift slope $-1$; a crop-invariant scalar shortcut has slope 0. Reference nRMSE is computed at the standard $s=0.5$~s crop}{table.8}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Shifted-Crop Localization Diagnostic}{20}{subsection.6.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {7}Discussion}{21}{section.7}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.1}RT Prediction as Event-Time Localization}{21}{subsection.7.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7}Discussion}{20}{section.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.1}RT Prediction as Event-Time Localization}{20}{subsection.7.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {7.2}Why Distributional Supervision Helps}{21}{subsection.7.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {7.3}Relation to EEG Backbones and Pretraining}{21}{subsection.7.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {7.4}Why Posterior Geometry Matters}{21}{subsection.7.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.5}Limitations}{22}{subsection.7.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.5}Limitations}{21}{subsection.7.5}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {8}Conclusion}{22}{section.8}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {A}Distribution-Aware Stacking}{22}{appendix.A}\protected@file@percent }
 \newlabel{sec:rt_stacking}{{A}{22}{Distribution-Aware Stacking}{appendix.A}{}}
 \@writefile{toc}{\contentsline {paragraph}{Meta-features from logits and temperature-scaled probabilities.}{22}{section*.10}\protected@file@percent }
+\newlabel{eq:rt_stacking_logit_features}{{10}{22}{Meta-features from logits and temperature-scaled probabilities}{equation.10}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces OOF stacking for RT prediction from time-distribution outputs. Per-model logits/distributions are converted into meta-features (e.g., peak time, entropy/variance, temperature-conditioned expected times, and CDF quantiles) and combined by a second-stage stacker (Ridge/GBDT). Predictions from fold-trained stackers are aggregated at inference (median) to produce the final RT estimate.}}{23}{figure.7}\protected@file@percent }
 \newlabel{fig:Ch1_stacking}{{7}{23}{OOF stacking for RT prediction from time-distribution outputs. Per-model logits/distributions are converted into meta-features (e.g., peak time, entropy/variance, temperature-conditioned expected times, and CDF quantiles) and combined by a second-stage stacker (Ridge/GBDT). Predictions from fold-trained stackers are aggregated at inference (median) to produce the final RT estimate}{figure.7}{}}
-\newlabel{eq:rt_stacking_logit_features}{{10}{23}{Meta-features from logits and temperature-scaled probabilities}{equation.10}{}}
 \@writefile{toc}{\contentsline {paragraph}{Meta-learner and inference.}{23}{section*.11}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {B}Original Hidden CodaBench Benchmark Results}{23}{appendix.B}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {C}Unwrapped External Backbone Sanity Checks}{23}{appendix.C}\protected@file@percent }
 \@writefile{lot}{\contentsline {table}{\numberline {9}{\ignorespaces Original hidden-release CodaBench RT results from the earlier submission-oriented pipeline. These results are reported for historical comparison with the challenge setting.}}{24}{table.9}\protected@file@percent }
 \newlabel{tab:appendix_codabench}{{9}{24}{Original hidden-release CodaBench RT results from the earlier submission-oriented pipeline. These results are reported for historical comparison with the challenge setting}{table.9}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {10}{\ignorespaces Unwrapped external-backbone sanity checks. ``Wrapped'' means that the model receives the same per-window channel standardization used by our compact baselines. These checks diagnose scale sensitivity; the wrapped variants are the fair external comparisons used in the main results.}}{24}{table.10}\protected@file@percent }
 \newlabel{tab:appendix_unwrapped_external}{{10}{24}{Unwrapped external-backbone sanity checks. ``Wrapped'' means that the model receives the same per-window channel standardization used by our compact baselines. These checks diagnose scale sensitivity; the wrapped variants are the fair external comparisons used in the main results}{table.10}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {C}Unwrapped External Backbone Sanity Checks}{24}{appendix.C}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {D}Additional Protocol Calibration Runs}{24}{appendix.D}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {E}Additional EventNLL Kernel and Hazard Robustness Checks}{24}{appendix.E}\protected@file@percent }
 \@writefile{lot}{\contentsline {table}{\numberline {11}{\ignorespaces Additional EventNLL kernel and hazard robustness checks. ``Cal.'' denotes post-hoc temperature selection on R9--R10; the heteroscedastic run is reported at its base readout because it was not part of the calibrated kernel table.}}{25}{table.11}\protected@file@percent }

@@ -236,9 +236,9 @@ Scalar performance is evaluated using normalized RMSE (nRMSE), defined as RMSE d
 \subsection{Shared Training, Readout Tuning, and Inference Protocol}
 \label{sec:shared_protocol}
 
-All neural models receive the same input normalization: for each 2~s trial window and EEG channel, we subtract the channel's temporal mean within the window and divide by its temporal standard deviation within the same window. The training recipe is also shared: Adam with learning rate \(10^{-3}\), zero weight decay, train batch size 128, validation batch size 256, up to 100 epochs, early stopping on development nRMSE with patience 20, and no mixup. Unless otherwise stated, training uses one fixed mild augmentation profile so that regularization is part of the protocol rather than a model-specific tuning degree of freedom. Channel dropout is applied with probability 0.25 and removes at most 30\% of channels, temporal cutout is applied with probability 0.25 and masks a contiguous 10--50 sample interval, and Gaussian noise is applied with probability 0.3 and standard deviation \(0.01 + U(0,0.01)\). These perturbations approximate plausible electrode loss, brief local signal corruption, and measurement noise while preserving the trial-wise RT label.
+To support this controlled comparison, we keep preprocessing, optimization, augmentation, checkpointing, and inference fixed wherever possible, so that the main experimental axes remain EEG backbone capacity, temporal readout parameterization, and distributional event-time supervision. All neural models receive the same input normalization: for each 2~s trial window and EEG channel, we subtract the channel's temporal mean within the window and divide by its temporal standard deviation within the same window. The shared training recipe uses Adam with learning rate \(10^{-3}\), zero weight decay, train batch size 128, up to 100 epochs, and early stopping on development nRMSE with patience 20.
 
-Within this fixed protocol, the main experimental axes are deliberately narrow (Table~\ref{tab:shared_protocol_by_family}). The regression block varies the backbone and scalar/temporal readout family. The event-time block varies how RT is represented in the objective: as a soft crop-relative event-time target or as an observation under a latent event-time likelihood. When temperature scaling is used for event-time posterior readout, \(\tau\) is selected on R9--R10 to minimize development nRMSE of the posterior-mean readout and then applied unchanged to R11.
+Unless otherwise stated, training uses one fixed augmentation profile, so that regularization is not a model-specific tuning degree of freedom. The profile combines channel dropout, temporal cutout, and Gaussian noise with the same settings for all supervised neural models. Table~\ref{tab:shared_protocol_by_family} summarizes the remaining model-family-specific differences. Regression models use scalar RT supervision, while event-time models represent RT either as a soft crop-relative event-time target or as an observation under a latent event-time likelihood. When temperature scaling is used for event-time posterior readout, \(\tau\) is selected on R9--R10 to minimize development nRMSE of the posterior-mean readout and then applied unchanged to R11.
 
 \begin{table}[!t]
 \centering
@@ -267,9 +267,9 @@ EventNLL / likelihood variants & Observed RT under a latent event-time likelihoo
 
 \label{sec:baseline_regression}
 
-The regression baselines establish how far scalar supervision can go before introducing event-time targets. We use three complementary controls: a compact segment-pooling regressor (MSP-CNN), a matched temporal-readout regressor (ETR-CNN), and supervised external EEG backbones trained from scratch. Together, these baselines test whether performance is explained by architecture capacity or differentiable expectation readout before evaluating event-time distribution supervision.
+The regression baselines establish how far scalar supervision can go before introducing event-time targets. We use three complementary controls: MSP-CNN (multiscale segment-statistic pooling CNN), ETR-CNN (event-time readout CNN), and supervised external EEG backbones trained from scratch. Together, these baselines test whether performance is explained by architecture capacity or differentiable expectation readout before evaluating event-time distribution supervision.
 
-MSP-CNN denotes a multiscale segment-pooling CNN. It maps the full EEG window to scalar RT through temporal segment statistics and an MLP head, providing the scalar counterpart to the event-time formulation in Section~\ref{sec:event_time_formulation}.
+MSP-CNN maps the full EEG window to scalar RT through temporal segment statistics and an MLP head, providing the scalar counterpart to the event-time formulation in Section~\ref{sec:event_time_formulation}.
 
 The main MSP-CNN regression backbone (Figure~\ref{fig:ch1_regression}) is a lightweight 1-D temporal ConvNet with:
 (i) a learned channel-squeeze layer ($1\times1$ conv, 128$\rightarrow$48) that forms data-driven electrode mixtures,
@@ -351,7 +351,7 @@ To make response timing explicit, we reformulate RT prediction as event-time pos
 \end{figure}
 
 
-Our primary event-time segmentation architecture is ETS-U-Net, which maps an EEG trial window
+Our primary event-time segmentation architecture is ETS-U-Net (event-time segmentation U-Net), which maps an EEG trial window
 $X\in\mathbb{R}^{C\times T}$ to per-time logits $z_{0:T-1}$ (Figure~\ref{fig:ets_unet}). All segmentation variants follow a 1-D U-Net style encoder-decoder with skip
 connections for precise localization \citep{ronneberger2015unet}. The encoder progressively downsamples the temporal axis
 to build multi-scale context, while the decoder upsamples and fuses encoder features to recover per-time outputs at the
