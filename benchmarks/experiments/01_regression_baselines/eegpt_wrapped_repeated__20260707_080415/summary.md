@@ -1,0 +1,5 @@
+# Benchmark Runs
+
+| created_at | experiment | config | task | model | seed | best_epoch | best_metric | test_nrmse | test_nrmse_ci_low | test_nrmse_ci_high | test_posterior_crps | test_posterior_fixed_kernel_event_nll | calibration_temperature | calibration_temperature_valid_nrmse | test_tau_nrmse | test_tau_nrmse_ci_low | test_tau_nrmse_ci_high | test_tau_posterior_crps | test_tau_posterior_fixed_kernel_event_nll | last_epoch | training_wall_seconds | time_to_best_seconds | gpu_util_mean_pct | gpu_memory_peak_mb | gpu_samples | status | run_dir |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-07-07T08:04:24Z | 01_regression_baselines | eegpt_wrapped | regression | WithStdPerSample | 2025 |  | 1.0 |  |  |  |  |  |  |  |  |  |  |  |  | 2 | 93.58618931801175 |  |  |  | 0 | running | benchmarks/experiments/01_regression_baselines/eegpt_wrapped_repeated__20260707_080415/seed2025 |
