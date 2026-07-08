@@ -459,7 +459,7 @@ The ablations separate expectation-style temporal readout from distributional su
 
 \begin{figure}[!t]
     \centering
-    \includegraphics[width=0.88\linewidth]{img/ch1/trial_sorted_posterior_raster_calibrated.png}
+    \includegraphics[width=0.88\linewidth]{img/ch1/trial_sorted_posterior_raster.png}
     \caption{Trial-sorted event-time posterior maps on R11 for matched segmentation losses. Rows are quantile bins of representable R11 trials sorted by observed RT; the x-axis is time from stimulus onset; color shows log-transformed posterior density averaged within each bin. The black curve marks the mean observed RT in each bin.}
     \label{fig:posterior_raster_main}
 \end{figure}
@@ -492,34 +492,35 @@ Once the scalar readout has been fixed, the event-time posterior makes temporall
 
 We first inspect the trial-sorted posterior raster in Figure~\ref{fig:posterior_raster_main} before reducing the posterior to summary metrics. This dataset-level view shows how each loss distributes probability mass across the represented RT range, making posterior width, target alignment, and loss-specific confidence patterns visible. Figure~\ref{fig:posterior_geometry_main} and Table~\ref{tab:posterior_geometry_metrics} then summarize these differences quantitatively.
 
-Table~\ref{tab:posterior_geometry_metrics} uses four groups of metrics. First, scalar nRMSE and MAE measure posterior-mean RT prediction. Second, CRPS and fixed-kernel EventNLL score the full posterior distribution; the fixed-kernel EventNLL uses the same Gaussian observation kernel for all models, so it evaluates each predicted posterior under a common likelihood score rather than under its own training loss. Third, Width80, Mass $\pm$150 ms, and mode-mean gap describe localization and posterior concentration: Width80 is the median width of the nominal central 80\% posterior interval, Mass $\pm$150 ms is the posterior probability assigned within 150 ms of the observed RT, and mode-mean gap measures disagreement between the posterior peak and the posterior mean used for scalar readout. Finally, Coverage80 and Coverage MAE summarize interval behavior. Coverage80 is the fraction of trials whose observed RT falls inside the nominal central 80\% posterior interval. Coverage MAE is the mean absolute deviation between nominal and empirical coverage across central intervals $\{50\%,60\%,70\%,80\%,90\%\}$. Together, these metrics separate distributional accuracy, temporal concentration, target alignment, and interval reliability.
+Table~\ref{tab:posterior_geometry_metrics} summarizes posterior geometry after R9--R10 readout-temperature selection. Scalar nRMSE measures posterior-mean RT prediction, fixed-kernel EventNLL scores the full posterior under a common Gaussian observation kernel, Width80 and Mass $\pm$150 ms describe posterior concentration and target alignment, and Coverage80 and Coverage MAE summarize interval behavior. Coverage80 is the fraction of trials whose observed RT falls inside the nominal central 80\% posterior interval, and Coverage MAE is the mean absolute deviation between nominal and empirical coverage across central intervals $\{50\%,60\%,70\%,80\%,90\%\}$.
 
 \begin{figure}[!t]
     \centering
-    \includegraphics[width=\linewidth]{img/ch1/posterior_geometry_main_calibrated.png}
+    \includegraphics[width=\linewidth]{img/ch1/posterior_geometry_main.png}
     \caption{Posterior geometry differs across event-time losses even when scalar nRMSE is similar. Panel A reports R11 scalar readout after selecting the softmax temperature on R9--R10 to minimize nRMSE. Panel B aligns predicted posteriors to the observed RT. Panels C--E summarize posterior width, near-target mass, and mode-mean disagreement. Panel F compares empirical coverage of central posterior intervals; the diagonal is ideal interval coverage.}
     \label{fig:posterior_geometry_main}
 \end{figure}
 
-These diagnostics show that losses with similar scalar error can induce different posterior semantics. CE+time and CE give strong scalar readouts but broad, conservative posteriors: their nominal 80\% intervals cover about 90\% of trials. EventNLL produces a sharper and more target-concentrated posterior, with the narrowest Width80, the highest near-target mass, and the best fixed-kernel EventNLL score, but it under-covers nominal intervals. Wasserstein gives the best coverage trade-off, with the smallest Coverage MAE and Coverage80 closest to 0.80, although with weaker scalar nRMSE and less target-aligned mass. Thus, posterior geometry reveals trade-offs among scalar accuracy, target concentration, and interval coverage that scalar nRMSE alone would hide.
+These diagnostics show that losses with similar scalar error can induce different posterior semantics. CE and mixture EventNLL provide the strongest scalar readouts. EventNLL-family objectives are sharper and more target-concentrated, but they under-cover nominal intervals. The soft-argmax RT-loss control has the lowest Coverage MAE because its posterior is broad, but it is weaker as a scalar predictor and lacks distributional event-time supervision. Wasserstein is closest to nominal 80\% coverage, but it has weaker scalar accuracy and lower near-target mass. Thus, posterior geometry reveals trade-offs among scalar accuracy, target concentration, distributional scoring, and interval behavior that scalar nRMSE alone would hide.
 
 \begin{table}[!htbp]
 \centering
-\caption{Quantitative posterior geometry on R11 for matched event-time segmentation losses. Metrics are defined in the text. CRPS is reported in milliseconds. Fixed-kernel EventNLL uses a common Gaussian observation kernel for all models ($\sigma=0.15$~s). For Coverage80, values closer to 0.80 indicate better nominal 80\% interval coverage; for Coverage MAE, lower is better.}
+\caption{Quantitative posterior geometry on R11 for matched event-time segmentation losses. Values are mean $\pm$ sample standard deviation across seeds after R9--R10 readout-temperature selection. nRMSE measures posterior-mean scalar prediction; fixed-kernel EventNLL scores the full posterior distribution under a common Gaussian observation kernel for all models ($\sigma=0.12$~s); Width80, near-target mass, and interval coverage summarize posterior concentration and empirical reliability. For Coverage80, values closer to 0.80 indicate better nominal 80\% interval coverage; for Coverage MAE, lower is better.}
 \label{tab:posterior_geometry_metrics}
 \scriptsize
 \setlength{\tabcolsep}{3pt}
 \renewcommand{\arraystretch}{1.12}
 \resizebox{\linewidth}{!}{%
-\begin{tabular}{@{} l c c c c c c c c c @{}}
+\begin{tabular}{@{} l c c c c c c @{}}
 \toprule
-\textbf{Model} & \textbf{nRMSE} & \textbf{MAE ms} & \textbf{CRPS ms} & \textbf{Fixed NLL} & \textbf{Width80 ms} & \textbf{Mass $\pm$150 ms} & \textbf{Mode-mean gap ms} & \textbf{Coverage80} & \textbf{Coverage MAE} \\
+\textbf{Objective} & \textbf{nRMSE} & \textbf{Fixed NLL} & \textbf{Width80 ms} & \textbf{Mass $\pm$150 ms} & \textbf{Coverage80} & \textbf{Coverage MAE} \\
 \midrule
-CE & 0.937 & 216 & 155 & 0.115 & 820 & 0.328 & 57 & 0.895 & 0.113 \\
-CE+time & 0.936 & 219 & 157 & 0.144 & 860 & 0.311 & 57 & 0.899 & 0.116 \\
-EventNLL & 0.941 & 216 & 162 & -0.027 & 450 & 0.487 & 72 & 0.480 & 0.290 \\
-Time-only & 0.945 & 228 & 167 & 0.203 & 1070 & 0.311 & 129 & 0.913 & 0.113 \\
-Wasserstein & 0.950 & 222 & 165 & 0.219 & 740 & 0.296 & 50 & 0.812 & 0.053 \\
+CE & 0.875 $\pm$ 0.004 & 0.08 $\pm$ 0.01 & 766 $\pm$ 36 & 0.334 $\pm$ 0.008 & 0.883 $\pm$ 0.013 & 0.101 $\pm$ 0.014 \\
+EventNLL & 0.877 $\pm$ 0.002 & -0.06 $\pm$ 0.01 & 502 $\pm$ 15 & 0.490 $\pm$ 0.008 & 0.500 $\pm$ 0.025 & 0.273 $\pm$ 0.021 \\
+Mixture EventNLL & 0.874 $\pm$ 0.005 & -0.08 $\pm$ 0.01 & 528 $\pm$ 22 & 0.471 $\pm$ 0.008 & 0.573 $\pm$ 0.020 & 0.207 $\pm$ 0.017 \\
+Hazard EventNLL & 0.878 $\pm$ 0.004 & -0.06 $\pm$ 0.01 & 445 $\pm$ 14 & 0.502 $\pm$ 0.005 & 0.468 $\pm$ 0.007 & 0.302 $\pm$ 0.006 \\
+Soft-argmax RT loss & 0.892 $\pm$ 0.005 & 0.11 $\pm$ 0.03 & 844 $\pm$ 96 & 0.357 $\pm$ 0.015 & 0.843 $\pm$ 0.029 & 0.040 $\pm$ 0.024 \\
+Wasserstein & 0.890 $\pm$ 0.003 & 0.20 $\pm$ 0.04 & 632 $\pm$ 101 & 0.334 $\pm$ 0.028 & 0.774 $\pm$ 0.061 & 0.059 $\pm$ 0.021 \\
 \bottomrule
 \end{tabular}%
 }
@@ -724,7 +725,7 @@ Table~\ref{tab:posterior_geometry_metrics} reports the quantitative posterior me
 
 \begin{figure}[!t]
     \centering
-    \includegraphics[width=0.9\linewidth]{img/ch1/temperature_sensitivity_calibrated.png}
+    \includegraphics[width=0.9\linewidth]{img/ch1/temperature_sensitivity.png}
     \caption{Temperature sensitivity on the R9-R10 development split. Vertical lines mark selected temperatures. The curves show that different losses induce different confidence scales, motivating temperature calibration as posterior-geometry control before comparing scalar readouts or using posterior features downstream.}
     \label{fig:appendix_temperature_sensitivity}
 \end{figure}
