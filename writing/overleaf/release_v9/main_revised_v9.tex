@@ -552,27 +552,25 @@ Table~\ref{tab:shift_jitter_summary} summarizes this diagnostic together with a 
 
 \begin{table}[!hbp]
 \centering
-\caption{Shifted-crop diagnostic and shift-jitter intervention on the 5~s holdout dataset. Values are mean $\pm$ standard deviation across seeds. Holdout \(\tau\)-nRMSE uses the canonical fixed window; shifted relative nRMSE is computed on shifted-crop examples in which RT remains observable within the evaluated 2~s window; sensitivity and direction are computed on the common-inside subset.}
+\caption{Shifted-crop diagnostic and shift-jitter intervention on the 5~s holdout dataset. Values are seed means; full mean $\pm$ standard deviation values are reported in Appendix Table~\ref{tab:shift_jitter_summary_full}. Arrows indicate the preferred direction.}
 \label{tab:shift_jitter_summary}
-\scriptsize
-\setlength{\tabcolsep}{2.2pt}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
 \renewcommand{\arraystretch}{1.12}
-\resizebox{\linewidth}{!}{%
 \begin{tabular}{@{} l c c c c c c c c @{}}
 \toprule
 \textbf{Objective} & \multicolumn{2}{c}{\textbf{Holdout \(\tau\)-nRMSE} $\downarrow$} & \multicolumn{2}{c}{\textbf{Shifted rel. nRMSE} $\downarrow$} & \multicolumn{2}{c}{\textbf{Sensitivity} $\uparrow$} & \multicolumn{2}{c}{\textbf{Direction} $\uparrow$} \\
 \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(l){8-9}
  & \textbf{Fixed} & \textbf{Jitter} & \textbf{Fixed} & \textbf{Jitter} & \textbf{Fixed} & \textbf{Jitter} & \textbf{Fixed} & \textbf{Jitter} \\
 \midrule
-CE & 0.8753 $\pm$ 0.0039 & 0.8749 $\pm$ 0.0060 & 0.8679 $\pm$ 0.0024 & 0.8569 $\pm$ 0.0060 & 0.5810 $\pm$ 0.0351 & 0.5831 $\pm$ 0.0406 & 0.7780 $\pm$ 0.0041 & 0.7924 $\pm$ 0.0056 \\
-Mixture EventNLL & 0.8745 $\pm$ 0.0053 & 0.8734 $\pm$ 0.0033 & 0.8663 $\pm$ 0.0037 & 0.8576 $\pm$ 0.0041 & 0.6021 $\pm$ 0.0484 & 0.6249 $\pm$ 0.0313 & 0.7730 $\pm$ 0.0062 & 0.7925 $\pm$ 0.0076 \\
-EventNLL & 0.8772 $\pm$ 0.0018 & 0.8771 $\pm$ 0.0040 & 0.8685 $\pm$ 0.0023 & 0.8593 $\pm$ 0.0028 & 0.5842 $\pm$ 0.0287 & 0.6174 $\pm$ 0.0222 & 0.7739 $\pm$ 0.0059 & 0.7937 $\pm$ 0.0068 \\
-Hazard EventNLL & 0.8778 $\pm$ 0.0041 & 0.8806 $\pm$ 0.0034 & 0.8692 $\pm$ 0.0028 & 0.8609 $\pm$ 0.0045 & 0.5618 $\pm$ 0.0376 & 0.5891 $\pm$ 0.0259 & 0.7694 $\pm$ 0.0090 & 0.7925 $\pm$ 0.0074 \\
-Soft-argmax RT loss & 0.8917 $\pm$ 0.0046 & 0.8836 $\pm$ 0.0035 & 0.8857 $\pm$ 0.0069 & 0.8613 $\pm$ 0.0032 & 0.5381 $\pm$ 0.0586 & 0.5775 $\pm$ 0.0362 & 0.7592 $\pm$ 0.0183 & 0.7951 $\pm$ 0.0052 \\
-Wasserstein & 0.8896 $\pm$ 0.0033 & 0.8922 $\pm$ 0.0066 & 0.8932 $\pm$ 0.0033 & 0.8774 $\pm$ 0.0099 & 0.6684 $\pm$ 0.0711 & 0.6852 $\pm$ 0.0416 & 0.7830 $\pm$ 0.0197 & 0.8026 $\pm$ 0.0118 \\
+CE & 0.8753 & 0.8749 & 0.8679 & \textbf{0.8569} & 0.5810 & 0.5831 & 0.7780 & 0.7924 \\
+Mixture EventNLL & \textbf{0.8745} & \textbf{0.8734} & \textbf{0.8663} & 0.8576 & 0.6021 & 0.6249 & 0.7730 & 0.7925 \\
+EventNLL & 0.8772 & 0.8771 & 0.8685 & 0.8593 & 0.5842 & 0.6174 & 0.7739 & 0.7937 \\
+Hazard EventNLL & 0.8778 & 0.8806 & 0.8692 & 0.8609 & 0.5618 & 0.5891 & 0.7694 & 0.7925 \\
+Soft-argmax RT loss & 0.8917 & 0.8836 & 0.8857 & 0.8613 & 0.5381 & 0.5775 & 0.7592 & 0.7951 \\
+Wasserstein & 0.8896 & 0.8922 & 0.8932 & 0.8774 & \textbf{0.6684} & \textbf{0.6852} & \textbf{0.7830} & \textbf{0.8026} \\
 \bottomrule
-\end{tabular}%
-}
+\end{tabular}
 \end{table}
 
 We then trained matched shift-jitter variants in which the 2~s training window was sampled from the same crop-start range and the target was expressed relative to the sampled window. The intervention does not produce a broad ordinary-holdout gain under the canonical support: CE, mixture EventNLL, and Gaussian EventNLL remain essentially unchanged in holdout \(\tau\)-nRMSE. Its main effect is instead on shifted-crop behavior. Shifted relative nRMSE improves for every objective, and direction consistently increases, indicating that predictions more often move in the expected localizer direction. Sensitivity also improves modestly, but remains well below the ideal value of 1.
@@ -623,6 +621,31 @@ Table~\ref{tab:posterior_geometry_metrics} reports the quantitative posterior me
     \caption{Temperature sensitivity on the R9-R10 development split. Vertical lines mark selected temperatures. The curves show that different losses induce different confidence scales, motivating a fixed readout-temperature selection protocol before comparing posterior-mean scalar readouts or posterior diagnostics.}
     \label{fig:appendix_temperature_sensitivity}
 \end{figure}
+
+\begin{table}[!htbp]
+\centering
+\caption{Full shifted-crop diagnostic and shift-jitter intervention summary with seed variability. Values are mean $\pm$ standard deviation across seeds; the corresponding main-text table reports means only for readability.}
+\label{tab:shift_jitter_summary_full}
+\scriptsize
+\setlength{\tabcolsep}{2.2pt}
+\renewcommand{\arraystretch}{1.12}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{@{} l c c c c c c c c @{}}
+\toprule
+\textbf{Objective} & \multicolumn{2}{c}{\textbf{Holdout \(\tau\)-nRMSE} $\downarrow$} & \multicolumn{2}{c}{\textbf{Shifted rel. nRMSE} $\downarrow$} & \multicolumn{2}{c}{\textbf{Sensitivity} $\uparrow$} & \multicolumn{2}{c}{\textbf{Direction} $\uparrow$} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(l){8-9}
+ & \textbf{Fixed} & \textbf{Jitter} & \textbf{Fixed} & \textbf{Jitter} & \textbf{Fixed} & \textbf{Jitter} & \textbf{Fixed} & \textbf{Jitter} \\
+\midrule
+CE & 0.8753 $\pm$ 0.0039 & 0.8749 $\pm$ 0.0060 & 0.8679 $\pm$ 0.0024 & 0.8569 $\pm$ 0.0060 & 0.5810 $\pm$ 0.0351 & 0.5831 $\pm$ 0.0406 & 0.7780 $\pm$ 0.0041 & 0.7924 $\pm$ 0.0056 \\
+Mixture EventNLL & 0.8745 $\pm$ 0.0053 & 0.8734 $\pm$ 0.0033 & 0.8663 $\pm$ 0.0037 & 0.8576 $\pm$ 0.0041 & 0.6021 $\pm$ 0.0484 & 0.6249 $\pm$ 0.0313 & 0.7730 $\pm$ 0.0062 & 0.7925 $\pm$ 0.0076 \\
+EventNLL & 0.8772 $\pm$ 0.0018 & 0.8771 $\pm$ 0.0040 & 0.8685 $\pm$ 0.0023 & 0.8593 $\pm$ 0.0028 & 0.5842 $\pm$ 0.0287 & 0.6174 $\pm$ 0.0222 & 0.7739 $\pm$ 0.0059 & 0.7937 $\pm$ 0.0068 \\
+Hazard EventNLL & 0.8778 $\pm$ 0.0041 & 0.8806 $\pm$ 0.0034 & 0.8692 $\pm$ 0.0028 & 0.8609 $\pm$ 0.0045 & 0.5618 $\pm$ 0.0376 & 0.5891 $\pm$ 0.0259 & 0.7694 $\pm$ 0.0090 & 0.7925 $\pm$ 0.0074 \\
+Soft-argmax RT loss & 0.8917 $\pm$ 0.0046 & 0.8836 $\pm$ 0.0035 & 0.8857 $\pm$ 0.0069 & 0.8613 $\pm$ 0.0032 & 0.5381 $\pm$ 0.0586 & 0.5775 $\pm$ 0.0362 & 0.7592 $\pm$ 0.0183 & 0.7951 $\pm$ 0.0052 \\
+Wasserstein & 0.8896 $\pm$ 0.0033 & 0.8922 $\pm$ 0.0066 & 0.8932 $\pm$ 0.0033 & 0.8774 $\pm$ 0.0099 & 0.6684 $\pm$ 0.0711 & 0.6852 $\pm$ 0.0416 & 0.7830 $\pm$ 0.0197 & 0.8026 $\pm$ 0.0118 \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
 
 \section{Reproducibility Details}
 \label{app:reproducibility_details}
