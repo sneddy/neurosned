@@ -421,33 +421,39 @@ p_t^{\mathrm{haz}} \propto h_t\prod_{k<t}(1-h_k),
 with the resulting event-bin probabilities normalized over the represented window. This keeps the same event-time likelihood in Eq.~\ref{eq:event_nll}, but changes the posterior parameterization from a categorical softmax to a discrete-time survival process. This extension tests whether the event-time formulation is tied to one softmax implementation.
 
 \subsection{Formulation Comparison and Robustness}
-Table~\ref{tab:r11_segmentation_losses} compares the paper-facing ETS-U-Net objective variants over five seeds under the fixed backbone and release-separated protocol. The CE and likelihood-family objectives form the strongest scalar-readout group after readout-temperature tuning, with R11 nRMSE between 0.8745 and 0.8778. This improves over the strongest scalar regression baseline, ETR-CNN large (0.8928 $\pm$ 0.0042; Table~\ref{tab:r11_regression_baselines}), while the time-only control remains much closer to the scalar-regression regime. The Wasserstein control is weaker as a scalar predictor before tuning, but remains useful diagnostically because it produces the largest localizer-like fraction in shifted-crop evaluation.
+Table~\ref{tab:r11_segmentation_losses} compares the paper-facing ETS-U-Net objective variants over five seeds under the fixed backbone and release-separated protocol. Here, R11 \(\tau\)-nRMSE denotes R11 nRMSE after applying the posterior-readout temperature \(\tau\) selected on R9--R10; R11 labels are used only for evaluation. The CE and likelihood-family objectives form the strongest scalar-readout group after readout-temperature tuning, with R11 \(\tau\)-nRMSE between 0.8745 and 0.8778. This improves over the strongest scalar regression baseline, ETR-CNN large (0.8928 $\pm$ 0.0042; Table~\ref{tab:r11_regression_baselines}), while the time-only and Wasserstein controls remain closer to the scalar-regression regime.
 
 \begin{table}[!t]
 \centering
-\caption{Five-seed comparison of event-time objectives with the fixed ETS-U-Net backbone.}
+\caption{Event-time objective variants with a fixed ETS-U-Net backbone. Values are mean $\pm$ sample standard deviation over seeds 2025--2029.}
 \label{tab:r11_segmentation_losses}
-\scriptsize
-\setlength{\tabcolsep}{3pt}
-\renewcommand{\arraystretch}{1.12}
-\resizebox{\linewidth}{!}{%
-\begin{tabular}{@{} l l c c c c c @{}}
+\footnotesize
+\setlength{\tabcolsep}{2pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\linewidth}{@{} >{\RaggedRight\arraybackslash}p{0.22\linewidth} Y >{\centering\arraybackslash}p{0.18\linewidth} >{\centering\arraybackslash}p{0.18\linewidth} >{\centering\arraybackslash}p{0.18\linewidth} @{}}
 \toprule
-\textbf{Objective} & \textbf{Supervision} & \textbf{Valid nRMSE} $\downarrow$ & \textbf{R11 nRMSE} $\downarrow$ & \textbf{Tau-tuned nRMSE} $\downarrow$ & \textbf{Shift slope} & \textbf{Localizer-like} \\
+\textbf{Model} & \textbf{Role} & \textbf{Valid nRMSE} $\downarrow$ & \textbf{R11 nRMSE} $\downarrow$ & \textbf{R11 \(\tau\)-nRMSE} $\downarrow$ \\
 \midrule
-CE & soft target & 0.8763 $\pm$ 0.0044 & 0.8774 $\pm$ 0.0044 & 0.8753 $\pm$ 0.0039 & $-0.339$ $\pm$ 0.017 & 0.209 $\pm$ 0.031 \\
-EventNLL & latent-event likelihood & 0.8769 $\pm$ 0.0030 & 0.8805 $\pm$ 0.0021 & 0.8772 $\pm$ 0.0018 & $-0.344$ $\pm$ 0.014 & 0.221 $\pm$ 0.026 \\
-Mixture EventNLL & two-scale likelihood & 0.8744 $\pm$ 0.0018 & 0.8785 $\pm$ 0.0047 & 0.8745 $\pm$ 0.0053 & $-0.355$ $\pm$ 0.024 & 0.246 $\pm$ 0.042 \\
-Hazard EventNLL & hazard likelihood & 0.8755 $\pm$ 0.0027 & 0.8776 $\pm$ 0.0031 & 0.8778 $\pm$ 0.0041 & $-0.328$ $\pm$ 0.020 & 0.196 $\pm$ 0.042 \\
-Time-only & scalar readout control & 0.8944 $\pm$ 0.0048 & 0.8943 $\pm$ 0.0025 & 0.8917 $\pm$ 0.0046 & $-0.301$ $\pm$ 0.043 & 0.160 $\pm$ 0.066 \\
-Wasserstein & CDF-distance control & 0.8997 $\pm$ 0.0035 & 0.8995 $\pm$ 0.0078 & 0.8896 $\pm$ 0.0033 & $-0.337$ $\pm$ 0.044 & 0.271 $\pm$ 0.065 \\
+\multicolumn{5}{@{}l}{\textit{Soft-target objective}} \\
+\addlinespace[0.15em]
+CE & soft event-time target & \mbox{0.8763 $\pm$ 0.0044} & \mbox{0.8774 $\pm$ 0.0044} & \mbox{0.8753 $\pm$ 0.0039} \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Likelihood-based objectives}} \\
+\addlinespace[0.15em]
+EventNLL & Gaussian observation kernel & \mbox{0.8769 $\pm$ 0.0030} & \mbox{0.8805 $\pm$ 0.0021} & \mbox{0.8772 $\pm$ 0.0018} \\
+Mixture EventNLL & two-scale observation kernel & \mbox{0.8744 $\pm$ 0.0018} & \mbox{0.8785 $\pm$ 0.0047} & \mbox{0.8745 $\pm$ 0.0053} \\
+Hazard EventNLL & hazard posterior parameterization & \mbox{0.8755 $\pm$ 0.0027} & \mbox{0.8776 $\pm$ 0.0031} & \mbox{0.8778 $\pm$ 0.0041} \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Readout and distance controls}} \\
+\addlinespace[0.15em]
+Time-only & scalar soft-argmax control & \mbox{0.8944 $\pm$ 0.0048} & \mbox{0.8943 $\pm$ 0.0025} & \mbox{0.8917 $\pm$ 0.0046} \\
+Wasserstein & CDF-distance control & \mbox{0.8997 $\pm$ 0.0035} & \mbox{0.8995 $\pm$ 0.0078} & \mbox{0.8896 $\pm$ 0.0033} \\
 \bottomrule
-\end{tabular}%
-}
+\end{tabularx}
 \end{table}
 
 \paragraph{Objective ablations.}
-The ablations separate expectation-style temporal readout from distributional supervision. The time-only model directly optimizes soft-argmax error but removes distribution matching; it remains close to the strongest scalar-regression baseline and trails the CE/EventNLL group by roughly 0.014--0.017 R11 tau nRMSE. CE and the likelihood-family variants form a tight top group: mixture EventNLL has the best mean temperature-tuned scalar readout, but CE, Gaussian EventNLL, mixture EventNLL, and hazard EventNLL are close relative to seed variability. The hazard result shows that the likelihood-family conclusion is not tied to a categorical softmax posterior, while the Wasserstein control shows that stronger localization-like behavior does not automatically give the best scalar nRMSE. Thus, the central gain is best attributed to distributional event-time supervision rather than to the U-Net backbone or soft-argmax readout alone.
+The ablations separate expectation-style temporal readout from distributional supervision. The time-only model directly optimizes soft-argmax error but removes distribution matching; it remains close to the strongest scalar-regression baseline and trails the CE/EventNLL group by roughly 0.014--0.017 R11 \(\tau\)-nRMSE. CE and the likelihood-family variants form a tight top group: mixture EventNLL has the best mean temperature-tuned scalar readout, but CE, Gaussian EventNLL, mixture EventNLL, and hazard EventNLL are close relative to seed variability. The hazard result shows that the likelihood-family conclusion is not tied to a categorical softmax posterior, while the Wasserstein control shows that an alternative distributional distance alone does not match the strongest scalar readouts. Thus, the central gain is best attributed to distributional event-time supervision rather than to the U-Net backbone or soft-argmax readout alone.
 
 \section{Posterior Readout and Diagnostics}
 \label{sec:posterior_diagnostics}
@@ -725,14 +731,7 @@ Architecture ablations separate formulation effects from capacity and backbone-s
 
 \section{Additional Posterior Geometry Examples}
 
-Table~\ref{tab:posterior_geometry_metrics} reports the quantitative posterior metrics behind Figure~\ref{fig:posterior_geometry_main}, and Figure~\ref{fig:posterior_raster_main} shows the corresponding trial-sorted posterior maps in the main text. Figure~\ref{fig:appendix_representative_posteriors} shows representative trials where models have similar scalar predictions but different posterior widths, large mode-mean gaps, or strong disagreement across losses, and Figure~\ref{fig:appendix_temperature_sensitivity} shows the development-split temperature curves used to choose post-hoc readout temperatures.
-
-\begin{figure}[!t]
-    \centering
-    \includegraphics[width=\linewidth]{img/ch1/posterior_geometry_examples_calibrated.png}
-    \caption{Representative calibrated event-time posteriors. Dashed black lines denote the true RT, and dotted colored lines denote model-specific posterior means. The examples illustrate why scalar RT alone is insufficient: models can agree on the mean while assigning very different posterior width, or disagree strongly because the posterior is multimodal or skewed.}
-    \label{fig:appendix_representative_posteriors}
-\end{figure}
+Table~\ref{tab:posterior_geometry_metrics} reports the quantitative posterior metrics behind Figure~\ref{fig:posterior_geometry_main}, and Figure~\ref{fig:posterior_raster_main} shows the corresponding trial-sorted posterior maps in the main text. Figure~\ref{fig:appendix_temperature_sensitivity} shows the development-split temperature curves used to choose post-hoc readout temperatures.
 
 \begin{figure}[!t]
     \centering

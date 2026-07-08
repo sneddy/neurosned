@@ -1,22 +1,21 @@
 # Fdb version 4
-["bibtex main_revised_v7"] 1783456400.7758 "main_revised_v7.aux" "main_revised_v7.bbl" "main_revised_v7" 1783456403.92168 0
+["bibtex main_revised_v7"] 1783501770.97929 "main_revised_v7.aux" "main_revised_v7.bbl" "main_revised_v7" 1783501775.98128 0
   "../references.bib" 1783432412.1378 48424 b450da2c8bfc4185f3c37cc684890237 ""
   "/usr/local/texlive/2026/texmf-dist/bibtex/bst/base/apalike.bst" 1292289607 24635 604dafcc79f521a11ea73e506e1fbd98 ""
-  "main_revised_v7.aux" 1783456403.70737 24947 81b13841a47c20ef654401365734f111 "pdflatex"
+  "main_revised_v7.aux" 1783501775.61368 24157 aadd0898bdbb9503afdeb379bdfe7c29 "pdflatex"
   (generated)
   "main_revised_v7.bbl"
   "main_revised_v7.blg"
   (rewritten before read)
-["pdflatex"] 1783456400.86514 "/Users/ayana.mussabayeva/projects/neurosned/writing/overleaf/release_v7/main_revised_v7.tex" "main_revised_v7.pdf" "main_revised_v7" 1783456403.92231 0
+["pdflatex"] 1783501771.13368 "/Users/ayana.mussabayeva/projects/neurosned/writing/overleaf/release_v7/main_revised_v7.tex" "main_revised_v7.pdf" "main_revised_v7" 1783501775.9816 0
   "../img/ch1/Ch1_ets_unet_1.png" 1783241848.02873 656743 21a6f927e0bd42ae983a77d449ae7a86 ""
   "../img/ch1/Ch1_regression.png" 1783156452.07853 48444 47d30a8139698ef0256a0c12e12a93e2 ""
   "../img/ch1/Ch1_stacking.png" 1783156452.08531 271324 05f770e1755bcbc731eb29b13890d25c ""
-  "../img/ch1/posterior_geometry_examples_calibrated.png" 1783180027.80818 331414 d92aaaf8f10a340cc4b77433e4a44102 ""
   "../img/ch1/posterior_geometry_main_calibrated.png" 1783180027.78901 599465 c0dc0cb0c5060f525d8ab61998ba6e88 ""
   "../img/ch1/temperature_sensitivity_calibrated.png" 1783180027.80343 173392 7323be063d1020a163bf28ef7bd2e456 ""
   "../img/ch1/trial_sorted_posterior_raster_calibrated.png" 1783261857.93285 841032 32e97815ffbaebd42f212c9ec74074fb ""
   "../img/challenge_task.png" 1783157498.73427 811019 511844fac4ba9a765cf181407b827d73 ""
-  "/Users/ayana.mussabayeva/projects/neurosned/writing/overleaf/release_v7/main_revised_v7.tex" 1783456389.54459 69610 43f546dfc3cde39a05e04867f00f2875 ""
+  "/Users/ayana.mussabayeva/projects/neurosned/writing/overleaf/release_v7/main_revised_v7.tex" 1783501747.16766 69165 61b80dcbbf6e186e4dfac2a009e30112 ""
   "/usr/local/texlive/2026/texmf-dist/fonts/enc/dvips/base/8r.enc" 1165713224 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/local/texlive/2026/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2026/texmf-dist/fonts/tfm/adobe/courier/pcrr8r.tfm" 1136768653 1292 bd42be2f344128bff6d35d98474adfe3 ""
@@ -147,10 +146,10 @@
   "/usr/local/texlive/2026/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1783178272 5573038 b99aad5e4898a9034e953632f940512b ""
   "/usr/local/texlive/2026/texmf-var/web2c/pdftex/pdflatex.fmt" 1783178191 3636771 265d16f782cb750b36326a45f752f4ba ""
   "/usr/local/texlive/2026/texmf.cnf" 1774209515 577 648cd9f92f9c0eac486f4c71c85cfbbe ""
-  "main_revised_v7.aux" 1783456403.70737 24947 81b13841a47c20ef654401365734f111 "pdflatex"
-  "main_revised_v7.bbl" 1783456400.86274 14617 904b038f30e611670b8f2ac195622b04 "bibtex main_revised_v7"
-  "main_revised_v7.out" 1783456403.70873 7904 608035ca54af410aaa95bf65a6b65aa6 "pdflatex"
-  "main_revised_v7.tex" 1783456389.54459 69610 43f546dfc3cde39a05e04867f00f2875 ""
+  "main_revised_v7.aux" 1783501775.61368 24157 aadd0898bdbb9503afdeb379bdfe7c29 "pdflatex"
+  "main_revised_v7.bbl" 1783501771.13055 14617 904b038f30e611670b8f2ac195622b04 "bibtex main_revised_v7"
+  "main_revised_v7.out" 1783501775.61551 7904 608035ca54af410aaa95bf65a6b65aa6 "pdflatex"
+  "main_revised_v7.tex" 1783501747.16766 69165 61b80dcbbf6e186e4dfac2a009e30112 ""
   (generated)
   "main_revised_v7.aux"
   "main_revised_v7.log"
