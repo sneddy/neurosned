@@ -212,7 +212,7 @@ In the CCD task, participants viewed two flickering grating stimuli and responde
 
 We use this task as a controlled evaluation setting for separating three possible sources of RT prediction performance: EEG backbone capacity, temporal readout parameterization, and distributional event-time supervision. The benchmark therefore fixes the data split, target support, input representation, and scalar evaluation rule before varying architectures and objectives in the subsequent model and diagnostic sections.
 
-To avoid subject leakage, all models use the same release-separated CCD split: R1--R8 for fitting, R9--R10 for development choices such as early stopping, checkpoint selection, readout-temperature tuning, and protocol diagnostics where applicable, and R11 as a one-shot final holdout after all model and readout choices are fixed. R11 holdout labels are not used for model fitting, checkpoint selection, readout-temperature selection, stacking, or protocol decisions. For consistency, the main analyzed set includes only trials whose response lies inside the fixed 2~s window (\(0.5 \leq \mathrm{RT} \leq 2.5\)~s). Table~\ref{tab:ccd_protocol_stats} reports the resulting partitions; metadata checks confirmed zero subject overlap across train, development, and holdout after filtering.
+To avoid subject leakage, all models use the same release-separated CCD split: R1--R8 for fitting, R9--R10 for development choices such as early stopping, checkpoint selection, readout-temperature tuning, and protocol diagnostics where applicable, and R11 as a one-shot final holdout after all model and readout choices are fixed. R11 holdout labels are not used for model fitting, checkpoint selection, readout-temperature selection, or protocol decisions. For consistency, the main analyzed set includes only trials whose response lies inside the fixed 2~s window (\(0.5 \leq \mathrm{RT} \leq 2.5\)~s). Table~\ref{tab:ccd_protocol_stats} reports the resulting partitions; metadata checks confirmed zero subject overlap across train, development, and holdout after filtering.
 
 \begin{table}[!t]
 \centering
@@ -231,7 +231,7 @@ Holdout & R11 & 15{,}751 & 15{,}164 & 292 \\
 \end{tabular*}
 \end{table}
 
-Scalar performance is evaluated using normalized RMSE (nRMSE), defined as RMSE divided by the standard deviation of the true targets within the evaluated split \citep{EEGChallengeWebsite2025}. Main scalar comparisons use the same support-filtered R9--R10 development set and R11 holdout set. Diagnostic analyses that require shifted crop starts, stricter RT support, posterior-only summaries, or stacking are introduced locally in the corresponding subsection or appendix and do not affect the main holdout reporting protocol.
+Scalar performance is evaluated using normalized RMSE (nRMSE), defined as RMSE divided by the standard deviation of the true targets within the evaluated split \citep{EEGChallengeWebsite2025}. Main scalar comparisons use the same support-filtered R9--R10 development set and R11 holdout set. Diagnostic analyses that require shifted crop starts, stricter RT support, or posterior-only summaries are introduced locally in the corresponding subsection or appendix and do not affect the main holdout reporting protocol.
 
 \subsection{Shared Training, Readout Tuning, and Inference Protocol}
 \label{sec:shared_protocol}
@@ -599,94 +599,6 @@ We reformulated EEG-based reaction-time prediction as event-time distribution mo
 
 \appendix
 
-\section{Distribution-Aware Stacking}
-\label{sec:rt_stacking}
-Segmentation-style outputs enable richer ensembling than scalar averaging, but combination becomes sensitive to model confidence: naive averaging can overweight overconfident models and underweight accurate but underconfident ones. We therefore define an auxiliary second-stage stacker on distributional meta-features extracted from the time-distribution outputs.
-
-In a release-separated application, base segmentation models are fit on R1-R8 before the stacker is trained. Meta-model inputs are then computed on the R9-R10 development partition using subject-disjoint folds, so that the stacker never receives in-fold predictions for the same subject. Logits and temperature-scaled event-time probabilities are converted to meta-features such as peak time, entropy, variance, expected time, and CDF quantiles. This stacker is treated as a post-hoc ensemble layer rather than as part of the single-model event-time comparison.
-
-
-\begin{figure}[t!]
-    \centering
-    \includegraphics[width=0.9\linewidth]{img/ch1/Ch1_stacking.png}
-    \caption{OOF stacking for RT prediction from time-distribution outputs. Per-model logits/distributions are converted into
-    meta-features (e.g., peak time, entropy/variance, temperature-conditioned expected times, and CDF quantiles) and combined
-    by a second-stage stacker (Ridge/GBDT). Predictions from fold-trained stackers are aggregated at inference (median) to produce the final RT estimate.}
-    \label{fig:Ch1_stacking}
-\end{figure}
-
-\paragraph{Meta-features from logits and temperature-scaled probabilities.}
-Meta-features are extracted per model from (i) raw logits and (ii) temperature-scaled probabilities computed for multiple
-temperatures $\tau\in\mathcal{T}_{\text{meta}}$. From logits, a hard-peak estimate and confidence proxies are computed:
-
-\begin{equation}
-\label{eq:rt_stacking_logit_features}
-t^\star = \arg\max_{t} z_t,\qquad
-\hat t_{\mathrm{hard}} = t_0 + g_{t^\star},\qquad
-z_{\max} = \max_t z_t,\qquad
-m_{\mathrm{top2}} = z_{\max} - \max_{t\neq t^\star} z_t.
-\end{equation}
-For each $\tau\in\mathcal{T}_{\text{meta}}$, probabilities are formed as $p(\tau)=\mathrm{softmax}(\mathbf{z}/\tau)$ (Eq.~\ref{eq:rt_pred_dist}, Sec.~\ref{sec:event_time_formulation}), where $\mathbf{z}=(z_0,\dots,z_{T-1})$ denotes the per-time logit vector for a given model and window. Distributional summaries
-are computed, including the soft-argmax time (Eq.~\ref{eq:rt_soft_argmax}, Sec.~\ref{sec:event_time_formulation}), entropy $H(p(\tau))$, peak probability
-$p_{\max}(\tau)$, time variance $\mathrm{Var}_{p(\tau)}[g]$, and CDF time-quantiles (10/50/90\%). In our implementation,
-$\mathcal{T}_{\text{meta}}=\{0.7,1.0,1.3\}$.
-
-\paragraph{Meta-learner and inference.}
-We use linear Ridge regression as a strong baseline meta-learner, and gradient boosting to capture non-linear reliability
-patterns across models and temperatures. The meta-learner is trained using subject-disjoint cross-validation: each subject is assigned to exactly one fold (Figure~\ref{fig:Ch1_stacking}). For fold $k$, the stacker is fit on the other folds and predicts RT for the held-out fold. The leakage-controlled diagnostic is the out-of-fold nRMSE from these held-out predictions. Folds are stratified to match the per-subject mean RT distribution across folds. For held-out inference, the same feature construction is applied to unseen logits; predictions from the fold-trained stackers are aggregated to obtain the final RT estimate.
-Manual blending serves as a reference, but it cannot adapt weights to sample-specific confidence profiles.
-
-\section{Original Hidden CodaBench Benchmark Results}
-
-We report the original hidden-release CodaBench evaluation as historical challenge context. These scores provide continuity with the original benchmark setting, while the main empirical conclusions in this manuscript are based on the labeled R11 release with subject-bootstrap confidence intervals.
-
-\begin{table}[!h]
-\centering
-\caption{Original hidden-release CodaBench RT results from the earlier submission-oriented pipeline. These results are reported for historical comparison with the challenge setting.}
-\label{tab:appendix_codabench}
-\small
-\setlength{\tabcolsep}{8pt}
-\renewcommand{\arraystretch}{1.15}
-\begin{tabular}{lcc}
-\toprule
-\textbf{Method} & \textbf{Validation nRMSE} $\downarrow$ & \textbf{Hidden nRMSE} $\downarrow$ \\
-\midrule
-Best temperature-tuned single model & 0.898757 & 0.92334 \\
-Manual blending & 0.899979 & 0.91840 \\
-Ridge stacking & 0.890430 & 0.91539 \\
-Gradient boosting stacking & \textbf{0.883365} & \textbf{0.91394} \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\section{Unwrapped External Backbone Sanity Checks}
-
-Unwrapped external architectures are useful for diagnosing scale sensitivity. Because our own models use per-window standardization, the primary comparison uses wrapped external models. Table~\ref{tab:appendix_unwrapped_external} reports matched sanity checks for representative off-the-shelf architectures with and without the fixed per-window standardization wrapper. The unwrapped rows often collapse toward target-standard-deviation behavior (nRMSE near 1), whereas the wrapped variants train meaningfully under the same release-separated protocol used in the main tables.
-
-\begin{table}[!t]
-\centering
-\caption{Unwrapped external-backbone sanity checks. ``Wrapped'' means that the model receives the same per-window channel standardization used by our compact baselines. These checks diagnose scale sensitivity; the wrapped variants are the fair external comparisons used in the main results.}
-\label{tab:appendix_unwrapped_external}
-\scriptsize
-\setlength{\tabcolsep}{3pt}
-\renewcommand{\arraystretch}{1.12}
-\resizebox{\linewidth}{!}{%
-\begin{tabular}{@{} l c c c c l @{}}
-\toprule
-\textbf{Architecture} & \textbf{Unwrapped valid} & \textbf{Unwrapped R11} & \textbf{Wrapped valid} & \textbf{Wrapped R11} & \textbf{Takeaway} \\
-\midrule
-EEGNet & 1.000000 & 1.002046 [0.999718, 1.007253] & 0.957877 & 0.965041 [0.954684, 0.977111] & Standardization makes the compact EEG baseline train \\
-EEGConformer & 1.000000 & 1.000413 [0.999906, 1.003179] & 0.957968 & 0.962802 [0.951634, 0.975382] & Transformer-style baseline is scale-sensitive without wrapping \\
-LaBraM & 1.000000 & 1.000711 [0.998638, 1.004512] & 0.958254 & 0.965382 [0.952576, 0.979330] & From-scratch foundation-style architecture needs the fixed normalization \\
-\bottomrule
-\end{tabular}%
-}
-\end{table}
-
-\section{Additional Protocol Calibration Runs}
-
-Protocol calibration evaluated optimizer choice, learning rate, soft-label width, batch size, and augmentation strength before fixing the training recipe used in the release-separated experiments. These diagnostics informed the protocol but are separated from the R11 results used for the main claims.
-
 \section{Additional EventNLL Kernel and Hazard Robustness Checks}
 
 The main text keeps the event-time segmentation table focused on the core CE, EventNLL, and control objectives, plus two compact EventNLL-family extensions. Table~\ref{tab:appendix_kernel_hazard_robustness} reports the broader kernel and hazard robustness checks. These runs use the same release-separated protocol and test whether the probabilistic event-time result depends on one specific Gaussian observation kernel or one specific softmax parameterization.
@@ -716,10 +628,6 @@ Hazard discrete NLL & exact-bin discrete survival likelihood & 0.65 & 0.926288 &
 \end{table}
 
 Overall, these checks support two points. First, the EventNLL view is not tied to a single Gaussian-softmax implementation: the hazard EventNLL and Gaussian-mixture kernel remain competitive. Second, more robust or more flexible observation models are not automatically better; Laplace, Student-$t$, heteroscedastic, and exact-bin hazard variants are useful robustness probes but do not strengthen the core R11 story enough to feature in the main table.
-
-\section{Additional Architecture Ablations}
-
-Architecture ablations separate formulation effects from capacity and backbone-specific effects. In particular, ETS-U-Net capacity variants, attention bottlenecks, factorized channel interactions, recurrent variants, and EEG-Inception-style segmentation provide complementary checks on whether the event-time formulation depends on a single encoder-decoder instantiation.
 
 \section{Additional Posterior Geometry Examples}
 
