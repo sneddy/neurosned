@@ -7,8 +7,6 @@ cd "$ROOT_DIR"
 DEVICE="${DEVICE:-auto}"
 RUN_ROOT="${RUN_ROOT:-benchmarks/experiments/01_regression_baselines}"
 DATASET="${DATASET:-data/new_validation/r11_test_5sec.pkl}"
-TARGET_MIN="${TARGET_MIN:-0.8}"
-TARGET_MAX="${TARGET_MAX:-2.2}"
 STARTS="${STARTS:-0.2 0.3 0.4 0.5 0.6 0.7 0.8}"
 REFERENCE_START="${REFERENCE_START:-0.5}"
 BOOTSTRAP_SAMPLES="${BOOTSTRAP_SAMPLES:-1000}"
@@ -43,7 +41,7 @@ echo "Run root: $RUN_ROOT"
 echo "Dataset: $DATASET"
 echo "Device: $DEVICE"
 echo "Starts: $STARTS"
-echo "Target support: $TARGET_MIN-$TARGET_MAX"
+echo "Target support: none; shifted_summary.csv provides all/inside_crop/common_inside masks"
 echo "Save predictions: $SAVE_PREDICTIONS"
 
 while IFS= read -r run_dir; do
@@ -53,8 +51,6 @@ while IFS= read -r run_dir; do
     --dataset "$DATASET" \
     --starts $STARTS \
     --reference-start "$REFERENCE_START" \
-    --target-min "$TARGET_MIN" \
-    --target-max "$TARGET_MAX" \
     --device "$DEVICE" \
     --bootstrap-samples "$BOOTSTRAP_SAMPLES" \
     --bootstrap-seed "$BOOTSTRAP_SEED" \

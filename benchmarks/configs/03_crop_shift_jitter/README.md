@@ -22,7 +22,9 @@ Training uses:
 
 Validation and standard R11 holdout still use the canonical fixed 2 s windows,
 but filtered to the same `0.8--2.2` support. Shifted-crop evaluation runs
-automatically on `data/new_validation/r11_test_5sec.pkl`.
+automatically on `data/new_validation/r11_test_5sec.pkl` without an extra
+target-range filter; `shifted_summary.csv` reports `all`, `inside_crop`, and
+`common_inside` masks.
 
 Run all configs:
 

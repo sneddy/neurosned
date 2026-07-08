@@ -18,6 +18,11 @@ data:
 ```
 
 Each config enables repeated runs with seeds `2025, 2026, 2027, 2028, 2029`.
+Each config also enables the shifted-crop diagnostic on
+`data/new_validation/r11_test_5sec.pkl` without an extra target-range filter;
+the saved `shifted_summary.csv` contains `all`, `inside_crop`, and
+`common_inside` rows for paper-facing metric selection.
+
 Run with:
 
 ```bash

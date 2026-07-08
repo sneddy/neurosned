@@ -4,7 +4,7 @@ Current paper-facing experiment journal for the support-filtered protocol. The
 previous unfiltered-protocol journal is archived at
 `benchmarks/archive/unfiltered_protocol/EXPERIMENTS.md`.
 
-Status date: 2026-07-07.
+Status date: 2026-07-08.
 
 ## Current Scope
 
@@ -45,6 +45,12 @@ Metric conventions:
   split and support filter.
 - `tau nRMSE`: nRMSE after validation-tuned softmax temperature calibration for
   event-time posteriors; this is evaluation-time calibration, not retraining.
+- `shifted-crop rel nRMSE`: pooled shifted-crop pseudo-validation RMSE divided
+  by `std(target_abs - crop_start)` for valid shifted-crop examples. For the
+  paper presentation, this should be used as the shifted-crop accuracy metric,
+  while shift-tracking metrics should be computed on matched trial-level crop
+  pairs. Shifted-crop rel nRMSE is not numerically interchangeable with ordinary
+  Holdout nRMSE.
 - `shift slope`: slope of raw crop-relative prediction versus crop start in the
   shifted-crop diagnostic. A crop-relative localizer should be near `-1`; a
   crop-invariant shortcut should be near `0`.
@@ -61,8 +67,8 @@ Metric conventions:
 | Regression baselines | `benchmarks/configs/01_regression_baselines/` | Scalar RT and wrapped external EEG baselines. | Complete: 12/12 configs, 5 seeds each. |
 | Segmentation ablations | `benchmarks/configs/02_segmentation_ablations/` | ETS-U-Net event-time objective comparison. | Complete for selected paper-facing objectives. |
 | Posterior geometry | generated from `02_segmentation_ablations` outputs | Distributional output semantics beyond scalar nRMSE. | Pending filtered-protocol regeneration. |
-| Shifted-crop diagnostic | `evaluation.shifted_crop` in run configs plus post-hoc regression runner | Shortcut-vs-localization stress test. | Complete for scalar baselines; running for segmentation. |
-| Shift-jitter training | `benchmarks/configs/03_crop_shift_jitter/` | Training-time removal of fixed-window shortcuts. | Configs ready, not run. |
+| Shifted-crop diagnostic | `evaluation.shifted_crop` in run configs plus post-hoc runners | Shortcut-vs-localization stress test. | Complete for regression and original segmentation; shift-jitter summaries updated in paper tables. |
+| Shift-jitter training | `benchmarks/configs/03_crop_shift_jitter/` | Training-time removal of fixed-window shortcuts. | Complete: 6/6 configs, 5 seeds each. |
 | Final training recipe | planned config group | Optional final model recipe after ablations are fixed. | Planned. |
 | Distribution-aware stacking | planned artifacts under stacking experiments | Test whether posterior/logit features add reusable information. | Planned. |
 
@@ -72,14 +78,16 @@ Metric conventions:
 | --- | --- | --- | --- |
 | Data protocol summary | `benchmarks/experiments/00_data_protocol/protocol_summary.md` | Canonical split/support table for the filtered protocol. | Complete. |
 | Regression repeated runs | `benchmarks/experiments/01_regression_baselines/` | Main scalar baseline table. | Complete: 12/12 configs, 5 seeds each. |
-| Regression leaderboard | `benchmarks/experiments/paper_tables/regression_leaderboard.md` | Camera-ready scalar baseline table. | Complete. |
-| Regression shifted-crop table | `benchmarks/experiments/paper_tables/regression_shifted_crop.md` | Scalar baseline shortcut/localization diagnostic. | Complete: 60/60 seed-runs. |
+| Main regression table | `benchmarks/experiments/paper_tables/main_01_regression_baselines.md` | Camera-ready scalar baseline table. | Complete. |
+| Main event-time objective table | `benchmarks/experiments/paper_tables/main_02_event_time_objectives.md` | Camera-ready ETS-U-Net objective table. | Complete. |
+| Main shifted-crop table | `benchmarks/experiments/paper_tables/main_03_shifted_crop_core.md` | Compact shortcut/localization diagnostic. | Complete. |
 | Segmentation repeated runs | `benchmarks/experiments/02_segmentation_ablations/` | Event-time objective table and shifted-crop summaries. | Complete for selected paper-facing objectives. |
-| Segmentation leaderboard | `benchmarks/experiments/paper_tables/segmentation_leaderboard.md` | Current event-time objective table with scalar and shifted-crop metrics. | Complete for selected paper-facing objectives. |
-| Segmentation shifted-crop table | `benchmarks/experiments/paper_tables/segmentation_shifted_crop.md` | Event-time shortcut/localization diagnostic. | Running: 30 seed-runs available. |
-| Shift-jitter repeated runs | `benchmarks/experiments/03_crop_shift_jitter/` | Jitter-trained event-time localization test. | Planned. |
+| Regression shifted-crop appendix table | `benchmarks/experiments/paper_tables/appendix_01_regression_shifted_crop.md` | Appendix diagnostic for all scalar baselines. | Complete: 60/60 seed-runs. |
+| Fixed-window segmentation shifted-crop appendix table | `benchmarks/experiments/paper_tables/appendix_02_fixed_window_segmentation_shifted_crop.md` | Post-hoc diagnostic for fixed-window ETS-U-Net objectives. | Complete: 30/30 seed-runs. |
+| Shift-jitter repeated runs | `benchmarks/experiments/03_crop_shift_jitter/` | Jitter-trained event-time localization test. | Complete: 6/6 configs, 5 seeds each. |
+| Shift-jitter training appendix table | `benchmarks/experiments/paper_tables/appendix_03_shift_jitter_training.md` | Diagnostic after shift-jitter training. | Complete. |
 | Posterior geometry figures | TBD under `benchmarks/experiments/02_segmentation_ablations/figures/` | Camera-ready posterior profile panels. | Pending filtered-protocol regeneration. |
-| Shifted-crop summaries | per-run `shifted_eval/` folders | Crop-start robustness and localization diagnostics. | Complete for scalar baselines; running for segmentation. |
+| Shifted-crop summaries | per-run `shifted_eval/` folders | Crop-start robustness and localization diagnostics. | New pooled-summary format complete for regression, original segmentation, and shift-jitter runs. |
 | Stacking artifacts | TBD | Competition-style ensemble/calibration reproduction. | Planned. |
 
 ## 00 Data Protocol
@@ -90,7 +98,7 @@ Canonical artifact:
 Narrative role:
 
 - Defines the release-separated protocol before any model comparison.
-- Shows that train, development, and R11 holdout are subject-disjoint.
+- Shows that train, development, and holdout are subject-disjoint.
 - Makes the `0.5 <= RT <= 2.5` support filter explicit, matching the modeled
   fixed-window event-time support.
 - Separates raw pickle preparation from analysis filtering: the raw files stay
@@ -131,12 +139,12 @@ Paper-facing configs:
 | `eegpt_wrapped.yaml` | Foundation-style architecture from scratch. |
 | `medformer_wrapped.yaml` | Larger transformer/time-series baseline. |
 
-Current repeated-run snapshot is also maintained as a standalone leaderboard at
-`benchmarks/experiments/paper_tables/regression_leaderboard.md`.
+Current repeated-run snapshot is also maintained as a paper-facing table at
+`benchmarks/experiments/paper_tables/main_01_regression_baselines.md`.
 
 Final 5-seed rows:
 
-| model | seeds | valid nRMSE mean +/- std | R11 nRMSE mean +/- std | R11 range |
+| model | seeds | valid nRMSE mean +/- std | Holdout nRMSE mean +/- std | Holdout range |
 | --- | ---: | ---: | ---: | ---: |
 | `etr_cnn_large` | 5/5 | 0.8972 +/- 0.0040 | 0.8928 +/- 0.0042 | 0.8873-0.8977 |
 | `etr_cnn` | 5/5 | 0.9008 +/- 0.0060 | 0.8977 +/- 0.0068 | 0.8922-0.9085 |
@@ -179,7 +187,7 @@ Paper-facing configs:
 | `ets_unet_event_nll.yaml` | ETS-U-Net EventNLL | Latent event-time likelihood with Gaussian observation kernel. |
 | `ets_unet_event_nll_mixture.yaml` | ETS-U-Net mixture EventNLL | Two-scale Gaussian observation-kernel extension. |
 | `ets_unet_hazard_event_nll.yaml` | ETS-U-Net hazard EventNLL | Hazard/survival posterior parameterization with EventNLL. |
-| `ets_unet_time_only.yaml` | ETS-U-Net time-only | Scalar soft-argmax control without distributional supervision. |
+| `ets_unet_time_only.yaml` | ETS-U-Net soft-argmax RT loss | Scalar RT loss on posterior expectation, without distributional supervision. |
 | `ets_unet_wasserstein.yaml` | ETS-U-Net Wasserstein | CDF-distance control objective. |
 
 All segmentation configs currently include:
@@ -194,43 +202,44 @@ All segmentation configs currently include:
 | temperature calibration | enabled |
 | shifted-crop diagnostic | enabled |
 | shifted-crop dataset | `data/new_validation/r11_test_5sec.pkl` |
-| shifted-crop subset | `0.8 <= RT <= 2.2` |
+| shifted-crop paper rows | accuracy: `mask=inside_crop`, `start_group=all_starts`; shift tracking: `mask=common_inside`, `start_group=all_starts` |
 | shifted-crop starts | `0.2, 0.3, ..., 0.8` |
 | shifted-crop per-trial predictions | disabled by default |
 
-Current repeated-run snapshot is also maintained as a standalone leaderboard at
-`benchmarks/experiments/paper_tables/segmentation_leaderboard.md`.
+Current repeated-run snapshot is also maintained as a paper-facing table at
+`benchmarks/experiments/paper_tables/main_02_event_time_objectives.md`.
 
 Current rows:
 
-| model | seeds | valid nRMSE mean +/- std | R11 nRMSE mean +/- std | R11 tau nRMSE mean +/- std | shift slope mean +/- std | localizer-like mean +/- std |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| `ets_unet_ce` | 5/5 | 0.8763 +/- 0.0044 | 0.8774 +/- 0.0044 | 0.8753 +/- 0.0039 | -0.339 +/- 0.017 | 0.209 +/- 0.031 |
-| `ets_unet_event_nll` | 5/5 | 0.8769 +/- 0.0030 | 0.8805 +/- 0.0021 | 0.8772 +/- 0.0018 | -0.344 +/- 0.014 | 0.221 +/- 0.026 |
-| `ets_unet_event_nll_mixture` | 5/5 | 0.8744 +/- 0.0018 | 0.8785 +/- 0.0047 | 0.8745 +/- 0.0053 | -0.355 +/- 0.024 | 0.246 +/- 0.042 |
-| `ets_unet_hazard_event_nll` | 5/5 | 0.8755 +/- 0.0027 | 0.8776 +/- 0.0031 | 0.8778 +/- 0.0041 | -0.328 +/- 0.020 | 0.196 +/- 0.042 |
-| `ets_unet_time_only` | 5/5 | 0.8944 +/- 0.0048 | 0.8943 +/- 0.0025 | 0.8917 +/- 0.0046 | -0.301 +/- 0.043 | 0.160 +/- 0.066 |
-| `ets_unet_wasserstein` | 5/5 | 0.8997 +/- 0.0035 | 0.8995 +/- 0.0078 | 0.8896 +/- 0.0033 | -0.337 +/- 0.044 | 0.271 +/- 0.065 |
+| model | paper name | seeds | valid nRMSE mean +/- std | Holdout nRMSE mean +/- std | Holdout tau nRMSE mean +/- std | shift slope mean +/- std | localizer-like mean +/- std |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `ets_unet_ce` | ETS-U-Net CE | 5/5 | 0.8763 +/- 0.0044 | 0.8774 +/- 0.0044 | 0.8753 +/- 0.0039 | -0.339 +/- 0.017 | 0.209 +/- 0.031 |
+| `ets_unet_event_nll` | ETS-U-Net EventNLL | 5/5 | 0.8769 +/- 0.0030 | 0.8805 +/- 0.0021 | 0.8772 +/- 0.0018 | -0.344 +/- 0.014 | 0.221 +/- 0.026 |
+| `ets_unet_event_nll_mixture` | ETS-U-Net mixture EventNLL | 5/5 | 0.8744 +/- 0.0018 | 0.8785 +/- 0.0047 | 0.8745 +/- 0.0053 | -0.355 +/- 0.024 | 0.246 +/- 0.042 |
+| `ets_unet_hazard_event_nll` | ETS-U-Net hazard EventNLL | 5/5 | 0.8755 +/- 0.0027 | 0.8776 +/- 0.0031 | 0.8778 +/- 0.0041 | -0.328 +/- 0.020 | 0.196 +/- 0.042 |
+| `ets_unet_time_only` | ETS-U-Net soft-argmax RT loss | 5/5 | 0.8944 +/- 0.0048 | 0.8943 +/- 0.0025 | 0.8917 +/- 0.0046 | -0.301 +/- 0.043 | 0.160 +/- 0.066 |
+| `ets_unet_wasserstein` | ETS-U-Net Wasserstein | 5/5 | 0.8997 +/- 0.0035 | 0.8995 +/- 0.0078 | 0.8896 +/- 0.0033 | -0.337 +/- 0.044 | 0.271 +/- 0.065 |
 
 Interpretation so far:
 
 - CE and EventNLL both outperform the strongest completed scalar regression
-  baseline on R11 after temperature calibration.
+  baseline on holdout after temperature calibration.
 - Mixture EventNLL has the best calibrated scalar readout so far
-  (`test_tau_nRMSE = 0.8745`) and the most localizer-like shift slope among the
-  likelihood-style objectives.
+  (`test_tau_nRMSE = 0.8745`) and the best original-segmentation shifted
+  pseudo-validation rel nRMSE.
 - CE remains the simplest strong row; hazard EventNLL is competitive but does
   not beat mixture/CE cleanly.
-- Time-only is clearly weaker than CE/EventNLL, which supports the claim that
+- Soft-argmax RT loss is clearly weaker than CE/EventNLL, which supports the claim that
   distributional event-time supervision matters beyond the soft-argmax scalar
   readout.
-- Wasserstein has the highest completed localizer-like fraction so far, but it
-  pays for that with worse scalar nRMSE and worse shifted-crop nRMSE.
+- Wasserstein has the strongest shift sensitivity among original segmentation
+  controls, but it pays for that with worse scalar nRMSE and worse shifted-crop
+  rel nRMSE.
 
 Expected paper use:
 
 - Main segmentation table: CE, EventNLL, mixture EventNLL, hazard EventNLL,
-  time-only, Wasserstein.
+  soft-argmax RT loss, Wasserstein.
 - Appendix/internal only unless needed: Laplace EventNLL, Student-t EventNLL,
   heteroscedastic EventNLL, exact-bin hazard NLL. These remain in the archived
   unfiltered protocol and should not be mixed into the new main table without
@@ -251,7 +260,7 @@ Narrative role:
   response-relevant event occurs.
 - Separate localization-like evidence from broad calibrated uncertainty.
   EventNLL is expected to be sharper; CE is expected to be broader and often
-  better calibrated; time-only is expected to recover the scalar readout with a
+  better calibrated; soft-argmax RT loss is expected to recover the scalar readout with a
   weaker distributional semantics.
 
 Paper-facing metrics:
@@ -294,71 +303,80 @@ Paper-facing metrics:
 
 | metric | expected meaning |
 | --- | --- |
-| per-start nRMSE / MAE | Whether scalar accuracy collapses for shifted crops. |
-| raw shift slope | `-1` means crop-relative localization; `0` means crop-invariant shortcut. |
-| corrected shift slope | Slope after converting crop-relative prediction back to absolute time; `0` is ideal. |
-| MAE to localizer slope | Distance from ideal raw slope `-1`. |
-| MAE to stable corrected slope | Distance from ideal absolute-time stability. |
-| localizer-like fraction | Fraction of trials with raw slope in `[-1.25, -0.75]`. |
-| invariant-like fraction | Fraction of trials with raw slope in `[-0.25, 0.25]`. |
-| wrong-direction fraction | Fraction of trials where raw slope is positive. |
+| rel nRMSE | Pooled pseudo-validation nRMSE on valid crop-relative targets `target_abs - crop_start`. |
+| RMSE / MAE, seconds | Crop-relative prediction error in physical units, using the same valid shifted-crop examples as rel nRMSE. |
+| shift error | Absolute error between observed prediction shift and ideal localizer shift. |
+| sensitivity | Prediction-shift magnitude divided by crop-shift magnitude; `1` is ideal localizer, `0` is invariant shortcut. |
+| direction | Fraction of shifted examples moving in the correct direction. |
 
 Current interpretation constraints:
 
-- Ideal crop-relative localizer: raw shift slope near `-1`.
-- Crop-invariant shortcut: raw shift slope near `0`.
+- Planned paper presentation separates shifted-crop accuracy from shift
+  tracking. Accuracy metrics (`rel nRMSE`, RMSE, MAE) should be read from
+  `mask=inside_crop`, `start_group=all_starts`: each evaluated crop example is
+  valid because the RT lies inside that crop.
+- Shift-tracking metrics (`shift error`, `sensitivity`, `direction`) should be
+  read from matched trial-level crop pairs, with `mask=common_inside` and
+  `start_group=all_starts` as the strict paper-facing subset.
+- `common_inside` means the same trials satisfy `0.8 <= RT <= 2.2` and are
+  present for every crop start; this makes shift-tracking comparisons use the
+  same trial set across all crop starts.
+- `all_starts` pools `0.2, 0.3, ..., 0.8`, including the canonical `0.5` crop,
+  before computing the pooled metrics.
+- `rel nRMSE` is normalized by `std(target_abs - crop_start)` and should not be
+  numerically compared to ordinary holdout nRMSE.
 - Current claim should remain diagnostic, not solved localization, unless
-  shift-jitter training materially improves the slope metrics.
+  shift-jitter training materially improves sensitivity/direction metrics.
 
 Segmentation shifted-crop snapshot:
-`benchmarks/experiments/paper_tables/segmentation_shifted_crop.md`.
+`benchmarks/experiments/paper_tables/appendix_02_fixed_window_segmentation_shifted_crop.md`.
 
-| model | seeds | ref nRMSE @0.5 | mean shifted nRMSE | worst shifted nRMSE | raw shift slope | localizer-like | invariant-like |
+| model | seeds | rel nRMSE | RMSE, s | MAE, s | shift error, s | sensitivity | direction |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| `ets_unet_ce` | 5/5 | 0.8593 +/- 0.0071 | 0.9470 +/- 0.0087 | 1.0655 +/- 0.0135 | -0.339 +/- 0.017 | 0.209 +/- 0.031 | 0.286 +/- 0.016 |
-| `ets_unet_event_nll` | 5/5 | 0.8656 +/- 0.0049 | 0.9514 +/- 0.0063 | 1.0616 +/- 0.0129 | -0.344 +/- 0.014 | 0.221 +/- 0.026 | 0.292 +/- 0.016 |
-| `ets_unet_event_nll_mixture` | 5/5 | 0.8623 +/- 0.0070 | 0.9520 +/- 0.0077 | 1.0678 +/- 0.0151 | -0.355 +/- 0.024 | 0.246 +/- 0.042 | 0.290 +/- 0.026 |
-| `ets_unet_hazard_event_nll` | 5/5 | 0.8605 +/- 0.0065 | 0.9434 +/- 0.0086 | 1.0466 +/- 0.0152 | -0.328 +/- 0.020 | 0.196 +/- 0.042 | 0.305 +/- 0.024 |
-| `ets_unet_time_only` | 5/5 | 0.8802 +/- 0.0034 | 0.9563 +/- 0.0113 | 1.0531 +/- 0.0224 | -0.301 +/- 0.043 | 0.160 +/- 0.066 | 0.323 +/- 0.046 |
-| `ets_unet_wasserstein` | 5/5 | 0.8851 +/- 0.0169 | 0.9810 +/- 0.0217 | 1.1083 +/- 0.0327 | -0.337 +/- 0.044 | 0.271 +/- 0.065 | 0.270 +/- 0.045 |
+| `ets_unet_event_nll_mixture` | 5/5 | 0.866 +/- 0.004 | 0.332 +/- 0.001 | 0.234 +/- 0.003 | 0.130 +/- 0.004 | 0.602 +/- 0.048 | 0.773 +/- 0.006 |
+| `ets_unet_ce` | 5/5 | 0.868 +/- 0.002 | 0.333 +/- 0.001 | 0.237 +/- 0.002 | 0.133 +/- 0.003 | 0.581 +/- 0.035 | 0.778 +/- 0.004 |
+| `ets_unet_event_nll` | 5/5 | 0.869 +/- 0.002 | 0.333 +/- 0.001 | 0.237 +/- 0.002 | 0.132 +/- 0.002 | 0.584 +/- 0.029 | 0.774 +/- 0.006 |
+| `ets_unet_hazard_event_nll` | 5/5 | 0.869 +/- 0.003 | 0.334 +/- 0.001 | 0.238 +/- 0.003 | 0.135 +/- 0.004 | 0.562 +/- 0.038 | 0.769 +/- 0.009 |
+| `ets_unet_time_only` | 5/5 | 0.886 +/- 0.007 | 0.340 +/- 0.003 | 0.247 +/- 0.005 | 0.140 +/- 0.008 | 0.538 +/- 0.059 | 0.759 +/- 0.018 |
+| `ets_unet_wasserstein` | 5/5 | 0.893 +/- 0.003 | 0.343 +/- 0.001 | 0.239 +/- 0.004 | 0.133 +/- 0.008 | 0.668 +/- 0.071 | 0.783 +/- 0.020 |
 
 Segmentation interpretation:
 
-- CE/EventNLL/mixture/hazard are the strongest completed scalar event-time rows
-  at the canonical crop and remain better than the scalar regression baselines.
-- Segmentation is more localizer-like than regression overall, but it is still
-  far from the ideal raw shift slope of `-1`.
-- Time-only underperforms CE/EventNLL, supporting the value of distributional
+- CE/EventNLL/mixture/hazard remain close in shifted pseudo-validation
+  performance, with mixture EventNLL slightly best by rel nRMSE.
+- Segmentation is somewhat more shift-sensitive than many scalar baselines, but
+  it is still far from the ideal sensitivity of `1.0`.
+- Soft-argmax RT loss underperforms CE/EventNLL, supporting the value of distributional
   event-time supervision.
-- Mixture EventNLL gives the strongest likelihood-style shift slope; Wasserstein
-  improves localizer-like fraction, but worsens scalar and shifted nRMSE.
+- Wasserstein gives the largest shift sensitivity, but worsens scalar and
+  shifted rel nRMSE.
 
 Regression shifted-crop snapshot:
-`benchmarks/experiments/paper_tables/regression_shifted_crop.md`.
+`benchmarks/experiments/paper_tables/appendix_01_regression_shifted_crop.md`.
 
-| model | seeds | ref nRMSE @0.5 | mean shifted nRMSE | worst shifted nRMSE | raw shift slope | localizer-like | invariant-like |
+| model | seeds | rel nRMSE | RMSE, s | MAE, s | shift error, s | sensitivity | direction |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| `etr_cnn_large` | 5/5 | 0.8734 +/- 0.0046 | 0.9503 +/- 0.0131 | 1.0574 +/- 0.0263 | -0.294 +/- 0.029 | 0.139 +/- 0.048 | 0.316 +/- 0.054 |
-| `etr_cnn` | 5/5 | 0.8799 +/- 0.0095 | 0.9536 +/- 0.0120 | 1.0475 +/- 0.0163 | -0.277 +/- 0.011 | 0.118 +/- 0.025 | 0.330 +/- 0.027 |
-| `msp_cnn` | 5/5 | 0.8891 +/- 0.0129 | 0.9636 +/- 0.0218 | 1.0670 +/- 0.0386 | -0.299 +/- 0.029 | 0.149 +/- 0.063 | 0.315 +/- 0.043 |
-| `tidnet_wrapped` | 5/5 | 0.9106 +/- 0.0042 | 0.9654 +/- 0.0028 | 1.0438 +/- 0.0098 | -0.210 +/- 0.014 | 0.075 +/- 0.014 | 0.466 +/- 0.023 |
-| `eegnet_wrapped` | 5/5 | 0.9159 +/- 0.0034 | 0.9638 +/- 0.0045 | 1.0370 +/- 0.0126 | -0.173 +/- 0.009 | 0.043 +/- 0.011 | 0.511 +/- 0.009 |
-| `deep4net_wrapped` | 5/5 | 0.9177 +/- 0.0058 | 0.9714 +/- 0.0056 | 1.0420 +/- 0.0094 | -0.208 +/- 0.018 | 0.083 +/- 0.016 | 0.462 +/- 0.019 |
-| `eegconformer_wrapped` | 5/5 | 0.9242 +/- 0.0107 | 0.9799 +/- 0.0166 | 1.0621 +/- 0.0201 | -0.218 +/- 0.030 | 0.041 +/- 0.025 | 0.365 +/- 0.053 |
-| `shallowfbcspnet_wrapped` | 5/5 | 0.9243 +/- 0.0018 | 0.9677 +/- 0.0044 | 1.0249 +/- 0.0116 | -0.168 +/- 0.017 | 0.038 +/- 0.020 | 0.509 +/- 0.033 |
-| `labram_wrapped` | 5/5 | 0.9287 +/- 0.0124 | 0.9800 +/- 0.0066 | 1.0529 +/- 0.0117 | -0.187 +/- 0.017 | 0.048 +/- 0.016 | 0.439 +/- 0.031 |
-| `eegpt_wrapped` | 5/5 | 0.9503 +/- 0.0245 | 0.9804 +/- 0.0125 | 1.0272 +/- 0.0255 | -0.111 +/- 0.058 | 0.023 +/- 0.026 | 0.654 +/- 0.199 |
-| `medformer_wrapped` | 5/5 | 0.9532 +/- 0.0079 | 0.9810 +/- 0.0041 | 1.0199 +/- 0.0114 | -0.095 +/- 0.021 | 0.005 +/- 0.007 | 0.634 +/- 0.095 |
-| `atcnet_wrapped` | 5/5 | 0.9633 +/- 0.0169 | 0.9837 +/- 0.0075 | 1.0266 +/- 0.0209 | -0.087 +/- 0.043 | 0.008 +/- 0.015 | 0.771 +/- 0.144 |
+| `etr_cnn_large` | 5/5 | 0.851 +/- 0.008 | 0.326 +/- 0.003 | 0.245 +/- 0.002 | 0.142 +/- 0.005 | 0.533 +/- 0.057 | 0.773 +/- 0.013 |
+| `etr_cnn` | 5/5 | 0.853 +/- 0.008 | 0.327 +/- 0.003 | 0.246 +/- 0.002 | 0.145 +/- 0.002 | 0.517 +/- 0.036 | 0.761 +/- 0.004 |
+| `msp_cnn` | 5/5 | 0.857 +/- 0.014 | 0.329 +/- 0.005 | 0.247 +/- 0.003 | 0.143 +/- 0.004 | 0.553 +/- 0.076 | 0.761 +/- 0.010 |
+| `tidnet_wrapped` | 5/5 | 0.858 +/- 0.002 | 0.329 +/- 0.001 | 0.252 +/- 0.001 | 0.168 +/- 0.001 | 0.516 +/- 0.047 | 0.640 +/- 0.004 |
+| `eegnet_wrapped` | 5/5 | 0.863 +/- 0.003 | 0.331 +/- 0.001 | 0.255 +/- 0.001 | 0.167 +/- 0.001 | 0.365 +/- 0.010 | 0.664 +/- 0.006 |
+| `shallowfbcspnet_wrapped` | 5/5 | 0.864 +/- 0.003 | 0.331 +/- 0.001 | 0.254 +/- 0.001 | 0.167 +/- 0.002 | 0.348 +/- 0.031 | 0.672 +/- 0.005 |
+| `deep4net_wrapped` | 5/5 | 0.865 +/- 0.004 | 0.332 +/- 0.002 | 0.253 +/- 0.001 | 0.166 +/- 0.003 | 0.481 +/- 0.016 | 0.652 +/- 0.010 |
+| `labram_wrapped` | 5/5 | 0.870 +/- 0.004 | 0.334 +/- 0.002 | 0.253 +/- 0.001 | 0.170 +/- 0.002 | 0.549 +/- 0.067 | 0.660 +/- 0.007 |
+| `eegconformer_wrapped` | 5/5 | 0.871 +/- 0.010 | 0.334 +/- 0.004 | 0.252 +/- 0.002 | 0.157 +/- 0.006 | 0.436 +/- 0.054 | 0.759 +/- 0.007 |
+| `medformer_wrapped` | 5/5 | 0.873 +/- 0.003 | 0.335 +/- 0.001 | 0.258 +/- 0.001 | 0.182 +/- 0.004 | 0.326 +/- 0.060 | 0.623 +/- 0.008 |
+| `eegpt_wrapped` | 5/5 | 0.874 +/- 0.008 | 0.335 +/- 0.003 | 0.259 +/- 0.004 | 0.179 +/- 0.011 | 0.333 +/- 0.095 | 0.610 +/- 0.041 |
+| `atcnet_wrapped` | 5/5 | 0.875 +/- 0.006 | 0.336 +/- 0.002 | 0.261 +/- 0.003 | 0.185 +/- 0.006 | 0.313 +/- 0.110 | 0.589 +/- 0.022 |
 
 Regression interpretation:
 
-- Scalar regression is best at the canonical crop start `0.5` and degrades for
-  earlier/later crops.
-- Raw shift slopes are mostly between `-0.1` and `-0.3`, much closer to
-  crop-invariant behavior than to the localizer ideal of `-1`.
-- The completed segmentation rows are also not solved localizers, but CE and
-  EventNLL are currently more localizer-like than the regression baselines.
+- Scalar regression also learns partial crop sensitivity; it is not a pure
+  invariant shortcut.
+- The strongest scalar baselines reach sensitivity around `0.5`, which is still
+  far from solved crop-relative localization.
+- Event-time models provide explicit posterior outputs for this diagnostic, but
+  the diagnostic itself shows partial rather than complete localization.
 
 ## 05 Shift-Jitter Training
 
@@ -368,7 +386,7 @@ Runner:
 sh /home/sneddy/sneddy_projects/neurosned/benchmarks/runners/run_crop_shift_jitter.sh
 ```
 
-Planned role:
+Role:
 
 - Turn the shifted-crop diagnostic into a training intervention.
 - Randomize crop starts during training while keeping the target inside the
@@ -377,15 +395,29 @@ Planned role:
   jittered crops than pure scalar regression, because the target is explicitly a
   crop-relative event location.
 
-Expected story if it works:
+Current shifted-crop result:
 
-- Scalar nRMSE may stay similar or improve modestly, but shifted-crop slope
-  should move closer to the localizer regime.
-- Event-time objectives should show stronger gains in raw shift slope,
-  corrected slope stability, and localizer-like fraction than scalar-only
-  controls.
-- This would support the claim that the event-time formulation is useful when
-  the protocol actually demands temporal localization.
+Camera-ready table:
+`benchmarks/experiments/paper_tables/appendix_03_shift_jitter_training.md`.
+
+| model | seeds | rel nRMSE | RMSE, s | MAE, s | shift error, s | sensitivity | direction |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `ets_unet_ce_shift_jitter` | 5/5 | 0.857 +/- 0.006 | 0.329 +/- 0.002 | 0.235 +/- 0.004 | 0.126 +/- 0.004 | 0.583 +/- 0.041 | 0.792 +/- 0.006 |
+| `ets_unet_event_nll_mixture_shift_jitter` | 5/5 | 0.858 +/- 0.004 | 0.329 +/- 0.002 | 0.231 +/- 0.003 | 0.122 +/- 0.004 | 0.625 +/- 0.031 | 0.792 +/- 0.008 |
+| `ets_unet_event_nll_shift_jitter` | 5/5 | 0.859 +/- 0.003 | 0.330 +/- 0.001 | 0.232 +/- 0.002 | 0.123 +/- 0.003 | 0.617 +/- 0.022 | 0.794 +/- 0.007 |
+| `ets_unet_hazard_event_nll_shift_jitter` | 5/5 | 0.861 +/- 0.005 | 0.330 +/- 0.002 | 0.235 +/- 0.003 | 0.126 +/- 0.004 | 0.589 +/- 0.026 | 0.792 +/- 0.007 |
+| `ets_unet_time_only_shift_jitter` | 5/5 | 0.861 +/- 0.003 | 0.330 +/- 0.001 | 0.239 +/- 0.003 | 0.126 +/- 0.003 | 0.578 +/- 0.036 | 0.795 +/- 0.005 |
+| `ets_unet_wasserstein_shift_jitter` | 5/5 | 0.877 +/- 0.010 | 0.337 +/- 0.004 | 0.233 +/- 0.004 | 0.123 +/- 0.005 | 0.685 +/- 0.042 | 0.803 +/- 0.012 |
+
+Interpretation:
+
+- Shift-jitter improves shifted-crop rel nRMSE compared with the original
+  fixed-crop segmentation ablations.
+- CE is the best jitter-trained row by rel nRMSE and RMSE.
+- EventNLL and mixture EventNLL remain close to CE while giving likelihood-style
+  event-time objectives.
+- Wasserstein has the strongest sensitivity/direction but worse scalar shifted
+  error, so it is a geometry-control row rather than the best predictor.
 
 Paper-facing configs:
 
@@ -395,7 +427,7 @@ Paper-facing configs:
 | `ets_unet_event_nll_shift_jitter.yaml` | Latent EventNLL under shift-jitter training. |
 | `ets_unet_event_nll_mixture_shift_jitter.yaml` | Best current likelihood-style objective under shift-jitter training. |
 | `ets_unet_hazard_event_nll_shift_jitter.yaml` | Hazard/survival event-time parameterization under shift-jitter training. |
-| `ets_unet_time_only_shift_jitter.yaml` | Soft-argmax scalar control under shift-jitter training. |
+| `ets_unet_time_only_shift_jitter.yaml` | Soft-argmax RT loss under shift-jitter training. |
 | `ets_unet_wasserstein_shift_jitter.yaml` | Wasserstein geometry control under shift-jitter training. |
 
 Protocol details:
@@ -414,10 +446,10 @@ Metrics:
 
 | metric | use |
 | --- | --- |
-| R11 nRMSE / MAE | Check that jitter does not destroy ordinary scalar accuracy. |
-| shifted-crop raw slope | Main localization improvement target. |
-| corrected slope | Absolute-time stability after undoing crop start. |
-| localizer-like / invariant-like fractions | Interpretable trial-level behavior classes. |
+| holdout nRMSE / MAE | Check that jitter does not destroy ordinary scalar accuracy. |
+| shifted-crop rel nRMSE / RMSE / MAE | Pooled crop-relative pseudo-validation performance. |
+| sensitivity / direction | Main shortcut-vs-localization behavior diagnostics. |
+| shift error | Distance from ideal crop-relative shift tracking. |
 | posterior geometry metrics | Check whether jitter changes sharpness/calibration. |
 
 ## 06 Final Training Recipe
@@ -435,8 +467,8 @@ Metrics:
 
 | metric | use |
 | --- | --- |
-| final R11 nRMSE / MAE | Final scalar performance claim. |
-| validation-to-R11 gap | Overfitting/generalization check. |
+| final holdout nRMSE / MAE | Final scalar performance claim. |
+| validation-to-holdout gap | Overfitting/generalization check. |
 | calibration temperature and tau nRMSE | Whether final posterior readout benefits from calibration. |
 | posterior geometry summary | Confirm final recipe does not only improve scalar readout. |
 | shifted-crop diagnostics | Confirm final recipe does not worsen localization behavior. |
@@ -465,7 +497,7 @@ Metrics:
 | metric | use |
 | --- | --- |
 | out-of-fold validation nRMSE | Honest meta-model selection. |
-| R11 nRMSE / MAE | Final stacking comparison against best single model. |
+| holdout nRMSE / MAE | Final stacking comparison against best single model. |
 | delta vs best base model | Whether stacking adds value beyond model selection. |
 | feature ablation | Whether posterior features matter beyond scalar predictions. |
 
@@ -484,7 +516,7 @@ exist:
 
 1. Let the remaining segmentation ablations finish through
    `benchmarks/runners/run_segmentation_ablations.sh`.
-2. Refresh `benchmarks/experiments/paper_tables/segmentation_leaderboard.md` after each
+2. Refresh `benchmarks/experiments/paper_tables/main_02_event_time_objectives.md` after each
    completed repeated run.
 3. Recompute posterior geometry from filtered segmentation predictions/logits.
 4. Recompute shifted-crop comparison for the final scalar regression baselines.

@@ -11,6 +11,7 @@ from pathlib import Path
 os.environ["MNE_DONTWRITE_HOME"] = "true"
 os.environ["NUMBA_DISABLE_JIT"] = "1"
 os.environ["MPLCONFIGDIR"] = "/tmp/neurosned-matplotlib"
+os.environ.setdefault("MPLBACKEND", "Agg")
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:

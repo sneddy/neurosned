@@ -169,6 +169,22 @@ def mean_or_nan(values) -> float:
     return float(np.mean(array))
 
 
+def std_or_nan(values) -> float:
+    """Return sample standard deviation or NaN when undefined."""
+    array = np.asarray(values, dtype=np.float64)
+    array = array[np.isfinite(array)]
+    if array.size <= 1:
+        return float("nan")
+    return float(np.std(array, ddof=1))
+
+
+def normalized(value: float, denominator: float) -> float:
+    """Return a normalized metric with NaN for missing/zero denominators."""
+    if not np.isfinite(value) or not np.isfinite(denominator) or denominator == 0.0:
+        return float("nan")
+    return float(value / denominator)
+
+
 def add_shift_tracking_columns(predictions: pd.DataFrame, *, reference_start: float) -> pd.DataFrame:
     """Attach reference-crop deltas and localizer tracking metrics."""
     frame = predictions.copy()
@@ -233,6 +249,85 @@ def summarize_per_start(predictions: pd.DataFrame, *, reference_start: float) ->
         for mask_name in ("all", "inside_crop", "common_inside"):
             rows.append(metric_row(frame, crop_start=float(crop_start), mask_name=mask_name))
     return add_reference_deltas(pd.DataFrame(rows), reference_start=reference_start)
+
+
+def expanded_start_groups(predictions: pd.DataFrame, *, reference_start: float) -> tuple[tuple[str, np.ndarray], ...]:
+    """Return row masks for expanded shifted-eval aggregation."""
+    starts = predictions["crop_start"].to_numpy(dtype=np.float64)
+    reference = np.isclose(starts, float(reference_start))
+    return (
+        ("all_starts", np.ones(len(predictions), dtype=bool)),
+        ("shifted_only", ~reference),
+        ("reference_only", reference),
+    )
+
+
+def expanded_metric_row(frame: pd.DataFrame, *, mask_name: str, start_group: str) -> dict[str, Any]:
+    """Summarize one expanded shifted-eval pseudo-validation set."""
+    target_abs = frame["target_abs"].to_numpy(dtype=np.float64)
+    target_rel = frame["target_rel"].to_numpy(dtype=np.float64)
+    pred_raw = frame["prediction_raw"].to_numpy(dtype=np.float64)
+    pred_corrected = frame["prediction_corrected"].to_numpy(dtype=np.float64)
+    pred_rel = frame["prediction_rel"].to_numpy(dtype=np.float64)
+
+    target_abs_std = std_or_nan(target_abs)
+    target_rel_std = std_or_nan(target_rel)
+    rmse_raw_abs = rmse(pred_raw, target_abs)
+    rmse_corrected_abs = rmse(pred_corrected, target_abs)
+    rmse_corrected_rel = rmse(pred_rel, target_rel)
+    start_values = sorted(float(value) for value in frame["crop_start"].unique())
+    tracked = frame[~frame["is_reference_start"]]
+
+    return {
+        "mask": mask_name,
+        "start_group": start_group,
+        "n_rows": int(len(frame)),
+        "n_trials": int(frame["row_id"].nunique()) if "row_id" in frame else int(len(frame)),
+        "n_starts": int(len(start_values)),
+        "starts": ";".join(f"{value:.3f}" for value in start_values),
+        "target_abs_mean": float(np.mean(target_abs)) if len(target_abs) else float("nan"),
+        "target_abs_std": target_abs_std,
+        "target_rel_mean": float(np.mean(target_rel)) if len(target_rel) else float("nan"),
+        "target_rel_std": target_rel_std,
+        "rmse_raw_abs": rmse_raw_abs,
+        "nrmse_raw_abs_target": normalized(rmse_raw_abs, target_abs_std),
+        "mae_raw_abs": float(np.mean(np.abs(pred_raw - target_abs))) if len(target_abs) else float("nan"),
+        "bias_raw_abs": float(np.mean(pred_raw - target_abs)) if len(target_abs) else float("nan"),
+        "rmse_corrected_abs": rmse_corrected_abs,
+        "nrmse_corrected_abs_target": normalized(rmse_corrected_abs, target_abs_std),
+        "mae_corrected_abs": float(np.mean(np.abs(pred_corrected - target_abs))) if len(target_abs) else float("nan"),
+        "bias_corrected_abs": float(np.mean(pred_corrected - target_abs)) if len(target_abs) else float("nan"),
+        "rmse_corrected_rel": rmse_corrected_rel,
+        "nrmse_corrected_rel_target": normalized(rmse_corrected_rel, target_rel_std),
+        "mae_corrected_rel": float(np.mean(np.abs(pred_rel - target_rel))) if len(target_rel) else float("nan"),
+        "bias_corrected_rel": float(np.mean(pred_rel - target_rel)) if len(target_rel) else float("nan"),
+        "mean_abs_shift_tracking_error": mean_or_nan(tracked["shift_tracking_error"].abs()),
+        "mean_shift_sensitivity_ratio": mean_or_nan(tracked["shift_sensitivity_ratio"]),
+        "median_shift_sensitivity_ratio": float(np.nanmedian(tracked["shift_sensitivity_ratio"]))
+        if tracked["shift_sensitivity_ratio"].notna().any()
+        else float("nan"),
+        "correct_shift_direction_rate": mean_or_nan(tracked["correct_shift_direction"]),
+    }
+
+
+def summarize_expanded(predictions: pd.DataFrame, *, reference_start: float) -> pd.DataFrame:
+    """Return expanded pseudo-validation metrics across crop starts.
+
+    Per-start `nRMSE` is useful diagnostically but should not be macro-averaged
+    for paper tables. This summary pools all `(trial, crop_start)` rows first
+    and then computes one RMSE and one target standard deviation. The
+    `*_rel_target` columns use crop-relative targets `target_abs - crop_start`,
+    matching a pseudo-validation set generated from shifted crops.
+    """
+    rows = []
+    for mask_name in ("all", "inside_crop", "common_inside"):
+        metric_mask = mask_for(predictions, mask_name)
+        for start_group, start_mask in expanded_start_groups(predictions, reference_start=reference_start):
+            frame = predictions[metric_mask & start_mask]
+            if frame.empty:
+                continue
+            rows.append(expanded_metric_row(frame, mask_name=mask_name, start_group=start_group))
+    return pd.DataFrame(rows)
 
 
 def add_reference_deltas(summary: pd.DataFrame, *, reference_start: float) -> pd.DataFrame:
@@ -630,7 +725,7 @@ def run_shifted_evaluation(
             print(f"Evaluated crop_start={crop_start:.3f}: rows={len(frame):,}")
 
     prediction_frame = add_shift_tracking_columns(pd.concat(all_frames, ignore_index=True), reference_start=reference_start)
-    summary_frame = summarize_per_start(prediction_frame, reference_start=reference_start)
+    summary_frame = summarize_expanded(prediction_frame, reference_start=reference_start)
     per_trial_frame = per_trial_equivariance(prediction_frame)
     equivariance_summary = summarize_equivariance(per_trial_frame)
     bootstrap_frame = bootstrap_ci_tables(

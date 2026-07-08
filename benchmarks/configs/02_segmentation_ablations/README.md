@@ -37,7 +37,7 @@ All configs use:
 | holdout evaluation | enabled |
 | temperature calibration | enabled on R9-R10 logits |
 | shifted-crop diagnostic | enabled on `r11_test_5sec.pkl` |
-| shifted-crop subset | `0.8 <= RT <= 2.2` common-inside trials |
+| shifted-crop filtering | no extra target-range filter; `shifted_summary.csv` reports `all`, `inside_crop`, and `common_inside` masks |
 | shifted-crop starts | `0.2, 0.3, ..., 0.8` s |
 | shifted-crop predictions | summary only by default; per-trial CSV disabled |
 
