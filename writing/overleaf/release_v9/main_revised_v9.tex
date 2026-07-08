@@ -323,7 +323,14 @@ To make response timing explicit, we reformulate RT prediction as event-time pos
 
 We evaluate two ways of turning scalar RT labels into event-time supervision. The first constructs an explicit soft target distribution over time, asking the model to match a smoothed target centered at the observed RT. The second treats the observed RT statistically, as a noisy observation of an unobserved response-relevant event time, and optimizes a latent event-time likelihood. These two families correspond to soft-target objectives and likelihood-based objectives, respectively.
 
-The core event-time experiments are designed to isolate the role of output formulation. The regression controls above test how far scalar supervision can go with task-specific temporal readouts and external EEG backbones. Here, we fix the event-time segmentation U-Net (ETS-U-Net) backbone and vary the event-time objective, so that differences in scalar accuracy, posterior geometry, and diagnostic behavior under temporal crop shifts reflect how RT is supervised over time rather than which architecture is used.
+The core event-time experiments are designed to isolate the role of output formulation. The regression controls above test how far scalar supervision can go with task-specific temporal readouts and external EEG backbones. Here, we fix the event-time segmentation U-Net (ETS-U-Net) backbone and vary the event-time objective, so that differences in scalar accuracy, posterior geometry, and diagnostic behavior under temporal crop shifts reflect how RT is supervised over time rather than which architecture is used. Figure~\ref{fig:event_time_scheme} summarizes this pipeline from fixed-window EEG input to weak event-time supervision, posterior readout, and shifted-crop diagnostics.
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=\linewidth]{img/ch1/event_time_scheme.png}
+    \caption{Event-time posterior formulation for EEG reaction-time prediction. A fixed 0.5--2.5~s stimulus-locked EEG window is mapped to time-bin logits, and behavioral RT provides weak event-time supervision either through a soft target distribution or a latent EventNLL likelihood. Scalar RT is read out as the posterior expectation after selecting a readout temperature on R9--R10. Shifted crops are used only for diagnostic and shift-jitter intervention analyses. The schematic shows the categorical posterior readout; the hazard EventNLL variant uses a hazard-derived probability mass function with the same expectation readout.}
+    \label{fig:event_time_scheme}
+\end{figure}
 
 \subsection{Event-Time Segmentation Architecture}
 \label{sec:event_time_architectures}
