@@ -369,12 +369,12 @@ INPUT ../img/ch1/trial_sorted_posterior_raster.png
 INPUT ../img/ch1/trial_sorted_posterior_raster.png
 INPUT ../img/ch1/trial_sorted_posterior_raster.png
 INPUT ../img/ch1/trial_sorted_posterior_raster.png
-INPUT ../img/ch1/posterior_geometry_main.png
-INPUT ../img/ch1/posterior_geometry_main.png
-INPUT ../img/ch1/posterior_geometry_main.png
-INPUT ../img/ch1/posterior_geometry_main.png
 INPUT /usr/local/texlive/2026/texmf-dist/fonts/vf/adobe/times/ptmr8t.vf
 INPUT /usr/local/texlive/2026/texmf-dist/fonts/tfm/adobe/times/ptmr8r.tfm
+INPUT ../img/ch1/posterior_geometry_main.png
+INPUT ../img/ch1/posterior_geometry_main.png
+INPUT ../img/ch1/posterior_geometry_main.png
+INPUT ../img/ch1/posterior_geometry_main.png
 INPUT /usr/local/texlive/2026/texmf-dist/fonts/tfm/adobe/times/ptmr8t.tfm
 INPUT /usr/local/texlive/2026/texmf-dist/fonts/tfm/adobe/times/zptmcm7t.tfm
 INPUT /usr/local/texlive/2026/texmf-dist/fonts/tfm/adobe/times/zptmcm7m.tfm
