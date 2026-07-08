@@ -434,28 +434,28 @@ Table~\ref{tab:r11_segmentation_losses} compares the paper-facing ETS-U-Net obje
 \renewcommand{\arraystretch}{1.15}
 \begin{tabularx}{\linewidth}{@{} >{\RaggedRight\arraybackslash}p{0.22\linewidth} Y >{\centering\arraybackslash}p{0.18\linewidth} >{\centering\arraybackslash}p{0.18\linewidth} >{\centering\arraybackslash}p{0.18\linewidth} @{}}
 \toprule
-\textbf{Model} & \textbf{Variant} & \textbf{Valid nRMSE} $\downarrow$ & \textbf{Holdout nRMSE} $\downarrow$ & \textbf{Holdout \(\tau\)-nRMSE} $\downarrow$ \\
+\textbf{Objective} & \textbf{Supervision signal} & \textbf{Valid nRMSE} & \textbf{Holdout nRMSE} & \textbf{Holdout \(\tau\)-nRMSE} \\
 \midrule
-\multicolumn{5}{@{}l}{\textit{Soft-target objective}} \\
+\multicolumn{5}{@{}l}{\textit{Soft-target objectives}} \\
 \addlinespace[0.15em]
-CE & soft target & \mbox{0.8763 $\pm$ 0.0044} & \mbox{0.8774 $\pm$ 0.0044} & \mbox{0.8753 $\pm$ 0.0039} \\
+CE & Gaussian soft label & \mbox{0.8763 $\pm$ 0.0044} & \textbf{\mbox{0.8774 $\pm$ 0.0044}} & \mbox{0.8753 $\pm$ 0.0039} \\
 \midrule
 \multicolumn{5}{@{}l}{\textit{Likelihood-based objectives}} \\
 \addlinespace[0.15em]
-EventNLL & Gaussian kernel & \mbox{0.8769 $\pm$ 0.0030} & \mbox{0.8805 $\pm$ 0.0021} & \mbox{0.8772 $\pm$ 0.0018} \\
-Mixture EventNLL & two-scale kernel & \mbox{0.8744 $\pm$ 0.0018} & \mbox{0.8785 $\pm$ 0.0047} & \mbox{0.8745 $\pm$ 0.0053} \\
-Hazard EventNLL & hazard readout & \mbox{0.8755 $\pm$ 0.0027} & \mbox{0.8776 $\pm$ 0.0031} & \mbox{0.8778 $\pm$ 0.0041} \\
+EventNLL & Gaussian RT \mbox{likelihood} & \mbox{0.8769 $\pm$ 0.0030} & \mbox{0.8805 $\pm$ 0.0021} & \mbox{0.8772 $\pm$ 0.0018} \\
+Mixture EventNLL & two-scale RT \mbox{likelihood} & \textbf{\mbox{0.8744 $\pm$ 0.0018}} & \mbox{0.8785 $\pm$ 0.0047} & \textbf{\mbox{0.8745 $\pm$ 0.0053}} \\
+Hazard EventNLL & hazard posterior + \mbox{likelihood} & \mbox{0.8755 $\pm$ 0.0027} & \mbox{0.8776 $\pm$ 0.0031} & \mbox{0.8778 $\pm$ 0.0041} \\
 \midrule
-\multicolumn{5}{@{}l}{\textit{Readout and distance controls}} \\
+\multicolumn{5}{@{}l}{\textit{Scalar-readout and distance controls}} \\
 \addlinespace[0.15em]
-Time-only & scalar time loss & \mbox{0.8944 $\pm$ 0.0048} & \mbox{0.8943 $\pm$ 0.0025} & \mbox{0.8917 $\pm$ 0.0046} \\
-Wasserstein & CDF loss & \mbox{0.8997 $\pm$ 0.0035} & \mbox{0.8995 $\pm$ 0.0078} & \mbox{0.8896 $\pm$ 0.0033} \\
+Time-only & posterior-mean RT loss & \mbox{0.8944 $\pm$ 0.0048} & \mbox{0.8943 $\pm$ 0.0025} & \mbox{0.8917 $\pm$ 0.0046} \\
+Wasserstein & CDF match to soft label & \mbox{0.8997 $\pm$ 0.0035} & \mbox{0.8995 $\pm$ 0.0078} & \mbox{0.8896 $\pm$ 0.0033} \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
 \paragraph{Objective ablations.}
-The ablations separate expectation-style temporal readout from distributional supervision. The time-only model directly optimizes soft-argmax error but removes distribution matching; it remains close to the strongest scalar-regression baseline and trails the CE/EventNLL group by roughly 0.014--0.017 R11 \(\tau\)-nRMSE. CE and the likelihood-family variants form a tight top group: mixture EventNLL has the best mean temperature-tuned scalar readout, but CE, Gaussian EventNLL, mixture EventNLL, and hazard EventNLL are close relative to seed variability. The hazard result shows that the likelihood-family conclusion is not tied to a categorical softmax posterior, while the Wasserstein control shows that an alternative distributional distance alone does not match the strongest scalar readouts. Thus, the central gain is best attributed to distributional event-time supervision rather than to the U-Net backbone or soft-argmax readout alone.
+The ablations separate expectation-style temporal readout from distributional supervision. The time-only model directly optimizes soft-argmax error but removes distribution matching; it remains close to the strongest scalar-regression baseline and trails the CE/EventNLL group by roughly 0.014--0.017 holdout \(\tau\)-nRMSE. CE and the likelihood-family variants form a tight top group: mixture EventNLL has the best mean temperature-tuned scalar readout, but CE, Gaussian EventNLL, mixture EventNLL, and hazard EventNLL are close relative to seed variability. The hazard result shows that the likelihood-family conclusion is not tied to a categorical softmax posterior, while the Wasserstein control shows that an alternative distributional distance alone does not match the CE/EventNLL scalar readouts. Thus, the central gain is best attributed to distributional event-time supervision rather than to the U-Net backbone or soft-argmax readout alone.
 
 \section{Posterior Readout and Diagnostics}
 \label{sec:posterior_diagnostics}
