@@ -325,11 +325,11 @@ INPUT /usr/local/texlive/2026/texmf-dist/fonts/tfm/adobe/times/ptmb8t.tfm
 INPUT /usr/local/texlive/2026/texmf-dist/fonts/vf/adobe/times/zptmcm7y.vf
 INPUT /usr/local/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmsy10.tfm
 INPUT /usr/local/texlive/2026/texmf-dist/fonts/tfm/public/rsfs/rsfs10.tfm
+INPUT ../img/ch1/Ch1_regression.png
+INPUT ../img/ch1/Ch1_regression.png
+INPUT ../img/ch1/Ch1_regression.png
+INPUT ../img/ch1/Ch1_regression.png
 INPUT /usr/local/texlive/2026/texmf-dist/fonts/tfm/adobe/times/ptmri8t.tfm
-INPUT ../img/ch1/Ch1_regression.png
-INPUT ../img/ch1/Ch1_regression.png
-INPUT ../img/ch1/Ch1_regression.png
-INPUT ../img/ch1/Ch1_regression.png
 INPUT /usr/local/texlive/2026/texmf-dist/fonts/vf/adobe/times/ptmb8t.vf
 INPUT /usr/local/texlive/2026/texmf-dist/fonts/tfm/adobe/times/ptmb8r.tfm
 INPUT /usr/local/texlive/2026/texmf-dist/fonts/vf/adobe/times/ptmr8t.vf

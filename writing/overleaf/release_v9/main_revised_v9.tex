@@ -277,6 +277,13 @@ We compare these task-specific regressors with external EEG architectures adapte
 
 ETR-CNN large is the strongest scalar baseline, with MSP-CNN and base ETR-CNN close behind. The external EEG backbones train meaningfully but do not close the gap to these compact temporal controls, suggesting that task-specific temporal structure matters more for this RT task than generic backbone capacity alone. These results provide strong scalar controls for the next step: testing whether directly supervising an event-time distribution improves beyond scalar RT training.
 
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=\linewidth]{img/ch1/Ch1_regression.png}
+    \caption{MSP-CNN direct RT regression baseline architecture. A lightweight 1-D temporal ConvNet maps an EEG trial window to a scalar reaction-time prediction. A learned $1\times1$ channel-squeeze layer (128$\rightarrow$48) is followed by residual depthwise-separable stages with anti-aliased temporal downsampling, segment-wise pooling (2 and 4 segments; mean+max), and an MLP head.}
+    \label{fig:ch1_regression}
+\end{figure}
+
 \begin{table}[!t]
 \centering
 \caption{Direct-regression and wrapped external backbone baselines. Values are mean $\pm$ sample standard deviation.}
@@ -308,13 +315,6 @@ Medformer & larger transformer & \mbox{0.9623 $\pm$ 0.0046} & \mbox{0.9585 $\pm$
 \bottomrule
 \end{tabularx}
 \end{table}
-
-\begin{figure}[!t]
-    \centering
-    \includegraphics[width=\linewidth]{img/ch1/Ch1_regression.png}
-    \caption{MSP-CNN direct RT regression baseline architecture. A lightweight 1-D temporal ConvNet maps an EEG trial window to a scalar reaction-time prediction. A learned $1\times1$ channel-squeeze layer (128$\rightarrow$48) is followed by residual depthwise-separable stages with anti-aliased temporal downsampling, segment-wise pooling (2 and 4 segments; mean+max), and an MLP head.}
-    \label{fig:ch1_regression}
-\end{figure}
 
 \section{Event-Time Posterior Formulation}
 \label{sec:event_time_formulation}
