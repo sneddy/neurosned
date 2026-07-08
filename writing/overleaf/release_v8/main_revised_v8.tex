@@ -460,19 +460,9 @@ The ablations separate expectation-style temporal readout from distributional su
 \section{Posterior Readout and Diagnostics}
 \label{sec:posterior_diagnostics}
 
-\subsection{Posterior Geometry and Readout Temperature Tuning}
+\subsection{Scalar Readout and Temperature Tuning}
 
-The posterior view makes geometric properties of the predicted distribution directly inspectable. CDF-based distances penalize temporal displacement of probability mass, entropy and variance summarize posterior sharpness, and quantiles expose asymmetric uncertainty around the predicted response time. These summaries are useful for diagnosis and for downstream stacking.
-
-When used, explicit posterior regularization can be written generically as
-\begin{equation}
-\label{eq:posterior_regularized_objective}
-\mathcal{L} = \mathcal{L}_{\mathrm{event}} + \lambda R\!\left(p(t\mid X)\right),
-\end{equation}
-where $R$ may target entropy, variance, tail mass, or other posterior-shape statistics. Here, such terms are used as posterior-geometry controls unless they are explicitly evaluated as ablations.
-
-\paragraph{Inference and temperature tuning.}
-The relative event time is estimated by expectation (soft-argmax),
+The event-time models return a posterior over response-relevant time bins, whereas the benchmark metric is scalar RT error. We therefore read out RT as the posterior expectation,
 \begin{equation}
 \label{eq:rt_soft_argmax}
 \hat t_{\mathrm{rel}}(\tau)=\sum_{t=0}^{T-1} p_t(\tau)\, g_t,
@@ -483,14 +473,7 @@ where $g_t=t\,\Delta t$ denotes the discrete time grid. Under squared error, the
 conditional mean; accordingly, reading out RT by $\mathbb{E}_{p(t)}[g]$ aligns naturally with the nRMSE objective (RMSE
 up to a constant normalization).
 
-In practice, different training choices (loss weighting, augmentation strength, and checkpoint selection) produced
-time-distributions with markedly different sharpness and entropy: some models generated very peaked $p(t)$ while others
-were systematically more diffuse. This creates a confidence-scale mismatch, where naive averaging (or stacking without
-temperature-scaled inputs) can underweight accurate but underconfident models and overweight overconfident ones.
-
-We therefore use post-hoc temperature scaling \citep{guo2017calibration} to tune the softness of $p(t)$, improving the
-readout and making confidence profiles more comparable across losses and models.
-Temperature is selected by validation tuning for each base model $m$:
+Different objectives can produce posteriors with different sharpness, so the raw posterior mean is not always the fairest scalar readout. We use post-hoc temperature scaling \citep{guo2017calibration} only as a readout-tuning step: for each model family, \(\tau\) is selected on R9--R10 to minimize development nRMSE of the posterior-mean readout,
 
 \begin{equation}
 \label{eq:rt_tau_tuning}
@@ -498,88 +481,121 @@ Temperature is selected by validation tuning for each base model $m$:
 \ \mathrm{nRMSE}_{\text{val}}\big(\hat t_{\mathrm{abs}}^{(m)}(\tau)\big).
 \end{equation}
 
-Under the release-separated protocol, $\mathcal{T}_{\text{cal}}$ is selected on the R9-R10 development split and applied unchanged to R11.
+The selected value is then applied unchanged to the holdout split. Thus, temperature tuning is not used as a holdout model-selection signal and should be interpreted as scalar readout tuning rather than full uncertainty calibration.
 
-Because confidence scales differ across objectives and architectures, temperature is treated as a posterior-geometry
-control selected on development data rather than as a separate model-selection signal.
-
-\paragraph{Posterior geometry and interval coverage.}
-The scalar comparisons above compare models through the posterior mean, but the event-time formulation produces a full distribution over response latencies. Two losses can therefore have similar nRMSE while assigning probability mass very differently over time. We analyze this posterior geometry to ask whether the scalar prediction is supported by a localized temporal event distribution, whether the posterior is overly diffuse or overly concentrated, and whether nominal posterior intervals have meaningful empirical coverage.
-
-For this analysis, the softmax temperature is selected on R9--R10 to minimize scalar nRMSE of the posterior-mean readout. Thus, we treat temperature selection as readout-temperature tuning rather than as full probabilistic calibration. After this readout tuning, we evaluate the learned event-time posterior itself: whether its mass is near the observed RT, whether the posterior mean agrees with the posterior mode, and whether nominal posterior intervals contain the true RT at the expected rate.
-
-Figure~\ref{fig:posterior_raster_main} provides a trial-sorted view of these posteriors before reducing them to summary metrics. It shows how each loss distributes probability mass across the represented RT range, making posterior width, target alignment, and loss-specific confidence patterns visible at the dataset level.
-
-Table~\ref{tab:posterior_geometry_metrics} uses four groups of metrics. First, scalar nRMSE and MAE measure the posterior-mean RT prediction. Second, CRPS and fixed-kernel EventNLL score the full posterior distribution; lower values indicate better distributional predictions. The fixed-kernel EventNLL uses the same Gaussian observation kernel for all models, so it evaluates the predicted event-time distribution under a common likelihood score rather than under each model's own training loss. Third, Width80, Mass $\pm$150 ms, and mode-mean gap describe posterior geometry: Width80 is the median width of the nominal 80\% central posterior interval, Mass $\pm$150 ms is the posterior probability assigned within 150 ms of the observed RT, and mode-mean gap measures disagreement between the posterior peak and the posterior mean used for scalar readout. Finally, Coverage80 and Coverage MAE summarize interval coverage. Coverage80 is the empirical coverage of the nominal 80\% central interval, whose calibrated target is 0.80. Coverage MAE is the mean absolute difference between empirical and nominal coverage over central intervals $\{50\%,60\%,70\%,80\%,90\%\}$.
+Figure~\ref{fig:temperature_sensitivity} shows the corresponding development-split temperature curves. The minima differ across objectives, which is why a fixed temperature would conflate event-time objective quality with readout-scale mismatch.
 
 \begin{figure}[!t]
     \centering
-    \includegraphics[width=\linewidth]{img/ch1/posterior_geometry_main_calibrated.png}
-    \caption{Posterior geometry differs across event-time losses even when scalar nRMSE is similar. Panel A reports R11 scalar readout after selecting the softmax temperature on R9--R10 to minimize nRMSE. Panel B aligns predicted posteriors to the true RT. Panels C--E summarize posterior width, near-target mass, and mode-mean disagreement. Panel F compares empirical coverage of central posterior intervals; the diagonal is ideal interval coverage.}
+    \includegraphics[width=0.9\linewidth]{img/ch1/temperature_sensitivity.png}
+    \caption{Development-split temperature sensitivity for event-time posterior readout. Vertical lines mark the selected temperatures.}
+    \label{fig:temperature_sensitivity}
+\end{figure}
+
+\subsection{Posterior Geometry Diagnostics}
+
+Once the scalar readout is fixed, the posterior can be inspected directly. We use these diagnostics to ask what temporal evidence supports each scalar prediction: whether probability mass is concentrated near the observed RT, whether the posterior is diffuse or sharply peaked, whether the posterior mode agrees with the posterior mean, and whether nominal posterior intervals have meaningful empirical coverage.
+
+Figure~\ref{fig:posterior_raster_main} provides a trial-sorted view of the predicted posteriors before reducing them to summary metrics. Figure~\ref{fig:posterior_geometry_main} and Table~\ref{tab:posterior_geometry_metrics} summarize four complementary quantities: scalar holdout \(\tau\)-nRMSE, near-target mass within 150 ms of the observed RT, the median width of the central 80\% posterior interval, and coverage error across nominal central intervals.
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=\linewidth]{img/ch1/posterior_geometry_main.png}
+    \caption{Posterior geometry differs across event-time losses even when scalar readout accuracy is similar. Panel A reports holdout scalar readout after selecting the softmax temperature on R9--R10. Panel B aligns predicted posteriors to the observed RT. Panels C--E summarize posterior width, near-target mass, and mode-mean disagreement. Panel F compares empirical coverage of central posterior intervals; the diagonal is ideal interval coverage.}
     \label{fig:posterior_geometry_main}
 \end{figure}
 
 \begin{figure}[!t]
     \centering
-    \includegraphics[width=\linewidth]{img/ch1/trial_sorted_posterior_raster_calibrated.png}
-    \caption{Trial-sorted event-time posterior maps on R11 for matched segmentation losses. Rows are quantile bins of representable R11 trials sorted by observed RT; the x-axis is time from stimulus onset; color shows log-transformed posterior density averaged within each bin. The black curve marks the mean observed RT in each bin.}
+    \includegraphics[width=\linewidth]{img/ch1/trial_sorted_posterior_raster.png}
+    \caption{Trial-sorted event-time posterior maps on the holdout split. Rows are quantile bins of representable trials sorted by observed RT; the x-axis is time from stimulus onset; color shows log-transformed posterior density averaged within each bin. The black curve marks the mean observed RT in each bin.}
     \label{fig:posterior_raster_main}
 \end{figure}
 
 \begin{table}[!t]
 \centering
-\caption{Quantitative posterior geometry on R11 for matched event-time segmentation losses. Metrics are defined in the text. CRPS is reported in milliseconds. Fixed-kernel EventNLL uses a common Gaussian observation kernel for all models ($\sigma=0.15$~s). For Coverage80, values closer to 0.80 indicate better nominal 80\% interval coverage; for Coverage MAE, lower is better.}
+\caption{Posterior-geometry summaries after readout-temperature tuning. Values are mean $\pm$ sample standard deviation across seeds. Mass $\pm$150 ms is the probability assigned within 150 ms of the observed RT; Width80 is the median 80\% central interval width; lower Coverage MAE indicates closer empirical interval coverage.}
 \label{tab:posterior_geometry_metrics}
-\scriptsize
-\setlength{\tabcolsep}{3pt}
-\renewcommand{\arraystretch}{1.12}
-\resizebox{\linewidth}{!}{%
-\begin{tabular}{@{} l c c c c c c c c c @{}}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{} l c c c c @{}}
 \toprule
-\textbf{Model} & \textbf{nRMSE} & \textbf{MAE ms} & \textbf{CRPS ms} & \textbf{Fixed NLL} & \textbf{Width80 ms} & \textbf{Mass $\pm$150 ms} & \textbf{Mode-mean gap ms} & \textbf{Coverage80} & \textbf{Coverage MAE} \\
+\textbf{Objective} & \textbf{Holdout \(\tau\)-nRMSE} & \textbf{Mass \(\pm150\) ms} & \textbf{Width80 ms} & \textbf{Coverage MAE} \\
 \midrule
-CE & 0.937 & 216 & 155 & 0.115 & 820 & 0.328 & 57 & 0.895 & 0.113 \\
-CE+time & 0.936 & 219 & 157 & 0.144 & 860 & 0.311 & 57 & 0.899 & 0.116 \\
-EventNLL & 0.941 & 216 & 162 & -0.027 & 450 & 0.487 & 72 & 0.480 & 0.290 \\
-Time-only & 0.945 & 228 & 167 & 0.203 & 1070 & 0.311 & 129 & 0.913 & 0.113 \\
-Wasserstein & 0.950 & 222 & 165 & 0.219 & 740 & 0.296 & 50 & 0.812 & 0.053 \\
+CE & 0.875 $\pm$ 0.004 & 0.334 $\pm$ 0.008 & 766 $\pm$ 36 & 0.101 $\pm$ 0.014 \\
+EventNLL & 0.877 $\pm$ 0.002 & 0.490 $\pm$ 0.008 & 502 $\pm$ 15 & 0.273 $\pm$ 0.021 \\
+Mixture EventNLL & 0.874 $\pm$ 0.005 & 0.471 $\pm$ 0.008 & 528 $\pm$ 22 & 0.207 $\pm$ 0.017 \\
+Hazard EventNLL & 0.878 $\pm$ 0.004 & 0.502 $\pm$ 0.005 & 445 $\pm$ 14 & 0.302 $\pm$ 0.006 \\
+Time-only & 0.892 $\pm$ 0.005 & 0.357 $\pm$ 0.015 & 844 $\pm$ 96 & 0.040 $\pm$ 0.024 \\
+Wasserstein & 0.890 $\pm$ 0.003 & 0.334 $\pm$ 0.028 & 632 $\pm$ 101 & 0.059 $\pm$ 0.021 \\
 \bottomrule
-\end{tabular}%
-}
+\end{tabular}
 \end{table}
 
-These metrics show that the losses induce different output semantics. CE+time and CE give the strongest scalar readouts, but their nominal 80\% intervals cover about 90\% of trials, indicating conservative over-coverage. EventNLL is not well calibrated as an uncertainty posterior: its nominal 80\% interval covers only 48\% of trials. Its value is instead localization-like concentration, with the narrowest Width80, the highest near-target mass, and the best fixed-kernel EventNLL score. Wasserstein has the smallest Coverage MAE and a Coverage80 value closest to 0.80, but this comes with weaker scalar nRMSE and lower near-target mass. Thus, posterior geometry reveals a trade-off among scalar accuracy, target concentration, and interval coverage that is hidden by nRMSE alone.
+These summaries show that similar scalar readouts can correspond to different posterior semantics. The EventNLL-family variants assign substantially more probability mass near the observed RT and produce narrower intervals, while CE gives a competitive scalar readout with a broader posterior. Time-only and Wasserstein controls have lower coverage error, but they are weaker scalar predictors and assign less near-target mass than the CE/EventNLL group.
 
-\paragraph{Secondary ensemble use of posterior features.}
-The same posterior summaries can also serve as post-hoc ensemble features, but we treat this as a secondary analysis rather than as a main release-separated claim. The single-model R11 comparisons above are intentionally reported without stacking, so that the main evidence isolates the event-time objective, scalar readout, posterior geometry, and the shifted-crop diagnostic below. The stacker construction is described in Appendix~\ref{sec:rt_stacking}; in the original hidden-release CodaBench evaluation (Appendix Table~\ref{tab:appendix_codabench}), gradient boosting stacking achieved 0.91394 hidden nRMSE, compared with 0.92334 for the best single model, 0.91840 for manual blending, and 0.91539 for Ridge stacking. This supports posterior-derived meta-features as an ensemble calibration layer while keeping the paper's main claims tied to single-model release-separated analyses.
+\subsection{Shifted-Crop Shortcut-vs-Localization Diagnostic}
 
-\subsection{Shifted-Crop Localization Diagnostic}
+Posterior geometry shows where a model places probability mass inside the standard window, but it does not prove that the model has learned a crop-relative event localizer. A fixed stimulus-locked window can still permit shortcut behavior: the model may predict trial difficulty, subject-level slowness, or stimulus-locked response tendency without moving its prediction when the crop is shifted.
 
-The posterior analyses above show that event-time losses produce different probability geometries, but they do not by themselves prove that a model has learned a within-crop event localizer. A fixed stimulus-locked window can still permit shortcut behavior: a model may predict trial difficulty, subject-level slowness, or stimulus-locked response tendency without moving its prediction when the crop is shifted. We therefore introduced a shifted-crop diagnostic on R11 using the trained models and R9--R10-selected temperatures. For each trial, we used the same 5~s EEG cache and evaluated the model on 2~s crops starting at $s\in\{0.2,0.3,\dots,0.8\}$~s. The reference crop is $s=0.5$~s, matching the training and main inference protocol. To avoid target-censoring effects, this analysis uses the common-inside subset where RT remains inside all shifted crops ($0.8\leq \mathrm{RT}\leq 2.2$~s; 14{,}183 trials).
+We therefore evaluate trained models on multiple 2~s crops from the same 5~s holdout trials, with crop starts \(s\in\{0.2,0.3,\dots,0.8\}\) s after stimulus onset. Shifted-crop accuracy is reported as relative nRMSE on valid crop examples where the behavioral response remains observable inside the evaluated crop. Shift-tracking metrics are computed on a matched common-inside subset, so prediction changes can be attributed to the imposed crop displacement rather than to a changing trial set. Sensitivity measures the fraction of the imposed crop shift reflected in the prediction, with 1 indicating ideal crop-relative localization and 0 indicating crop-invariant behavior. Direction is the fraction of shifted examples whose prediction moves in the expected localizer direction.
 
-If the model truly localizes the response-relevant event within the crop, shifting the crop start by $\Delta s$ should move the predicted crop-relative event time by approximately $-\Delta s$, giving a raw shift slope near $-1$. A crop-invariant scalar regressor should instead have a slope near 0. Table~\ref{tab:shifted_crop_diagnostic} shows that the event-time segmentation models preserve or improve reference-crop accuracy and move in a more localizer-like direction than the best scalar regressor. EventNLL reaches a raw shift slope of $-0.292$ [95\% CI: $-0.311$, $-0.272$], compared with $-0.253$ [$-0.270$, $-0.235$] for ETR-CNN and $-0.172$ on average across regression baselines. The fraction of localizer-like trials also increases from 10.1\% for ETR-CNN to 14.8\% for CE and 15.9\% for EventNLL.
+\subsection{Shift-Jitter Training Intervention}
 
-This result should be interpreted as evidence for a representational shift, not as solved shift equivariance. The segmentation models remain far from the ideal slope of $-1$, indicating that fixed-window training still mixes event localization with scalar response-tendency shortcuts. That limitation is useful: it identifies shift-augmented, crop-relative event-time training as the natural next step if the goal is a stronger trial-wise neural event localizer.
+The shifted-crop diagnostic naturally suggests an intervention: if fixed-window training permits shortcut behavior, randomizing crop start during training should encourage crop-relative timing. We therefore compare fixed-window-trained and shift-jitter-trained versions of the same event-time objectives. Holdout \(\tau\)-nRMSE and shifted relative nRMSE are different metrics with different target distributions, so deltas should be interpreted within each metric family.
 
 \begin{table}[!t]
 \centering
-\caption{Shifted-crop diagnostic on the R11 common-inside subset. The ideal within-crop event localizer has raw shift slope $-1$; a crop-invariant scalar shortcut has slope 0. Reference nRMSE is computed at the standard $s=0.5$~s crop.}
-\label{tab:shifted_crop_diagnostic}
+\caption{Accuracy comparison between fixed-window-trained and shift-jitter-trained event-time models. Holdout \(\tau\)-nRMSE is the temperature-tuned fixed-window score; shifted rel nRMSE measures crop-relative accuracy over shifted crops. The two nRMSE variants use different target distributions, so deltas compare jitter training against fixed-window training within the same metric only.}
+\label{tab:shifted_crop_accuracy}
 \scriptsize
 \setlength{\tabcolsep}{3pt}
 \renewcommand{\arraystretch}{1.12}
 \resizebox{\linewidth}{!}{%
 \begin{tabular}{@{} l c c c c c c @{}}
 \toprule
-\textbf{Model} & \textbf{Ref nRMSE} $\downarrow$ & \textbf{Ref MAE, s} $\downarrow$ & \textbf{Worst $\Delta$ nRMSE} & \textbf{Raw shift slope} & \textbf{Localizer-like trials} & \textbf{Invariant-like trials} \\
+\textbf{Objective} & \multicolumn{3}{c}{\textbf{Holdout \(\tau\)-nRMSE}} & \multicolumn{3}{c}{\textbf{Shifted rel nRMSE}} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+& \textbf{Fixed train} & \textbf{Jitter train} & \(\boldsymbol{\Delta}\) & \textbf{Fixed train} & \textbf{Jitter train} & \(\boldsymbol{\Delta}\) \\
 \midrule
-ETR-CNN & 0.874 & 0.206 [0.199, 0.215] & 0.174 & $-0.253$ [$-0.270$, $-0.235$] & 10.1\% [9.0, 11.1] & 34.5\% \\
-ETS-U-Net CE & 0.856 & 0.201 [0.193, 0.209] & 0.193 & $-0.287$ [$-0.306$, $-0.267$] & 14.8\% [13.3, 16.3] & 34.4\% \\
-ETS-U-Net EventNLL & 0.859 & 0.201 [0.193, 0.210] & 0.198 & $-0.292$ [$-0.311$, $-0.272$] & 15.9\% [14.5, 17.3] & 33.3\% \\
+CE & 0.8753 $\pm$ 0.0039 & 0.8453 $\pm$ 0.0075 & $-0.0301$ & 0.8679 $\pm$ 0.0024 & 0.8569 $\pm$ 0.0060 & $-0.0110$ \\
+Mixture EventNLL & 0.8745 $\pm$ 0.0053 & 0.8505 $\pm$ 0.0065 & $-0.0240$ & 0.8663 $\pm$ 0.0037 & 0.8576 $\pm$ 0.0041 & $-0.0087$ \\
+EventNLL & 0.8772 $\pm$ 0.0018 & 0.8503 $\pm$ 0.0049 & $-0.0269$ & 0.8685 $\pm$ 0.0023 & 0.8593 $\pm$ 0.0028 & $-0.0092$ \\
+Hazard EventNLL & 0.8778 $\pm$ 0.0041 & 0.8542 $\pm$ 0.0063 & $-0.0236$ & 0.8692 $\pm$ 0.0028 & 0.8609 $\pm$ 0.0045 & $-0.0083$ \\
+Soft-argmax RT & 0.8917 $\pm$ 0.0046 & 0.8618 $\pm$ 0.0030 & $-0.0299$ & 0.8857 $\pm$ 0.0069 & 0.8613 $\pm$ 0.0032 & $-0.0244$ \\
+Wasserstein & 0.8896 $\pm$ 0.0033 & 0.8658 $\pm$ 0.0045 & $-0.0238$ & 0.8932 $\pm$ 0.0033 & 0.8774 $\pm$ 0.0099 & $-0.0158$ \\
 \bottomrule
 \end{tabular}%
 }
 \end{table}
+
+\begin{table}[!t]
+\centering
+\caption{Localization-behavior comparison between fixed-window-trained and shift-jitter-trained event-time models under the shifted-crop diagnostic. Deltas are jitter minus fixed-window training; positive values indicate stronger localizer-like behavior after jitter training.}
+\label{tab:shifted_crop_localization}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.12}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{@{} l c c c c c c @{}}
+\toprule
+\textbf{Objective} & \multicolumn{3}{c}{\textbf{Sensitivity}} & \multicolumn{3}{c}{\textbf{Direction}} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+& \textbf{Fixed train} & \textbf{Jitter train} & \(\boldsymbol{\Delta}\) & \textbf{Fixed train} & \textbf{Jitter train} & \(\boldsymbol{\Delta}\) \\
+\midrule
+CE & 0.5810 $\pm$ 0.0351 & 0.5831 $\pm$ 0.0406 & $+0.0021$ & 0.7780 $\pm$ 0.0041 & 0.7924 $\pm$ 0.0056 & $+0.0144$ \\
+Mixture EventNLL & 0.6021 $\pm$ 0.0484 & 0.6249 $\pm$ 0.0313 & $+0.0228$ & 0.7730 $\pm$ 0.0062 & 0.7925 $\pm$ 0.0076 & $+0.0195$ \\
+EventNLL & 0.5842 $\pm$ 0.0287 & 0.6174 $\pm$ 0.0222 & $+0.0332$ & 0.7739 $\pm$ 0.0059 & 0.7937 $\pm$ 0.0068 & $+0.0199$ \\
+Hazard EventNLL & 0.5618 $\pm$ 0.0376 & 0.5891 $\pm$ 0.0259 & $+0.0272$ & 0.7694 $\pm$ 0.0090 & 0.7925 $\pm$ 0.0074 & $+0.0231$ \\
+Soft-argmax RT & 0.5381 $\pm$ 0.0586 & 0.5775 $\pm$ 0.0362 & $+0.0395$ & 0.7592 $\pm$ 0.0183 & 0.7951 $\pm$ 0.0052 & $+0.0359$ \\
+Wasserstein & 0.6684 $\pm$ 0.0711 & 0.6852 $\pm$ 0.0416 & $+0.0167$ & 0.7830 $\pm$ 0.0197 & 0.8026 $\pm$ 0.0118 & $+0.0196$ \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+Shift-jitter training consistently improves shifted-crop relative nRMSE, indicating better robustness to crop placement (Table~\ref{tab:shifted_crop_accuracy}). It also modestly improves shift-tracking behavior (Table~\ref{tab:shifted_crop_localization}), but the best sensitivity remains far below the ideal value of 1.0. Wasserstein gives the strongest sensitivity and direction, but at a clear cost in scalar and shifted-crop accuracy. These results support a partial-localization interpretation: shift-jitter reduces the fixed-window shortcut and pushes models in a more localizer-like direction, but it does not solve full crop-relative event localization.
 
 \section{Discussion}
 
@@ -730,18 +746,6 @@ Overall, these checks support two points. First, the EventNLL view is not tied t
 \section{Additional Architecture Ablations}
 
 Architecture ablations separate formulation effects from capacity and backbone-specific effects. In particular, ETS-U-Net capacity variants, attention bottlenecks, factorized channel interactions, recurrent variants, and EEG-Inception-style segmentation provide complementary checks on whether the event-time formulation depends on a single encoder-decoder instantiation.
-
-\section{Additional Posterior Geometry Examples}
-
-Table~\ref{tab:posterior_geometry_metrics} reports the quantitative posterior metrics behind Figure~\ref{fig:posterior_geometry_main}, and Figure~\ref{fig:posterior_raster_main} shows the corresponding trial-sorted posterior maps in the main text. Figure~\ref{fig:appendix_temperature_sensitivity} shows the development-split temperature curves used to choose post-hoc readout temperatures.
-
-\begin{figure}[!t]
-    \centering
-    \includegraphics[width=0.9\linewidth]{img/ch1/temperature_sensitivity_calibrated.png}
-    \caption{Temperature sensitivity on the R9-R10 development split. Vertical lines mark selected temperatures. The curves show that different losses induce different confidence scales, motivating temperature calibration as posterior-geometry control before comparing scalar readouts or using posterior features downstream.}
-    \label{fig:appendix_temperature_sensitivity}
-\end{figure}
-
 
 \FloatBarrier
 \clearpage
