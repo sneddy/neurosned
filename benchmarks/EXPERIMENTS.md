@@ -9,7 +9,7 @@ Status date: 2026-07-08.
 ## Current Scope
 
 The current benchmark is aligned with the manuscript draft in
-`writing/overleaf/release_v7/main_revised_v7.tex`.
+`writing/overleaf/release_v9/main_revised_v9.tex`.
 
 Main paper story:
 
@@ -21,8 +21,8 @@ Main paper story:
 6. Evaluate shift-jitter training as a training-time intervention that reduces
    the fixed-window shortcut but does not fully solve crop-relative
    localization.
-7. Keep stacking and final two-stage recipes as optional add-ons until current
-   filtered-protocol artifacts exist.
+7. Keep any final two-stage recipe outside the current main benchmark unless it
+   gives a clean improvement after the controlled results are frozen.
 
 ## Protocol
 
@@ -69,11 +69,10 @@ Metric conventions:
 | Data protocol | `benchmarks/experiments/00_data_protocol/` | Split, support-filter, subject-disjointness, and package-version record. | Complete. |
 | Regression baselines | `benchmarks/configs/01_regression_baselines/` | Scalar RT and wrapped external EEG baselines. | Complete: 12/12 configs, 5 seeds each. |
 | Segmentation ablations | `benchmarks/configs/02_segmentation_ablations/` | ETS-U-Net event-time objective comparison. | Complete for selected paper-facing objectives. |
-| Posterior geometry | generated from `02_segmentation_ablations` outputs | Distributional output semantics beyond scalar nRMSE. | Pending filtered-protocol regeneration. |
+| Posterior geometry | generated from `02_segmentation_ablations` outputs | Distributional output semantics beyond scalar nRMSE. | Complete: paper table and figure bundle generated. |
 | Shifted-crop diagnostic | `evaluation.shifted_crop` in run configs plus post-hoc runners | Shortcut-vs-localization stress test. | Complete for regression and original segmentation; shift-jitter summaries updated in paper tables. |
 | Shift-jitter training | `benchmarks/configs/03_crop_shift_jitter/` | Training-time removal of fixed-window shortcuts. | Complete: 6/6 configs, 5 seeds each. |
-| Final training recipe | planned config group | Optional final model recipe after ablations are fixed. | Planned. |
-| Distribution-aware stacking | planned artifacts under stacking experiments | Test whether posterior/logit features add reusable information. | Planned. |
+| Final training recipe | no active config group | Optional final model recipe after ablations are fixed. | Not active. |
 
 ## Artifact Registry
 
@@ -90,9 +89,9 @@ Metric conventions:
 | Shift-jitter repeated runs | `benchmarks/experiments/03_crop_shift_jitter/` | Jitter-trained event-time localization test. | Complete: 6/6 configs, 5 seeds each. |
 | Shift-jitter canonical holdout re-eval | `benchmarks/experiments/03_crop_shift_jitter_canonical_eval/` | Canonical `0.5 <= RT <= 2.5` holdout scores for jitter-trained checkpoints. | Complete: 30/30 seed-runs. |
 | Shift-jitter training appendix table | `benchmarks/experiments/paper_tables/appendix_03_jitter_shifted_details.md` | Detailed diagnostic after shift-jitter training. | Complete. |
-| Posterior geometry figures | TBD under `benchmarks/experiments/02_segmentation_ablations/figures/` | Camera-ready posterior profile panels. | Pending filtered-protocol regeneration. |
+| Main posterior geometry table | `benchmarks/experiments/paper_tables/main_04_posterior_geometry.md` | Camera-ready posterior geometry and distributional scoring table. | Complete. |
+| Posterior geometry figures | `benchmarks/experiments/paper_figures/` | Camera-ready posterior profile panels and source CSVs. | Complete. |
 | Shifted-crop summaries | per-run `shifted_eval/` folders | Crop-start robustness and localization diagnostics. | New pooled-summary format complete for regression, original segmentation, and shift-jitter runs. |
-| Stacking artifacts | TBD | Competition-style ensemble/calibration reproduction. | Planned. |
 
 ## 00 Data Protocol
 
@@ -251,9 +250,13 @@ Expected paper use:
 
 ## 03 Posterior Geometry
 
-Posterior-geometry figures and tables must be regenerated after the filtered
-segmentation reruns. Old figures under the archive remain useful only for
-design and wording.
+Posterior-geometry figures and tables have been regenerated under the filtered
+protocol from the current `02_segmentation_ablations` outputs.
+
+Canonical artifacts:
+
+- `benchmarks/experiments/paper_tables/main_04_posterior_geometry.md`
+- `benchmarks/experiments/paper_figures/`
 
 Narrative role:
 
@@ -462,142 +465,36 @@ Metrics:
 | shift error | Distance from ideal crop-relative shift tracking. |
 | posterior geometry metrics | Check whether jitter changes sharpness/calibration. |
 
-## 06 Final Training Recipe
 
-Planned role:
+## 06 Optional Final Training Recipe
+
+Status: not active. There is no current paper-facing config group or artifact
+bundle for a final engineering recipe.
+
+Narrative role:
 
 - Keep the controlled ablations as the main evidence.
-- Only after the main story is fixed, optionally define a final engineering
-  recipe using the best objective, checkpoint reload, and any validated
-  two-stage training details.
-- This section should not replace the ablation logic; it can be a final-model
-  recipe or appendix if it gives a clean improvement.
+- Only add a final recipe if it gives a clean improvement after the regression,
+  event-time objective, posterior geometry, and shifted-crop diagnostics are
+  frozen.
+- If added, present it as an optimized recipe or appendix result, not as
+  evidence for individual modeling choices.
 
-Metrics:
+Possible metrics:
 
 | metric | use |
 | --- | --- |
-| final holdout nRMSE / MAE | Final scalar performance claim. |
+| final holdout nRMSE / MAE | Final scalar performance check. |
 | validation-to-holdout gap | Overfitting/generalization check. |
 | calibration temperature and tau nRMSE | Whether final posterior readout benefits from calibration. |
 | posterior geometry summary | Confirm final recipe does not only improve scalar readout. |
 | shifted-crop diagnostics | Confirm final recipe does not worsen localization behavior. |
 
-## 07 Distribution-Aware Stacking
-
-Planned role:
-
-- Reproduce the competition-style stacking idea after base filtered-protocol
-  models are fixed.
-- Test whether event-time posterior/logit features contain reusable information
-  beyond the scalar mean prediction.
-- This should be framed as a downstream utility check, not as the core method.
-- The intended claim is not that stacking is needed for the single-model
-  event-time result. The intended claim is narrower: posterior-producing models
-  expose distributional features that are useful for post-hoc alignment and
-  ensembling when different objectives have different confidence and posterior
-  shapes.
-
-Candidate feature families:
-
-| feature family | examples |
-| --- | --- |
-| scalar base predictions | direct regression outputs, posterior mean/mode. |
-| posterior shape | width, entropy, mode-mean gap, aligned mass. |
-| logits/posterior samples | compact posterior summaries or learned meta-features. |
-| calibration features | temperature-calibrated readouts and uncertainty measures. |
-
-Expected table format:
-
-| row | feature/input type | learner | expected interpretation |
-| --- | --- | --- | --- |
-| Equal-weight scalar RT blend | One scalar RT prediction per base model. | Fixed equal weights | Basic ensemble reference; tests whether averaging base readouts is enough. |
-| Equal-weight logits soft-argmax blend | Raw segmentation logits from each model. | Fixed equal weights | SubmitWrapper-style segmentation blend: average logits first, then apply softmax/soft-argmax. |
-| Ridge stacking, RT only | Scalar RT predictions only. | Ridge | Linear learned reweighting of models; controls for simple model selection/blending. |
-| Boosting stacking, RT only | Scalar RT predictions only. | HistGradientBoosting / GBDT | Nonlinear learned reweighting using only point predictions. |
-| Ridge stacking, posterior meta-features | RT predictions plus posterior/logit summaries. | Ridge | Tests whether posterior features help even under a constrained linear meta-model. |
-| Boosting stacking, posterior meta-features | RT predictions plus posterior/logit summaries. | HistGradientBoosting / GBDT | Main utility row; tests whether distributional outputs add reusable nonlinear reliability signals. |
-
-Expected result columns:
-
-| column | meaning |
-| --- | --- |
-| R11 nRMSE | Final release-separated holdout score after the stacker design is fixed. |
-| R11 MAE | Final physical-unit holdout score. |
-| delta vs best single model | Practical value beyond selecting the best base model. |
-| delta vs RT-only stacker | Direct evidence that posterior/meta-features add information beyond scalar readouts. |
-
-Raw stacker artifacts may still store development OOF nRMSE/MAE for audit and
-debugging, but the paper-facing table should not report them. The only
-paper-facing score is the release-separated R11 result after the stacker design
-has been fixed.
-
-Caption/narrative context to preserve:
-
-- Base models must be trained before stacking and must not use R11 for any
-  decision.
-- The stacker should be selected on R9-R10 only, preferably with
-  subject-disjoint out-of-fold predictions inside the development split.
-- R11 is used only once for final reporting after the feature set and
-  meta-learner are fixed.
-- Scalar stacking should use the uncalibrated fixed-window predictions
-  (`best_val_predictions.csv` and `test_predictions.csv`). Temperature
-  calibration is deliberately left to the stacker rather than applied before
-  feature construction.
-- The equal-weight segmentation baseline follows the original
-  `SubmitWrapper` logic: average model logits, then compute a softmax
-  distribution and soft-argmax readout with temperature `0.92`. It should not
-  be implemented as an average of hard posterior modes.
-- Posterior meta-feature stacking should use the ported challenge-style
-  `MetaFeatureExtractor`, `RidgeMetaRegressor`, `HgbMetaRegressor`, and
-  monotonic-constraint helpers in `benchmarks/pkg/ensembling`.
-- Feature pruning should be based on the saved feature-audit artifacts from
-  `stack_segmentation_outputs.py`: Ridge stores fold-wise standardized
-  coefficients, while HGB stores validation-fold permutation MSE increases.
-  These diagnostics are development-only and should not use R11 for deciding
-  which features to keep.
-- The most important comparison is not equal blending versus stacking; it is
-  `RT-only stacking` versus `posterior meta-feature stacking`.
-- A positive result supports the statement that event-time posteriors contain
-  reusable information discarded by scalar RT predictions. It should be
-  described as downstream ensemble utility, not as the main evidence for the
-  event-time formulation.
-- If posterior meta-feature stacking does not improve over RT-only stacking,
-  keep this section as an appendix/control rather than a main claim.
-
-Expected artifact:
-
-| artifact | path |
-| --- | --- |
-| Camera-ready stacking ablation table | `benchmarks/experiments/paper_tables/appendix_04_distribution_aware_stacking.md` |
-| Raw stacker results | `benchmarks/experiments/07_distribution_aware_stacking/` |
-
-Metrics:
-
-| metric | use |
-| --- | --- |
-| out-of-fold validation nRMSE | Honest meta-model selection. |
-| holdout nRMSE / MAE | Final stacking comparison against best single model. |
-| delta vs best base model | Whether stacking adds value beyond model selection. |
-| feature ablation | Whether posterior features matter beyond scalar predictions. |
-
-## Planned/Optional Scope
-
-Keep these out of the main experimental spine until filtered-protocol artifacts
-exist:
-
-| add-on | purpose | current status |
-| --- | --- | --- |
-| Distribution-aware stacking | Test whether posterior/logit features add reusable information beyond scalar predictions. | Planned. |
-| Two-stage checkpoint reload recipe | Potential training-stability/final recipe. | Code path exists, not a current main claim. |
-
 ## Immediate Next Steps
 
-1. Recompute posterior geometry from filtered segmentation predictions/logits.
-2. Decide final manuscript placement for `main_03_shift_jitter_summary.md`.
-3. Reproduce distribution-aware stacking under the filtered protocol if it is
-   kept in the paper narrative.
-4. Define the optional final training recipe only after the ablation and
+1. Freeze manuscript placement for `main_03_shift_jitter_summary.md` and
+   `main_04_posterior_geometry.md`.
+2. Define the optional final training recipe only after the ablation and
    diagnostic tables are frozen.
-5. Update `writing/overleaf/release_v7/main_revised_v7.tex` only after the
-   corresponding filtered-protocol artifacts are complete.
+3. Sync `writing/overleaf/release_v9/main_revised_v9.tex` with the final
+   paper-table wording once the table captions are frozen.

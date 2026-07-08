@@ -159,14 +159,6 @@ locations and artifact locations. It is not loaded by the code.
    - Keep this separate from ablations so the paper does not confuse model
      contribution with optimization budget.
 
-6. **Stacked calibration**
-   - Goal: show whether a post-hoc meta-regressor improves final inference
-     after the base models are already fixed.
-   - Compare best single model, plain ensemble, Ridge stacking, and optional HGB
-     stacking.
-   - Report validation cross-fit performance separately from the final R11
-     holdout result, so the gain is not confused with model selection leakage.
-
 Recommended reporting order:
 
 1. Simple protocol definition.
@@ -174,7 +166,6 @@ Recommended reporting order:
 3. Regression vs. segmentation.
 4. SneddyUNet component ablations.
 5. Final advanced protocol result.
-6. Final stacked calibration result.
 
 For Neural Computation-style reporting, the main claim should rest on the
 simple protocol and controlled ablations; the advanced protocol should be
