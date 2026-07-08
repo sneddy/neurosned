@@ -380,7 +380,7 @@ The soft-label segmentation family is written as a weighted objective:
  + \lambda_{\text{CE}}\,\mathrm{CE}\big(q, p(\tau)\big) \\
 &\quad + \lambda_{W1}\,W_1\big(\mathrm{CDF}(q), \mathrm{CDF}(p(\tau))\big)
  + \lambda_{\text{KL}}\,D_{\mathrm{KL}}\big(q\|p(\tau)\big)
- - \lambda_{H}\,H\big(p(\tau)\big),
+ + \lambda_{H}\,H\big(p(\tau)\big),
 \end{aligned}
 \end{equation}
 where  
@@ -389,7 +389,7 @@ where
 D_{\mathrm{KL}}(q\|p)=\sum_{t=0}^{T-1} q_t \log\frac{q_t}{p_t}, \;
 H(p)=-\sum_{t=0}^{T-1} p_t \log p_t.
 \end{equation*}
-This expression defines an ablation family rather than a single prescribed loss. CE-only supervision sets the scalar time term to zero and asks the model to match a Gaussian soft event-time label. The hybrid objective combines CE with a soft-argmax time loss. The time-only ablation removes distributional matching while keeping the same readout, and the Wasserstein-only ablation tests whether a CDF-based geometry loss is sufficient on its own. Entropy, KL, focal, and related terms serve as posterior-geometry controls.
+This expression defines an ablation family rather than a single prescribed loss. CE-only supervision sets the scalar time term to zero and asks the model to match a Gaussian soft event-time label. The time-only ablation removes distributional matching while keeping the same readout, and the Wasserstein-only ablation tests whether a CDF-based geometry loss is sufficient on its own. A CE+time hybrid is available by enabling both CE and soft-argmax time terms, but is not a separate row in the five-seed comparison. Entropy, KL, focal, and related terms serve as posterior-geometry controls when enabled.
 
 \subsection{Likelihood-Based Event-Time Objectives}
 \label{sec:event_nll}
@@ -434,22 +434,22 @@ Table~\ref{tab:r11_segmentation_losses} compares the paper-facing ETS-U-Net obje
 \renewcommand{\arraystretch}{1.15}
 \begin{tabularx}{\linewidth}{@{} >{\RaggedRight\arraybackslash}p{0.22\linewidth} Y >{\centering\arraybackslash}p{0.18\linewidth} >{\centering\arraybackslash}p{0.18\linewidth} >{\centering\arraybackslash}p{0.18\linewidth} @{}}
 \toprule
-\textbf{Model} & \textbf{Role} & \textbf{Valid nRMSE} $\downarrow$ & \textbf{R11 nRMSE} $\downarrow$ & \textbf{R11 \(\tau\)-nRMSE} $\downarrow$ \\
+\textbf{Model} & \textbf{Variant} & \textbf{Valid nRMSE} $\downarrow$ & \textbf{R11 nRMSE} $\downarrow$ & \textbf{R11 \(\tau\)-nRMSE} $\downarrow$ \\
 \midrule
 \multicolumn{5}{@{}l}{\textit{Soft-target objective}} \\
 \addlinespace[0.15em]
-CE & soft event-time target & \mbox{0.8763 $\pm$ 0.0044} & \mbox{0.8774 $\pm$ 0.0044} & \mbox{0.8753 $\pm$ 0.0039} \\
+CE & soft target & \mbox{0.8763 $\pm$ 0.0044} & \mbox{0.8774 $\pm$ 0.0044} & \mbox{0.8753 $\pm$ 0.0039} \\
 \midrule
 \multicolumn{5}{@{}l}{\textit{Likelihood-based objectives}} \\
 \addlinespace[0.15em]
-EventNLL & Gaussian observation kernel & \mbox{0.8769 $\pm$ 0.0030} & \mbox{0.8805 $\pm$ 0.0021} & \mbox{0.8772 $\pm$ 0.0018} \\
-Mixture EventNLL & two-scale observation kernel & \mbox{0.8744 $\pm$ 0.0018} & \mbox{0.8785 $\pm$ 0.0047} & \mbox{0.8745 $\pm$ 0.0053} \\
-Hazard EventNLL & hazard posterior parameterization & \mbox{0.8755 $\pm$ 0.0027} & \mbox{0.8776 $\pm$ 0.0031} & \mbox{0.8778 $\pm$ 0.0041} \\
+EventNLL & Gaussian kernel & \mbox{0.8769 $\pm$ 0.0030} & \mbox{0.8805 $\pm$ 0.0021} & \mbox{0.8772 $\pm$ 0.0018} \\
+Mixture EventNLL & two-scale kernel & \mbox{0.8744 $\pm$ 0.0018} & \mbox{0.8785 $\pm$ 0.0047} & \mbox{0.8745 $\pm$ 0.0053} \\
+Hazard EventNLL & hazard readout & \mbox{0.8755 $\pm$ 0.0027} & \mbox{0.8776 $\pm$ 0.0031} & \mbox{0.8778 $\pm$ 0.0041} \\
 \midrule
 \multicolumn{5}{@{}l}{\textit{Readout and distance controls}} \\
 \addlinespace[0.15em]
-Time-only & scalar soft-argmax control & \mbox{0.8944 $\pm$ 0.0048} & \mbox{0.8943 $\pm$ 0.0025} & \mbox{0.8917 $\pm$ 0.0046} \\
-Wasserstein & CDF-distance control & \mbox{0.8997 $\pm$ 0.0035} & \mbox{0.8995 $\pm$ 0.0078} & \mbox{0.8896 $\pm$ 0.0033} \\
+Time-only & scalar time loss & \mbox{0.8944 $\pm$ 0.0048} & \mbox{0.8943 $\pm$ 0.0025} & \mbox{0.8917 $\pm$ 0.0046} \\
+Wasserstein & CDF loss & \mbox{0.8997 $\pm$ 0.0035} & \mbox{0.8995 $\pm$ 0.0078} & \mbox{0.8896 $\pm$ 0.0033} \\
 \bottomrule
 \end{tabularx}
 \end{table}
