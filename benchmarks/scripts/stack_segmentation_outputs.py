@@ -102,6 +102,15 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--fold-seed", type=int, default=42, help="Subject fold random seed.")
     parser.add_argument("--quantiles", type=int, nargs="*", default=[10, 50, 90], help="Posterior quantile features.")
     parser.add_argument(
+        "--posterior-feature-set",
+        choices=("full", "time_readouts"),
+        default="full",
+        help=(
+            "Posterior feature pruning profile. 'time_readouts' keeps only "
+            "posterior t_hard/t_abs/quantile features and drops Wasserstein posterior features."
+        ),
+    )
+    parser.add_argument(
         "--skip-feature-audit",
         action="store_true",
         help="Do not save Ridge coefficients and HGB validation permutation importances.",
@@ -168,6 +177,7 @@ def main() -> None:
             fold_seed=int(args.fold_seed),
             quantiles=tuple(args.quantiles),
             submit_temperature=float(args.submit_temperature),
+            posterior_feature_set=str(args.posterior_feature_set),
             save_feature_audit=not bool(args.skip_feature_audit),
             importance_repeats=int(args.importance_repeats),
             importance_seed=int(args.importance_seed),
@@ -225,6 +235,7 @@ def evaluate_seed_group(
     fold_seed: int,
     quantiles: tuple[int, ...],
     submit_temperature: float,
+    posterior_feature_set: str,
     save_feature_audit: bool,
     importance_repeats: int,
     importance_seed: int,
@@ -260,6 +271,12 @@ def evaluate_seed_group(
         return_names=True,
     )
     ridge_posterior_test = ridge_extractor.build_from_logits_store(test_logits_store)
+    ridge_posterior_dev, ridge_posterior_test, ridge_posterior_names = apply_posterior_feature_set(
+        ridge_posterior_dev,
+        ridge_posterior_test,
+        ridge_posterior_names,
+        profile=posterior_feature_set,
+    )
     scalar_names = [f"scalar_{run.model_key}_t_hard" for run in runs]
     ridge_meta_names = scalar_names + ridge_posterior_names
     ridge_meta_dev = np.concatenate([scalar_dev, ridge_posterior_dev], axis=1)
@@ -276,6 +293,12 @@ def evaluate_seed_group(
         return_names=True,
     )
     hgb_posterior_test = hgb_extractor.build_from_logits_store(test_logits_store)
+    hgb_posterior_dev, hgb_posterior_test, hgb_posterior_names = apply_posterior_feature_set(
+        hgb_posterior_dev,
+        hgb_posterior_test,
+        hgb_posterior_names,
+        profile=posterior_feature_set,
+    )
     hgb_meta_names = scalar_names + hgb_posterior_names
     hgb_meta_dev = np.concatenate([scalar_dev, hgb_posterior_dev], axis=1)
     hgb_meta_test = np.concatenate([scalar_test, hgb_posterior_test], axis=1)
@@ -635,6 +658,36 @@ def supported_hgb_params(params: dict) -> dict:
             stacklevel=2,
         )
     return {key: value for key, value in params.items() if key in supported}
+
+
+def apply_posterior_feature_set(
+    X_dev: np.ndarray,
+    X_test: np.ndarray,
+    feature_names: list[str],
+    *,
+    profile: str,
+) -> tuple[np.ndarray, np.ndarray, list[str]]:
+    """Apply a named posterior-feature pruning profile."""
+    if profile == "full":
+        return X_dev, X_test, feature_names
+    if profile != "time_readouts":
+        raise ValueError(f"Unknown posterior feature set: {profile}")
+
+    keep_indices = []
+    keep_families = {"time_hard", "posterior_time_softargmax", "posterior_quantile"}
+    for idx, feature in enumerate(feature_names):
+        meta = feature_metadata(feature)
+        if meta["feature_source"] != "posterior":
+            continue
+        if meta["feature_model"] == "ets_unet_wasserstein":
+            continue
+        if meta["feature_family"] in keep_families:
+            keep_indices.append(idx)
+
+    if not keep_indices:
+        raise ValueError("Posterior feature pruning removed all features.")
+    keep = np.asarray(keep_indices, dtype=int)
+    return X_dev[:, keep], X_test[:, keep], [feature_names[idx] for idx in keep_indices]
 
 
 def collect_ridge_coefficients(
