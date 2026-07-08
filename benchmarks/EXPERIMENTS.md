@@ -551,6 +551,11 @@ Caption/narrative context to preserve:
 - Posterior meta-feature stacking should use the ported challenge-style
   `MetaFeatureExtractor`, `RidgeMetaRegressor`, `HgbMetaRegressor`, and
   monotonic-constraint helpers in `benchmarks/pkg/ensembling`.
+- Feature pruning should be based on the saved feature-audit artifacts from
+  `stack_segmentation_outputs.py`: Ridge stores fold-wise standardized
+  coefficients, while HGB stores validation-fold permutation MSE increases.
+  These diagnostics are development-only and should not use R11 for deciding
+  which features to keep.
 - The most important comparison is not equal blending versus stacking; it is
   `RT-only stacking` versus `posterior meta-feature stacking`.
 - A positive result supports the statement that event-time posteriors contain

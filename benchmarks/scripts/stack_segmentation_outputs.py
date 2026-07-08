@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import inspect
 import os
+import re
 import sys
 import warnings
 from dataclasses import dataclass
@@ -101,6 +102,18 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--fold-seed", type=int, default=42, help="Subject fold random seed.")
     parser.add_argument("--quantiles", type=int, nargs="*", default=[10, 50, 90], help="Posterior quantile features.")
     parser.add_argument(
+        "--skip-feature-audit",
+        action="store_true",
+        help="Do not save Ridge coefficients and HGB validation permutation importances.",
+    )
+    parser.add_argument(
+        "--importance-repeats",
+        type=int,
+        default=1,
+        help="Permutation repeats per feature/fold for HGB feature audit.",
+    )
+    parser.add_argument("--importance-seed", type=int, default=42, help="Random seed for permutation importances.")
+    parser.add_argument(
         "--submit-temperature",
         type=float,
         default=0.92,
@@ -143,10 +156,11 @@ def main() -> None:
     groups = group_by_seed(runs)
     rows: list[dict] = []
     manifest_rows: list[dict] = []
+    audit_rows: list[dict] = []
     for seed in sorted(groups):
         seed_runs = sorted(groups[seed], key=lambda r: r.name)
         print(f"\nSeed {seed}: {len(seed_runs)} base models")
-        seed_rows, seed_manifest = evaluate_seed_group(
+        seed_rows, seed_manifest, seed_audit = evaluate_seed_group(
             seed=seed,
             runs=seed_runs,
             n_folds=int(args.n_folds),
@@ -154,9 +168,13 @@ def main() -> None:
             fold_seed=int(args.fold_seed),
             quantiles=tuple(args.quantiles),
             submit_temperature=float(args.submit_temperature),
+            save_feature_audit=not bool(args.skip_feature_audit),
+            importance_repeats=int(args.importance_repeats),
+            importance_seed=int(args.importance_seed),
         )
         rows.extend(seed_rows)
         manifest_rows.extend(seed_manifest)
+        audit_rows.extend(seed_audit)
 
     summary = pd.DataFrame(rows)
     summary["method"] = pd.Categorical(summary["method"], categories=METHOD_ORDER, ordered=True)
@@ -173,11 +191,27 @@ def main() -> None:
     aggregate.to_csv(aggregate_path, index=False)
     manifest.to_csv(manifest_path, index=False)
     write_markdown_table(aggregate, paper_table)
+    audit_path = aggregate_audit_path = audit_top_path = None
+    if audit_rows:
+        audit_dir = out_dir / "feature_audit"
+        audit_dir.mkdir(parents=True, exist_ok=True)
+        audit = pd.DataFrame(audit_rows)
+        audit_aggregate = aggregate_feature_audit(audit)
+        audit_path = audit_dir / "feature_audit.csv"
+        aggregate_audit_path = audit_dir / "feature_audit_aggregate.csv"
+        audit_top_path = audit_dir / "feature_audit_top.md"
+        audit.to_csv(audit_path, index=False)
+        audit_aggregate.to_csv(aggregate_audit_path, index=False)
+        write_feature_audit_top(audit_aggregate, audit_top_path)
 
     print(f"\nSaved stacking summary: {path_text(summary_path)}")
     print(f"Saved aggregate summary: {path_text(aggregate_path)}")
     print(f"Saved run manifest: {path_text(manifest_path)}")
     print(f"Saved paper table: {path_text(paper_table)}")
+    if audit_path is not None and aggregate_audit_path is not None and audit_top_path is not None:
+        print(f"Saved feature audit: {path_text(audit_path)}")
+        print(f"Saved feature audit aggregate: {path_text(aggregate_audit_path)}")
+        print(f"Saved feature audit top table: {path_text(audit_top_path)}")
     print("\nAggregate")
     print(aggregate[["method", "seeds", "test_nrmse_mean", "test_nrmse_std"]].to_string(index=False))
 
@@ -191,7 +225,10 @@ def evaluate_seed_group(
     fold_seed: int,
     quantiles: tuple[int, ...],
     submit_temperature: float,
-) -> tuple[list[dict], list[dict]]:
+    save_feature_audit: bool,
+    importance_repeats: int,
+    importance_seed: int,
+) -> tuple[list[dict], list[dict], list[dict]]:
     """Evaluate all requested stacking rows for one seed."""
     valid_ref, test_ref = validate_alignment(runs)
     y_dev = valid_ref["target"].to_numpy(dtype=np.float64)
@@ -218,8 +255,13 @@ def evaluate_seed_group(
         temps=(0.6, 1.0, 0.8),
         q_percentiles=quantiles,
     )
-    ridge_posterior_dev = ridge_extractor.build_from_logits_store(valid_logits_store)
+    ridge_posterior_dev, ridge_posterior_names = ridge_extractor.build_from_logits_store(
+        valid_logits_store,
+        return_names=True,
+    )
     ridge_posterior_test = ridge_extractor.build_from_logits_store(test_logits_store)
+    scalar_names = [f"scalar_{run.model_key}_t_hard" for run in runs]
+    ridge_meta_names = scalar_names + ridge_posterior_names
     ridge_meta_dev = np.concatenate([scalar_dev, ridge_posterior_dev], axis=1)
     ridge_meta_test = np.concatenate([scalar_test, ridge_posterior_test], axis=1)
 
@@ -234,7 +276,6 @@ def evaluate_seed_group(
         return_names=True,
     )
     hgb_posterior_test = hgb_extractor.build_from_logits_store(test_logits_store)
-    scalar_names = [f"scalar_{run.model_key}_t_hard" for run in runs]
     hgb_meta_names = scalar_names + hgb_posterior_names
     hgb_meta_dev = np.concatenate([scalar_dev, hgb_posterior_dev], axis=1)
     hgb_meta_test = np.concatenate([scalar_test, hgb_posterior_test], axis=1)
@@ -266,10 +307,12 @@ def evaluate_seed_group(
         )
     )
 
+    audit_rows: list[dict] = []
+    ridge_rt_regressor = RidgeMetaRegressor()
     ridge_rt = fit_stacker_row(
         seed=seed,
         method="Ridge stacking, RT only",
-        regressor=RidgeMetaRegressor(),
+        regressor=ridge_rt_regressor,
         X_dev=scalar_dev,
         X_test=scalar_test,
         y_dev=y_dev,
@@ -278,10 +321,21 @@ def evaluate_seed_group(
         n_models=len(runs),
         best_single=best_single,
     )
+    if save_feature_audit:
+        audit_rows.extend(
+            collect_ridge_coefficients(
+                seed=seed,
+                method="Ridge stacking, RT only",
+                regressor=ridge_rt_regressor,
+                folds=folds,
+                feature_names=scalar_names,
+            )
+        )
+    boosting_rt_regressor = HgbMetaRegressor(hgb_params=notebook_hgb_params(feature_names=scalar_names))
     boosting_rt = fit_stacker_row(
         seed=seed,
         method="Boosting stacking, RT only",
-        regressor=HgbMetaRegressor(hgb_params=notebook_hgb_params(feature_names=scalar_names)),
+        regressor=boosting_rt_regressor,
         X_dev=scalar_dev,
         X_test=scalar_test,
         y_dev=y_dev,
@@ -290,12 +344,27 @@ def evaluate_seed_group(
         n_models=len(runs),
         best_single=best_single,
     )
+    if save_feature_audit:
+        audit_rows.extend(
+            collect_permutation_importance(
+                seed=seed,
+                method="Boosting stacking, RT only",
+                regressor=boosting_rt_regressor,
+                X_dev=scalar_dev,
+                y_dev=y_dev,
+                folds=folds,
+                feature_names=scalar_names,
+                n_repeats=importance_repeats,
+                random_state=importance_seed + seed,
+            )
+        )
     rows.extend([ridge_rt, boosting_rt])
+    ridge_posterior_regressor = RidgeMetaRegressor()
     rows.append(
         fit_stacker_row(
             seed=seed,
             method="Ridge stacking, posterior meta-features",
-            regressor=RidgeMetaRegressor(),
+            regressor=ridge_posterior_regressor,
             X_dev=ridge_meta_dev,
             X_test=ridge_meta_test,
             y_dev=y_dev,
@@ -306,11 +375,22 @@ def evaluate_seed_group(
             rt_only_reference=ridge_rt,
         )
     )
+    if save_feature_audit:
+        audit_rows.extend(
+            collect_ridge_coefficients(
+                seed=seed,
+                method="Ridge stacking, posterior meta-features",
+                regressor=ridge_posterior_regressor,
+                folds=folds,
+                feature_names=ridge_meta_names,
+            )
+        )
+    boosting_posterior_regressor = HgbMetaRegressor(hgb_params=notebook_hgb_params(feature_names=hgb_meta_names))
     rows.append(
         fit_stacker_row(
             seed=seed,
             method="Boosting stacking, posterior meta-features",
-            regressor=HgbMetaRegressor(hgb_params=notebook_hgb_params(feature_names=hgb_meta_names)),
+            regressor=boosting_posterior_regressor,
             X_dev=hgb_meta_dev,
             X_test=hgb_meta_test,
             y_dev=y_dev,
@@ -321,6 +401,20 @@ def evaluate_seed_group(
             rt_only_reference=boosting_rt,
         )
     )
+    if save_feature_audit:
+        audit_rows.extend(
+            collect_permutation_importance(
+                seed=seed,
+                method="Boosting stacking, posterior meta-features",
+                regressor=boosting_posterior_regressor,
+                X_dev=hgb_meta_dev,
+                y_dev=y_dev,
+                folds=folds,
+                feature_names=hgb_meta_names,
+                n_repeats=importance_repeats,
+                random_state=importance_seed + seed + 10_000,
+            )
+        )
 
     manifest = [
         {
@@ -337,7 +431,7 @@ def evaluate_seed_group(
         }
         for run in runs
     ]
-    return rows, manifest
+    return rows, manifest, audit_rows
 
 
 def baseline_row(
@@ -541,6 +635,229 @@ def supported_hgb_params(params: dict) -> dict:
             stacklevel=2,
         )
     return {key: value for key, value in params.items() if key in supported}
+
+
+def collect_ridge_coefficients(
+    *,
+    seed: int,
+    method: str,
+    regressor: RidgeMetaRegressor,
+    folds: np.ndarray,
+    feature_names: list[str],
+) -> list[dict]:
+    """Collect fold-wise standardized Ridge coefficients."""
+    rows: list[dict] = []
+    for fold, model in zip(np.unique(folds), regressor.models_):
+        ridge = model.named_steps.get("ridge") if hasattr(model, "named_steps") else None
+        if ridge is None:
+            continue
+        coefs = np.asarray(ridge.coef_, dtype=np.float64).reshape(-1)
+        if len(coefs) != len(feature_names):
+            raise ValueError(f"Ridge coefficient count mismatch for {method}: {len(coefs)} != {len(feature_names)}")
+        alpha = float(getattr(ridge, "alpha", np.nan))
+        for idx, (feature, value) in enumerate(zip(feature_names, coefs)):
+            row = {
+                "seed": int(seed),
+                "method": method,
+                "estimator": "ridge",
+                "metric": "standardized_coefficient",
+                "fold": int(fold),
+                "feature_index": int(idx),
+                "feature": feature,
+                "value": float(value),
+                "value_std": np.nan,
+                "abs_value": float(abs(value)),
+                "base_mse": np.nan,
+                "n_repeats": 0,
+                "alpha": alpha,
+            }
+            row.update(feature_metadata(feature))
+            rows.append(row)
+    return rows
+
+
+def collect_permutation_importance(
+    *,
+    seed: int,
+    method: str,
+    regressor: HgbMetaRegressor,
+    X_dev: np.ndarray,
+    y_dev: np.ndarray,
+    folds: np.ndarray,
+    feature_names: list[str],
+    n_repeats: int,
+    random_state: int,
+) -> list[dict]:
+    """Collect fold-validation permutation MSE increases for HGB models."""
+    if n_repeats <= 0:
+        return []
+    X_dev = np.asarray(X_dev, dtype=np.float32)
+    y_dev = np.asarray(y_dev, dtype=np.float64)
+    rows: list[dict] = []
+    rng = np.random.default_rng(random_state)
+    for fold, model in zip(np.unique(folds), regressor.models_):
+        idx = np.where(folds == fold)[0]
+        X_fold = X_dev[idx].copy()
+        y_fold = y_dev[idx]
+        base_pred = model.predict(X_fold)
+        base_mse = mean_squared_error_np(y_fold, base_pred)
+        for feature_idx, feature in enumerate(feature_names):
+            original = X_fold[:, feature_idx].copy()
+            deltas = []
+            for _ in range(int(n_repeats)):
+                shuffled = original.copy()
+                rng.shuffle(shuffled)
+                X_fold[:, feature_idx] = shuffled
+                pred = model.predict(X_fold)
+                deltas.append(mean_squared_error_np(y_fold, pred) - base_mse)
+            X_fold[:, feature_idx] = original
+            values = np.asarray(deltas, dtype=np.float64)
+            row = {
+                "seed": int(seed),
+                "method": method,
+                "estimator": "hgb",
+                "metric": "permutation_mse_increase",
+                "fold": int(fold),
+                "feature_index": int(feature_idx),
+                "feature": feature,
+                "value": float(values.mean()),
+                "value_std": float(values.std(ddof=1)) if len(values) > 1 else 0.0,
+                "abs_value": float(abs(values.mean())),
+                "base_mse": float(base_mse),
+                "n_repeats": int(n_repeats),
+                "alpha": np.nan,
+            }
+            row.update(feature_metadata(feature))
+            rows.append(row)
+    return rows
+
+
+def aggregate_feature_audit(audit: pd.DataFrame) -> pd.DataFrame:
+    """Aggregate feature-audit rows across folds and seeds."""
+    group_cols = [
+        "method",
+        "estimator",
+        "metric",
+        "feature",
+        "feature_source",
+        "feature_model",
+        "feature_family",
+        "temperature",
+        "quantile",
+        "time_like",
+    ]
+    aggregate = (
+        audit.groupby(group_cols, dropna=False, sort=False)
+        .agg(
+            value_mean=("value", "mean"),
+            value_std=("value", "std"),
+            abs_value_mean=("abs_value", "mean"),
+            abs_value_std=("abs_value", "std"),
+            base_mse_mean=("base_mse", "mean"),
+            rows=("value", "size"),
+            seeds=("seed", "nunique"),
+        )
+        .reset_index()
+    )
+    aggregate["value_std"] = aggregate["value_std"].fillna(0.0)
+    aggregate["abs_value_std"] = aggregate["abs_value_std"].fillna(0.0)
+    aggregate["sort_score"] = np.where(
+        aggregate["metric"].eq("permutation_mse_increase"),
+        aggregate["value_mean"],
+        aggregate["abs_value_mean"],
+    )
+    return aggregate.sort_values(["method", "metric", "sort_score"], ascending=[True, True, False]).reset_index(drop=True)
+
+
+def write_feature_audit_top(aggregate: pd.DataFrame, path: Path, *, top_n: int = 20) -> None:
+    """Write a compact top-feature Markdown audit."""
+    lines = [
+        "# Feature Audit",
+        "",
+        "Ridge rows are ranked by mean absolute standardized coefficient.",
+        "HGB rows are ranked by validation-fold permutation MSE increase.",
+        "",
+    ]
+    for (method, metric), group in aggregate.groupby(["method", "metric"], sort=False):
+        lines.extend(
+            [
+                f"## {method}: {metric}",
+                "",
+                "| rank | feature | family | model | score | signed mean | seeds |",
+                "| ---: | --- | --- | --- | ---: | ---: | ---: |",
+            ]
+        )
+        for rank, (_, row) in enumerate(group.head(top_n).iterrows(), start=1):
+            lines.append(
+                "| "
+                + " | ".join(
+                    [
+                        str(rank),
+                        str(row["feature"]),
+                        str(row["feature_family"]),
+                        str(row["feature_model"]),
+                        f"{float(row['sort_score']):.6g}",
+                        f"{float(row['value_mean']):.6g}",
+                        str(int(row["seeds"])),
+                    ]
+                )
+                + " |"
+            )
+        lines.append("")
+    path.write_text("\n".join(lines), encoding="utf-8")
+
+
+def feature_metadata(feature: str) -> dict:
+    """Parse meta-feature names into coarse audit fields."""
+    source = "unknown"
+    core = feature
+    if feature.startswith("scalar_"):
+        source = "scalar"
+        core = feature[len("scalar_") :]
+    elif feature.startswith("seg_"):
+        source = "posterior"
+        core = feature[len("seg_") :]
+
+    patterns = [
+        ("posterior_quantile", re.compile(r"_q(?P<quantile>\d+)_temp(?P<temperature>[0-9.]+)$")),
+        ("posterior_time_softargmax", re.compile(r"_t_abs_temp(?P<temperature>[0-9.]+)$")),
+        ("posterior_entropy", re.compile(r"_ent_temp(?P<temperature>[0-9.]+)$")),
+        ("posterior_probability_max", re.compile(r"_pmax_temp(?P<temperature>[0-9.]+)$")),
+        ("posterior_probability_margin", re.compile(r"_pmargin_temp(?P<temperature>[0-9.]+)$")),
+        ("posterior_time_variance", re.compile(r"_tvar_temp(?P<temperature>[0-9.]+)$")),
+        ("time_hard", re.compile(r"_t_hard$")),
+        ("logit_max", re.compile(r"_z_max$")),
+        ("logit_margin", re.compile(r"_z_margin$")),
+    ]
+    family = "unknown"
+    model = core
+    temperature = ""
+    quantile = ""
+    for candidate_family, pattern in patterns:
+        match = pattern.search(core)
+        if not match:
+            continue
+        family = "scalar_prediction" if source == "scalar" and candidate_family == "time_hard" else candidate_family
+        model = core[: match.start()]
+        temperature = match.groupdict().get("temperature", "") or ""
+        quantile = match.groupdict().get("quantile", "") or ""
+        break
+    time_like = family in {"scalar_prediction", "time_hard", "posterior_time_softargmax", "posterior_quantile"}
+    return {
+        "feature_source": source,
+        "feature_model": model,
+        "feature_family": family,
+        "temperature": temperature,
+        "quantile": quantile,
+        "time_like": bool(time_like),
+    }
+
+
+def mean_squared_error_np(y_true, y_pred) -> float:
+    """Local MSE helper."""
+    y_true = np.asarray(y_true, dtype=np.float64)
+    y_pred = np.asarray(y_pred, dtype=np.float64)
+    return float(np.mean((y_pred - y_true) ** 2))
 
 
 def validate_alignment(runs: list[RunArtifacts]) -> tuple[pd.DataFrame, pd.DataFrame]:
