@@ -83,12 +83,13 @@ Metric conventions:
 | Regression repeated runs | `benchmarks/experiments/01_regression_baselines/` | Main scalar baseline table. | Complete: 12/12 configs, 5 seeds each. |
 | Main regression table | `benchmarks/experiments/paper_tables/main_01_regression_baselines.md` | Camera-ready scalar baseline table. | Complete. |
 | Main event-time objective table | `benchmarks/experiments/paper_tables/main_02_event_time_objectives.md` | Camera-ready ETS-U-Net objective table. | Complete. |
-| Main shifted-crop table | `benchmarks/experiments/paper_tables/main_03_shifted_crop_core.md` | Compact shortcut/localization diagnostic. | Complete. |
+| Main shifted-crop accuracy table | `benchmarks/experiments/paper_tables/main_03_shifted_accuracy_comparison.md` | Fixed-vs-jitter comparison of shifted-crop prediction accuracy. | Complete. |
+| Main shifted-crop localization table | `benchmarks/experiments/paper_tables/main_04_shifted_localization_comparison.md` | Fixed-vs-jitter comparison of localization behavior. | Complete. |
 | Segmentation repeated runs | `benchmarks/experiments/02_segmentation_ablations/` | Event-time objective table and shifted-crop summaries. | Complete for selected paper-facing objectives. |
 | Regression shifted-crop appendix table | `benchmarks/experiments/paper_tables/appendix_01_regression_shifted_crop.md` | Appendix diagnostic for all scalar baselines. | Complete: 60/60 seed-runs. |
-| Fixed-window segmentation shifted-crop appendix table | `benchmarks/experiments/paper_tables/appendix_02_fixed_window_segmentation_shifted_crop.md` | Post-hoc diagnostic for fixed-window ETS-U-Net objectives. | Complete: 30/30 seed-runs. |
+| Fixed-window segmentation shifted-crop appendix table | `benchmarks/experiments/paper_tables/appendix_02_fixed_shifted_details.md` | Detailed diagnostic for fixed-window ETS-U-Net objectives. | Complete: 30/30 seed-runs. |
 | Shift-jitter repeated runs | `benchmarks/experiments/03_crop_shift_jitter/` | Jitter-trained event-time localization test. | Complete: 6/6 configs, 5 seeds each. |
-| Shift-jitter training appendix table | `benchmarks/experiments/paper_tables/appendix_03_shift_jitter_training.md` | Diagnostic after shift-jitter training. | Complete. |
+| Shift-jitter training appendix table | `benchmarks/experiments/paper_tables/appendix_03_jitter_shifted_details.md` | Detailed diagnostic after shift-jitter training. | Complete. |
 | Posterior geometry figures | TBD under `benchmarks/experiments/02_segmentation_ablations/figures/` | Camera-ready posterior profile panels. | Pending filtered-protocol regeneration. |
 | Shifted-crop summaries | per-run `shifted_eval/` folders | Crop-start robustness and localization diagnostics. | New pooled-summary format complete for regression, original segmentation, and shift-jitter runs. |
 | Stacking artifacts | TBD | Competition-style ensemble/calibration reproduction. | Planned. |
@@ -330,8 +331,11 @@ Current interpretation constraints:
   partial crop sensitivity, but neither family solves crop-relative
   localization without an explicit training-time intervention.
 
-Segmentation shifted-crop snapshot:
-`benchmarks/experiments/paper_tables/appendix_02_fixed_window_segmentation_shifted_crop.md`.
+Main fixed-vs-jitter shifted-crop accuracy table:
+`benchmarks/experiments/paper_tables/main_03_shifted_accuracy_comparison.md`.
+
+Detailed fixed-window segmentation shifted-crop appendix:
+`benchmarks/experiments/paper_tables/appendix_02_fixed_shifted_details.md`.
 
 | model | seeds | rel nRMSE | RMSE, s | MAE, s | shift error, s | sensitivity | direction |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -397,10 +401,16 @@ Role:
   jittered crops than pure scalar regression, because the target is explicitly a
   crop-relative event location.
 
-Current shifted-crop result:
+Current shift-jitter comparison:
 
-Camera-ready table:
-`benchmarks/experiments/paper_tables/appendix_03_shift_jitter_training.md`.
+Main shifted-crop accuracy comparison:
+`benchmarks/experiments/paper_tables/main_03_shifted_accuracy_comparison.md`.
+
+Main localization-behavior comparison:
+`benchmarks/experiments/paper_tables/main_04_shifted_localization_comparison.md`.
+
+Detailed shift-jitter appendix:
+`benchmarks/experiments/paper_tables/appendix_03_jitter_shifted_details.md`.
 
 | model | seeds | rel nRMSE | RMSE, s | MAE, s | shift error, s | sensitivity | direction |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -516,9 +526,8 @@ exist:
 ## Immediate Next Steps
 
 1. Recompute posterior geometry from filtered segmentation predictions/logits.
-2. Decide which shifted-crop table belongs in the main text: the compact core
-   diagnostic alone, or the core diagnostic plus the shift-jitter appendix row
-   as a short secondary intervention.
+2. Decide final manuscript placement for `main_03_shifted_accuracy_comparison.md` and
+   `main_04_shifted_localization_comparison.md`.
 3. Reproduce distribution-aware stacking under the filtered protocol if it is
    kept in the paper narrative.
 4. Define the optional final training recipe only after the ablation and

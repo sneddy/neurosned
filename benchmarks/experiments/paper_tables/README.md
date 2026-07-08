@@ -10,15 +10,16 @@ experiment journal `benchmarks/EXPERIMENTS.md`.
 | --- | --- | --- |
 | `main_01_regression_baselines.md` | `Regression Controls` | Scalar RT and external EEG backbone baselines. |
 | `main_02_event_time_objectives.md` | `Event-Time Posterior Formulation` | ETS-U-Net objective comparison under the fixed event-time backbone. |
-| `main_03_shifted_crop_core.md` | `Posterior Readout and Diagnostics / Shifted-Crop Localization Diagnostic` | Compact shortcut-vs-localization diagnostic table. |
+| `main_03_shifted_accuracy_comparison.md` | `Posterior Readout and Diagnostics / Shifted-Crop Accuracy` | Fixed-vs-jitter comparison of shifted-crop prediction accuracy. |
+| `main_04_shifted_localization_comparison.md` | `Posterior Readout and Diagnostics / Shifted-Crop Localization` | Fixed-vs-jitter comparison of localization behavior. |
 
 ## Appendix Tables
 
 | file | intended placement | role |
 | --- | --- | --- |
 | `appendix_01_regression_shifted_crop.md` | Appendix shifted-crop details | Shifted-crop diagnostic for all scalar regression baselines. |
-| `appendix_02_fixed_window_segmentation_shifted_crop.md` | Appendix shifted-crop details | Post-hoc shifted-crop diagnostic for fixed-window ETS-U-Net objectives. |
-| `appendix_03_shift_jitter_training.md` | Appendix or optional main extension | Shifted-crop diagnostic after shift-jitter training. |
+| `appendix_02_fixed_shifted_details.md` | Appendix shifted-crop details | Detailed shifted-crop diagnostic for fixed-window ETS-U-Net objectives. |
+| `appendix_03_jitter_shifted_details.md` | Appendix shifted-crop details | Detailed shifted-crop diagnostic after shift-jitter training. |
 
 ## Shifted-Crop Metric Convention
 
