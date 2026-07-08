@@ -11,6 +11,8 @@ experiment journal `benchmarks/EXPERIMENTS.md`.
 | `main_01_regression_baselines.md` | `Regression Controls` | Scalar RT and external EEG backbone baselines. |
 | `main_02_event_time_objectives.md` | `Event-Time Posterior Formulation` | ETS-U-Net objective comparison under the fixed event-time backbone. |
 | `main_03_shift_jitter_summary.md` | `Posterior Readout and Diagnostics / Shift-Jitter Summary` | Fixed-vs-jitter comparison of holdout accuracy, shifted-crop robustness, and localization behavior. |
+| `main_04_posterior_geometry.md` | `Posterior Geometry Diagnostics` | Distributional posterior geometry, concentration, and coverage metrics. |
+| `main_05_effect_size.md` | `Event-Time Posterior Formulation` | Practical effect-size summary for the strongest scalar baseline versus the strongest event-time objectives. |
 
 ## Appendix Tables
 
