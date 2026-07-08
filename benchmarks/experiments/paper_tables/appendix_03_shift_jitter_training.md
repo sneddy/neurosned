@@ -3,12 +3,15 @@
 Intended placement: appendix, or optional main-text extension if shift-jitter is
 made part of the central story.
 
-Caption draft: Shifted-crop diagnostic for shift-jitter-trained event-time
-models on the 5 s holdout dataset. Accuracy metrics use valid crop examples
-(`mask=inside_crop`, `start_group=all_starts`), while sensitivity and direction
-use matched common-inside crop pairs (`mask=common_inside`,
-`start_group=all_starts`). Relative nRMSE is normalized by
-`std(RT - crop_start)` on the pooled valid crop-relative target set.
+Caption draft: Shifted-crop diagnostic for event-time models retrained with
+random crop-start jitter. Models are evaluated on the same 5 s holdout crops
+used in the main shifted-crop diagnostic. For comparability with the standard
+fixed-window evaluation, accuracy metrics are computed only over crop examples
+in which the behavioral response remains observable within the evaluated 2 s
+window. To isolate crop-induced prediction changes, shift-tracking metrics are
+computed on the common trial subset for which the response remains inside every
+evaluated crop. Relative nRMSE is normalized by the standard deviation of the
+pooled crop-relative target.
 
 | Model | rel nRMSE | RMSE, s | MAE, s | Shift error, s | Sensitivity | Direction |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |

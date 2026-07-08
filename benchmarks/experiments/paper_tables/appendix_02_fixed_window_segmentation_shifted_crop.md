@@ -1,12 +1,12 @@
 # Segmentation Shifted-Crop Diagnostic
 
 Evaluated on the 5 s holdout dataset with 2 s crops starting at
-`0.2, 0.3, ..., 0.8` seconds. Accuracy metrics use
-`mask=inside_crop` and `start_group=all_starts`: each evaluated crop
-example is valid because the RT lies inside that crop. Shift-tracking
-metrics use matched trial-level crop pairs with `mask=common_inside` and
-`start_group=all_starts`, so the same trials are present for every crop
-start.
+`0.2, 0.3, ..., 0.8` seconds. For comparability with the standard fixed-window
+evaluation, accuracy metrics are computed only over crop examples in which the
+behavioral response remains observable within the evaluated 2 s window.
+Shift-tracking metrics use the common trial subset for which the response
+remains inside every evaluated crop, so prediction changes can be attributed to
+the imposed temporal displacement rather than to a changing trial set.
 
 `rel nRMSE` is normalized by `std(target_abs - crop_start)` over the
 pooled valid crop-relative target set. It is a shifted-crop

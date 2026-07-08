@@ -22,11 +22,11 @@ experiment journal `benchmarks/EXPERIMENTS.md`.
 
 ## Shifted-Crop Metric Convention
 
-Accuracy metrics (`rel nRMSE`, RMSE, MAE) use `mask=inside_crop`,
-`start_group=all_starts`: every evaluated crop example contains the response.
-Shift-tracking metrics (`Sensitivity`, `Direction`, and shift error in appendix
-tables) use matched trial-level crop pairs with `mask=common_inside`,
-`start_group=all_starts`, so the same trials are present for every crop start.
+Accuracy metrics (`rel nRMSE`, RMSE, MAE) are computed only on crop examples
+where the behavioral response remains observable inside the evaluated 2 s
+window. Shift-tracking metrics (`Sensitivity`, `Direction`, and shift error in
+appendix tables) are computed on the matched common-inside trial subset, so the
+same trials are present for every crop start.
 
 `rel nRMSE` is normalized by `std(target_abs - crop_start)` on the pooled
 crop-relative target set. It is a shifted-crop pseudo-validation score and is

@@ -9,7 +9,7 @@ Status date: 2026-07-08.
 ## Current Scope
 
 The current benchmark is aligned with the manuscript draft in
-`writing/overleaf/release_v4/main_revised_v4.tex`.
+`writing/overleaf/release_v7/main_revised_v7.tex`.
 
 Main paper story:
 
@@ -18,8 +18,9 @@ Main paper story:
 3. Compare ETS-U-Net event-time objectives under one backbone and protocol.
 4. Analyze posterior geometry to show that scalar nRMSE hides output semantics.
 5. Use shifted-crop inference as a shortcut-vs-localization diagnostic.
-6. Test whether shift-jitter training can turn the diagnostic into a stronger
-   localization result.
+6. Evaluate shift-jitter training as a training-time intervention that reduces
+   the fixed-window shortcut but does not fully solve crop-relative
+   localization.
 7. Keep stacking and final two-stage recipes as optional add-ons until current
    filtered-protocol artifacts exist.
 
@@ -51,11 +52,13 @@ Metric conventions:
   while shift-tracking metrics should be computed on matched trial-level crop
   pairs. Shifted-crop rel nRMSE is not numerically interchangeable with ordinary
   Holdout nRMSE.
-- `shift slope`: slope of raw crop-relative prediction versus crop start in the
-  shifted-crop diagnostic. A crop-relative localizer should be near `-1`; a
-  crop-invariant shortcut should be near `0`.
-- `localizer-like`: fraction of trials with per-trial raw shift slope in
-  `[-1.25, -0.75]`.
+- `sensitivity`: fraction of the imposed crop shift reflected in the
+  prediction; `1` is ideal crop-relative localization and `0` is crop-invariant
+  behavior.
+- `direction`: fraction of shifted examples whose prediction moves in the
+  expected localizer direction.
+- `shift error`: absolute error between the observed prediction shift and the
+  ideal crop-relative shift.
 - Posterior metrics are interpreted as output-geometry diagnostics, not only as
   scalar prediction quality.
 
@@ -202,7 +205,7 @@ All segmentation configs currently include:
 | temperature calibration | enabled |
 | shifted-crop diagnostic | enabled |
 | shifted-crop dataset | `data/new_validation/r11_test_5sec.pkl` |
-| shifted-crop paper rows | accuracy: `mask=inside_crop`, `start_group=all_starts`; shift tracking: `mask=common_inside`, `start_group=all_starts` |
+| shifted-crop paper rows | accuracy on valid crop examples; shift tracking on the matched common-inside trial subset |
 | shifted-crop starts | `0.2, 0.3, ..., 0.8` |
 | shifted-crop per-trial predictions | disabled by default |
 
@@ -211,14 +214,14 @@ Current repeated-run snapshot is also maintained as a paper-facing table at
 
 Current rows:
 
-| model | paper name | seeds | valid nRMSE mean +/- std | Holdout nRMSE mean +/- std | Holdout tau nRMSE mean +/- std | shift slope mean +/- std | localizer-like mean +/- std |
-| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| `ets_unet_ce` | ETS-U-Net CE | 5/5 | 0.8763 +/- 0.0044 | 0.8774 +/- 0.0044 | 0.8753 +/- 0.0039 | -0.339 +/- 0.017 | 0.209 +/- 0.031 |
-| `ets_unet_event_nll` | ETS-U-Net EventNLL | 5/5 | 0.8769 +/- 0.0030 | 0.8805 +/- 0.0021 | 0.8772 +/- 0.0018 | -0.344 +/- 0.014 | 0.221 +/- 0.026 |
-| `ets_unet_event_nll_mixture` | ETS-U-Net mixture EventNLL | 5/5 | 0.8744 +/- 0.0018 | 0.8785 +/- 0.0047 | 0.8745 +/- 0.0053 | -0.355 +/- 0.024 | 0.246 +/- 0.042 |
-| `ets_unet_hazard_event_nll` | ETS-U-Net hazard EventNLL | 5/5 | 0.8755 +/- 0.0027 | 0.8776 +/- 0.0031 | 0.8778 +/- 0.0041 | -0.328 +/- 0.020 | 0.196 +/- 0.042 |
-| `ets_unet_time_only` | ETS-U-Net soft-argmax RT loss | 5/5 | 0.8944 +/- 0.0048 | 0.8943 +/- 0.0025 | 0.8917 +/- 0.0046 | -0.301 +/- 0.043 | 0.160 +/- 0.066 |
-| `ets_unet_wasserstein` | ETS-U-Net Wasserstein | 5/5 | 0.8997 +/- 0.0035 | 0.8995 +/- 0.0078 | 0.8896 +/- 0.0033 | -0.337 +/- 0.044 | 0.271 +/- 0.065 |
+| model | paper name | seeds | valid nRMSE mean +/- std | Holdout nRMSE mean +/- std | Holdout tau nRMSE mean +/- std |
+| --- | --- | ---: | ---: | ---: | ---: |
+| `ets_unet_ce` | ETS-U-Net CE | 5/5 | 0.8763 +/- 0.0044 | 0.8774 +/- 0.0044 | 0.8753 +/- 0.0039 |
+| `ets_unet_event_nll` | ETS-U-Net EventNLL | 5/5 | 0.8769 +/- 0.0030 | 0.8805 +/- 0.0021 | 0.8772 +/- 0.0018 |
+| `ets_unet_event_nll_mixture` | ETS-U-Net mixture EventNLL | 5/5 | 0.8744 +/- 0.0018 | 0.8785 +/- 0.0047 | 0.8745 +/- 0.0053 |
+| `ets_unet_hazard_event_nll` | ETS-U-Net hazard EventNLL | 5/5 | 0.8755 +/- 0.0027 | 0.8776 +/- 0.0031 | 0.8778 +/- 0.0041 |
+| `ets_unet_time_only` | ETS-U-Net soft-argmax RT loss | 5/5 | 0.8944 +/- 0.0048 | 0.8943 +/- 0.0025 | 0.8917 +/- 0.0046 |
+| `ets_unet_wasserstein` | ETS-U-Net Wasserstein | 5/5 | 0.8997 +/- 0.0035 | 0.8995 +/- 0.0078 | 0.8896 +/- 0.0033 |
 
 Interpretation so far:
 
@@ -311,22 +314,21 @@ Paper-facing metrics:
 
 Current interpretation constraints:
 
-- Planned paper presentation separates shifted-crop accuracy from shift
-  tracking. Accuracy metrics (`rel nRMSE`, RMSE, MAE) should be read from
-  `mask=inside_crop`, `start_group=all_starts`: each evaluated crop example is
-  valid because the RT lies inside that crop.
-- Shift-tracking metrics (`shift error`, `sensitivity`, `direction`) should be
-  read from matched trial-level crop pairs, with `mask=common_inside` and
-  `start_group=all_starts` as the strict paper-facing subset.
-- `common_inside` means the same trials satisfy `0.8 <= RT <= 2.2` and are
-  present for every crop start; this makes shift-tracking comparisons use the
-  same trial set across all crop starts.
-- `all_starts` pools `0.2, 0.3, ..., 0.8`, including the canonical `0.5` crop,
-  before computing the pooled metrics.
+- Paper-facing presentation separates shifted-crop accuracy from shift
+  tracking.
+- Accuracy metrics (`rel nRMSE`, RMSE, MAE) are computed only on crop examples
+  where the behavioral response remains observable inside the evaluated 2 s
+  window. This keeps the shifted-crop accuracy score comparable to the standard
+  fixed-window evaluation.
+- Shift-tracking metrics (`shift error`, `sensitivity`, `direction`) are
+  computed on the matched common-inside trial subset, where the response remains
+  inside every evaluated crop start. This makes prediction changes attributable
+  to the imposed temporal displacement rather than to a changing trial set.
 - `rel nRMSE` is normalized by `std(target_abs - crop_start)` and should not be
   numerically compared to ordinary holdout nRMSE.
-- Current claim should remain diagnostic, not solved localization, unless
-  shift-jitter training materially improves sensitivity/direction metrics.
+- Current claim: fixed-window regression and fixed-window event-time models show
+  partial crop sensitivity, but neither family solves crop-relative
+  localization without an explicit training-time intervention.
 
 Segmentation shifted-crop snapshot:
 `benchmarks/experiments/paper_tables/appendix_02_fixed_window_segmentation_shifted_crop.md`.
@@ -508,19 +510,18 @@ exist:
 
 | add-on | purpose | current status |
 | --- | --- | --- |
-| Shift-jitter training | Test whether random crop shifts improve localization/equivariance. | Planned. |
 | Distribution-aware stacking | Test whether posterior/logit features add reusable information beyond scalar predictions. | Planned. |
 | Two-stage checkpoint reload recipe | Potential training-stability/final recipe. | Code path exists, not a current main claim. |
 
 ## Immediate Next Steps
 
-1. Let the remaining segmentation ablations finish through
-   `benchmarks/runners/run_segmentation_ablations.sh`.
-2. Refresh `benchmarks/experiments/paper_tables/main_02_event_time_objectives.md` after each
-   completed repeated run.
-3. Recompute posterior geometry from filtered segmentation predictions/logits.
-4. Recompute shifted-crop comparison for the final scalar regression baselines.
-5. Decide whether shift-jitter training is strong enough to become a main
-   paper block or should stay as appendix/planned work.
-6. Update `writing/overleaf/release_v4/main_revised_v4.tex` only after the
+1. Recompute posterior geometry from filtered segmentation predictions/logits.
+2. Decide which shifted-crop table belongs in the main text: the compact core
+   diagnostic alone, or the core diagnostic plus the shift-jitter appendix row
+   as a short secondary intervention.
+3. Reproduce distribution-aware stacking under the filtered protocol if it is
+   kept in the paper narrative.
+4. Define the optional final training recipe only after the ablation and
+   diagnostic tables are frozen.
+5. Update `writing/overleaf/release_v7/main_revised_v7.tex` only after the
    corresponding filtered-protocol artifacts are complete.
