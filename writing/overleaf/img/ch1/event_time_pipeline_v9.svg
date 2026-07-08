@@ -1,0 +1,164 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="560" viewBox="0 0 1400 560">
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 12 6 L 0 12 z" fill="#222"/>
+    </marker>
+    <marker id="arrow-gray" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 12 6 L 0 12 z" fill="#5b5b5b"/>
+    </marker>
+    <filter id="soft-shadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.16"/>
+    </filter>
+    <style>
+      .title { font: 700 18px Arial, Helvetica, sans-serif; fill: #1f1f1f; }
+      .label { font: 15px Arial, Helvetica, sans-serif; fill: #222; }
+      .small { font: 13px Arial, Helvetica, sans-serif; fill: #333; }
+      .tiny { font: 11px Arial, Helvetica, sans-serif; fill: #444; }
+      .formula { font: italic 15px Georgia, serif; fill: #146b2e; }
+      .axis { stroke: #3b3b3b; stroke-width: 1.5; }
+      .wave { fill: none; stroke: #222; stroke-width: 1.6; }
+      .wave2 { fill: none; stroke: #29333b; stroke-width: 1.3; stroke-dasharray: 6 5; opacity: 0.9; }
+      .dash { fill: none; stroke: #5b5b5b; stroke-width: 2; stroke-dasharray: 6 6; marker-end: url(#arrow-gray); }
+      .arrow { fill: none; stroke: #222; stroke-width: 2.4; marker-end: url(#arrow); }
+      .soft-box { fill: #e6f0ef; stroke: #111; stroke-width: 2.6; filter: url(#soft-shadow); }
+      .model-box { fill: #f36f98; stroke: none; filter: url(#soft-shadow); }
+      .temp-box { fill: #f5a088; stroke: none; filter: url(#soft-shadow); }
+      .readout-box { fill: #7dd1d4; stroke: none; filter: url(#soft-shadow); }
+      .aug-box { fill: #c8d966; stroke: none; filter: url(#soft-shadow); }
+      .diag-box { fill: #efe6c8; stroke: #967a31; stroke-width: 1.5; filter: url(#soft-shadow); }
+      .shift-box { fill: #e9edf4; stroke: #5a6b85; stroke-width: 1.6; filter: url(#soft-shadow); }
+      .crop-main { fill: #9bd6df; opacity: 0.5; stroke: #10899b; stroke-width: 1.5; stroke-dasharray: 7 5; }
+      .crop-shift { fill: #a8e0c4; opacity: 0.35; stroke: #2a9a63; stroke-width: 1.5; stroke-dasharray: 7 5; }
+      .rt-line { stroke: #e53b35; stroke-width: 3; }
+      .green { fill: #16813b; }
+      .red { fill: #d93a34; }
+      .muted { fill: #6a6a6a; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1400" height="560" fill="#fff"/>
+
+  <!-- Left: EEG cache and fixed main window -->
+  <g transform="translate(26,76)">
+    <path class="wave" d="M0,107 L18,116 L34,90 L52,103 L70,70 L88,124 L106,95 L124,118 L142,86 L160,104 L178,94 L196,132 L214,99 L232,114 L250,82 L268,93 L286,128 L304,96 L322,111 L340,91 L358,102 L376,82 L394,113 L412,100 L430,120"/>
+    <path class="wave2" d="M0,171 L18,166 L34,179 L52,151 L70,173 L88,143 L106,185 L124,158 L142,176 L160,147 L178,168 L196,158 L214,190 L232,161 L250,175 L268,152 L286,164 L304,184 L322,160 L340,177 L358,149 L376,171 L394,154 L412,180 L430,166"/>
+
+    <rect class="crop-main" x="55" y="46" width="200" height="172" rx="2"/>
+    <rect class="crop-shift" x="25" y="46" width="200" height="172" rx="2"/>
+    <rect class="crop-shift" x="85" y="46" width="200" height="172" rx="2"/>
+    <line class="rt-line" x1="174" y1="46" x2="174" y2="218"/>
+
+    <line class="axis" x1="0" y1="230" x2="430" y2="230"/>
+    <g class="tiny">
+      <text x="0" y="249">0</text>
+      <text x="54" y="249" fill="#17879a">0.5</text>
+      <text x="87" y="249" fill="#2a9a63">0.8</text>
+      <text x="166" y="249" class="red">RT</text>
+      <text x="197" y="249">2.0</text>
+      <text x="251" y="249" fill="#17879a">2.5</text>
+      <text x="286" y="249" fill="#2a9a63">2.8</text>
+      <text x="353" y="249">4.0</text>
+      <text x="152" y="269">time from stimulus (s)</text>
+    </g>
+    <text class="title" x="58" y="28">fixed 0.5--2.5 s EEG window</text>
+    <text class="tiny muted" x="22" y="39">shifted crops shown only for diagnostic/intervention</text>
+
+    <path class="dash" d="M100,15 C135,-38 230,-35 290,8"/>
+    <path class="dash" d="M64,263 C112,309 236,304 302,275"/>
+
+    <rect class="aug-box" x="198" y="275" width="238" height="65" rx="8"/>
+    <text class="label" x="216" y="299">shared regularization</text>
+    <text class="small" x="216" y="320">channel dropout, temporal cutout,</text>
+    <text class="small" x="216" y="338">Gaussian noise</text>
+  </g>
+
+  <!-- Weak event-time supervision block -->
+  <g transform="translate(360,64)">
+    <text class="title" x="18" y="0">behavioral RT -> weak event-time supervision</text>
+    <rect class="soft-box" x="15" y="14" width="300" height="210" rx="8"/>
+    <path d="M45,170 C78,166 92,115 111,78 C132,36 154,122 170,132 C190,145 211,105 235,87 C255,72 272,98 292,82" fill="none" stroke="#d0d8d8" stroke-width="3" opacity="0.75"/>
+    <path d="M58,177 C88,173 101,127 118,86 C138,40 155,120 171,131" fill="none" stroke="#2f9a47" stroke-width="2.5" stroke-dasharray="3 4"/>
+    <line x1="153" y1="179" x2="153" y2="78" class="rt-line"/>
+    <line x1="61" y1="180" x2="286" y2="180" stroke="#333" stroke-width="1.2"/>
+    <text class="tiny" x="58" y="196">g0</text>
+    <text class="tiny" x="258" y="196">gT</text>
+    <text class="tiny red" x="140" y="198">RT</text>
+    <text class="formula" x="175" y="82">q(t)</text>
+    <text class="small" x="41" y="42">scalar behavioral latency</text>
+    <text class="small" x="41" y="62">becomes weak temporal supervision</text>
+    <text class="small green" x="176" y="112">soft target q(t)</text>
+    <text class="small green" x="176" y="133">or latent EventNLL</text>
+    <text class="tiny muted" x="44" y="211">not a directly observed neural event annotation</text>
+  </g>
+
+  <!-- Main flow arrows and input label -->
+  <text class="title" x="565" y="316">X: 128 channels x 200 samples</text>
+  <text class="label muted" x="642" y="344">EEG</text>
+  <path class="arrow" d="M470,292 L725,292"/>
+
+  <!-- Model block -->
+  <g transform="translate(735,226)">
+    <rect class="model-box" x="0" y="0" width="165" height="110" rx="8"/>
+    <text class="title" x="23" y="31">event-time</text>
+    <text class="title" x="52" y="54">model</text>
+    <text class="small" x="20" y="80">outputs logits z_t</text>
+    <text class="small" x="20" y="99">for time bins</text>
+  </g>
+
+  <g transform="translate(710,350)">
+    <rect class="diag-box" x="0" y="0" width="240" height="82" rx="8"/>
+    <text class="label" x="18" y="25">event-time objectives</text>
+    <text class="small" x="18" y="47">CE soft target; EventNLL</text>
+    <text class="small" x="18" y="65">controls: time-only, Wasserstein</text>
+  </g>
+
+  <path class="arrow" d="M900,282 L985,282"/>
+
+  <!-- Temperature -->
+  <g transform="translate(895,108)">
+    <rect class="temp-box" x="0" y="0" width="178" height="74" rx="10"/>
+    <text class="label" x="21" y="25">readout temperature</text>
+    <text class="small" x="18" y="48">selected on R9--R10</text>
+    <text class="small" x="37" y="65">applied to R11</text>
+  </g>
+  <path class="arrow" d="M984,183 L984,242"/>
+
+  <!-- Readout -->
+  <g transform="translate(995,226)">
+    <rect class="readout-box" x="0" y="0" width="245" height="112" rx="8"/>
+    <text class="title" x="40" y="29">posterior mean readout</text>
+    <text class="small" x="25" y="58">p_t(tau) = softmax(z_t / tau)</text>
+    <text class="small" x="30" y="82">RT_hat = t0 + sum_t p_t g_t</text>
+    <text class="tiny muted" x="52" y="101">keeps comparison under nRMSE</text>
+  </g>
+
+  <path class="arrow" d="M1240,282 L1348,282"/>
+  <text class="title" x="1260" y="260">RT_hat</text>
+  <text class="label muted" x="1250" y="310">scalar RT prediction</text>
+
+  <!-- Posterior diagnostics branch -->
+  <path class="dash" d="M1085,340 C1092,388 1015,420 960,438"/>
+  <g transform="translate(745,462)">
+    <rect class="diag-box" x="0" y="0" width="330" height="58" rx="8"/>
+    <text class="label" x="18" y="24">posterior diagnostics</text>
+    <text class="small" x="18" y="44">width, target mass, coverage, mode-mean gap</text>
+  </g>
+
+  <!-- Shifted-crop branch -->
+  <path class="dash" d="M315,352 C430,420 542,442 690,448"/>
+  <g transform="translate(385,405)">
+    <rect class="shift-box" x="0" y="0" width="295" height="100" rx="8"/>
+    <text class="label" x="17" y="25">shifted-crop diagnostic / shift-jitter</text>
+    <text class="small" x="17" y="48">2 s crops from 5 s cache</text>
+    <text class="small" x="17" y="68">crop start s in {0.2,...,0.8}</text>
+    <text class="small" x="17" y="88">crop-relative target = RT - s</text>
+  </g>
+
+  <!-- Legend -->
+  <g transform="translate(32,540)">
+    <rect x="0" y="-16" width="14" height="14" fill="#9bd6df" opacity="0.5" stroke="#10899b" stroke-dasharray="4 3"/>
+    <text class="tiny" x="20" y="-5">main fixed window</text>
+    <rect x="138" y="-16" width="14" height="14" fill="#a8e0c4" opacity="0.35" stroke="#2a9a63" stroke-dasharray="4 3"/>
+    <text class="tiny" x="158" y="-5">shifted crops: diagnostic/intervention only</text>
+  </g>
+</svg>
