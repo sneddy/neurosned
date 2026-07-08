@@ -504,7 +504,7 @@ Once the scalar readout has been fixed, the event-time posterior makes temporall
 
 We first inspect the trial-sorted posterior maps in Figure~\ref{fig:posterior_raster_main} before reducing the posterior to summary metrics. These maps show the full distribution over response-relevant event time for R11 trials ordered by observed RT, rather than only the posterior mean. CE and Wasserstein place broad probability mass across the response window, whereas the EventNLL-family objectives produce sharper probability bands that more closely track the observed RT curve. This qualitative pattern motivates the quantitative posterior-geometry summaries in Figure~\ref{fig:posterior_geometry_main} and Table~\ref{tab:posterior_geometry_metrics}.
 
-Table~\ref{tab:posterior_geometry_metrics} summarizes posterior geometry after R9--R10 readout-temperature selection. Scalar nRMSE measures posterior-mean RT prediction, fixed-kernel EventNLL scores the full posterior under a common Gaussian observation kernel, Width80 and Mass $\pm$150 ms describe posterior concentration and target alignment, and Coverage80 and Coverage MAE summarize interval behavior. Coverage80 is the fraction of trials whose observed RT falls inside the nominal central 80\% posterior interval, and Coverage MAE is the mean absolute deviation between nominal and empirical coverage across central intervals $\{50\%,60\%,70\%,80\%,90\%\}$.
+Table~\ref{tab:posterior_geometry_metrics} reduces the posterior maps to four complementary diagnostic families. First, nRMSE asks whether the posterior mean remains a good scalar RT predictor. Second, fixed-kernel EventNLL evaluates the full posterior as a distribution by scoring the observed RT under a common Gaussian observation kernel. Third, Width80 and Mass $\pm$150 ms describe localization: whether probability mass is diffuse or concentrated near the behavioral latency. Finally, Coverage80 and Coverage MAE assess interval reliability, asking whether nominal posterior intervals contain the observed RT at the expected rates. These metrics are not intended to produce a single ranking; they expose trade-offs among scalar accuracy, posterior sharpness, target alignment, and calibration.
 
 Figure~\ref{fig:posterior_geometry_main} visualizes this trade-off space before the exact values are tabulated. The key pattern is not a single dominant objective: scalar nRMSE remains close for the leading losses, while posterior concentration, target-aligned mass, and interval coverage separate them into different regimes.
 
@@ -521,7 +521,7 @@ Consequently, the preferred event-time objective depends on the downstream goal 
 
 \begin{table}[!htbp]
 \centering
-\caption{Quantitative posterior geometry on R11 for matched event-time segmentation losses. Values are mean $\pm$ sample standard deviation across seeds after R9--R10 readout-temperature selection. nRMSE measures posterior-mean scalar prediction; fixed-kernel EventNLL scores the full posterior distribution under a common Gaussian observation kernel for all models ($\sigma=0.12$~s); Width80, near-target mass, and interval coverage summarize posterior concentration and empirical reliability. For Coverage80, values closer to 0.80 indicate better nominal 80\% interval coverage; for Coverage MAE, lower is better.}
+\caption{Quantitative posterior geometry on R11 for matched event-time segmentation losses. Values are mean $\pm$ standard deviation across seeds after R9--R10 readout-temperature selection; arrows indicate the preferred direction, Coverage80 is best when close to 0.80, and bold marks the best point estimate per metric.}
 \label{tab:posterior_geometry_metrics}
 \scriptsize
 \setlength{\tabcolsep}{3pt}
@@ -529,14 +529,14 @@ Consequently, the preferred event-time objective depends on the downstream goal 
 \resizebox{\linewidth}{!}{%
 \begin{tabular}{@{} l c c c c c c @{}}
 \toprule
-\textbf{Objective} & \textbf{nRMSE} & \textbf{Fixed NLL} & \textbf{Width80 ms} & \textbf{Mass $\pm$150 ms} & \textbf{Coverage80} & \textbf{Coverage MAE} \\
+\textbf{Objective} & \textbf{nRMSE $\downarrow$} & \textbf{Fixed NLL $\downarrow$} & \textbf{Width80 ms $\downarrow$} & \textbf{Mass $\pm$150 ms $\uparrow$} & \textbf{Coverage80} & \textbf{Coverage MAE $\downarrow$} \\
 \midrule
 CE & 0.875 $\pm$ 0.004 & 0.08 $\pm$ 0.01 & 766 $\pm$ 36 & 0.334 $\pm$ 0.008 & 0.883 $\pm$ 0.013 & 0.101 $\pm$ 0.014 \\
 EventNLL & 0.877 $\pm$ 0.002 & -0.06 $\pm$ 0.01 & 502 $\pm$ 15 & 0.490 $\pm$ 0.008 & 0.500 $\pm$ 0.025 & 0.273 $\pm$ 0.021 \\
-Mixture EventNLL & 0.874 $\pm$ 0.005 & -0.08 $\pm$ 0.01 & 528 $\pm$ 22 & 0.471 $\pm$ 0.008 & 0.573 $\pm$ 0.020 & 0.207 $\pm$ 0.017 \\
-Hazard EventNLL & 0.878 $\pm$ 0.004 & -0.06 $\pm$ 0.01 & 445 $\pm$ 14 & 0.502 $\pm$ 0.005 & 0.468 $\pm$ 0.007 & 0.302 $\pm$ 0.006 \\
-Soft-argmax RT loss & 0.892 $\pm$ 0.005 & 0.11 $\pm$ 0.03 & 844 $\pm$ 96 & 0.357 $\pm$ 0.015 & 0.843 $\pm$ 0.029 & 0.040 $\pm$ 0.024 \\
-Wasserstein & 0.890 $\pm$ 0.003 & 0.20 $\pm$ 0.04 & 632 $\pm$ 101 & 0.334 $\pm$ 0.028 & 0.774 $\pm$ 0.061 & 0.059 $\pm$ 0.021 \\
+Mixture EventNLL & \textbf{0.874 $\pm$ 0.005} & \textbf{-0.08 $\pm$ 0.01} & 528 $\pm$ 22 & 0.471 $\pm$ 0.008 & 0.573 $\pm$ 0.020 & 0.207 $\pm$ 0.017 \\
+Hazard EventNLL & 0.878 $\pm$ 0.004 & -0.06 $\pm$ 0.01 & \textbf{445 $\pm$ 14} & \textbf{0.502 $\pm$ 0.005} & 0.468 $\pm$ 0.007 & 0.302 $\pm$ 0.006 \\
+Soft-argmax RT loss & 0.892 $\pm$ 0.005 & 0.11 $\pm$ 0.03 & 844 $\pm$ 96 & 0.357 $\pm$ 0.015 & 0.843 $\pm$ 0.029 & \textbf{0.040 $\pm$ 0.024} \\
+Wasserstein & 0.890 $\pm$ 0.003 & 0.20 $\pm$ 0.04 & 632 $\pm$ 101 & 0.334 $\pm$ 0.028 & \textbf{0.774 $\pm$ 0.061} & 0.059 $\pm$ 0.021 \\
 \bottomrule
 \end{tabular}%
 }
