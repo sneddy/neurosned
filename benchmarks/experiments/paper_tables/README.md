@@ -10,8 +10,7 @@ experiment journal `benchmarks/EXPERIMENTS.md`.
 | --- | --- | --- |
 | `main_01_regression_baselines.md` | `Regression Controls` | Scalar RT and external EEG backbone baselines. |
 | `main_02_event_time_objectives.md` | `Event-Time Posterior Formulation` | ETS-U-Net objective comparison under the fixed event-time backbone. |
-| `main_03_shifted_accuracy_comparison.md` | `Posterior Readout and Diagnostics / Shifted-Crop Accuracy` | Fixed-vs-jitter comparison of shifted-crop prediction accuracy. |
-| `main_04_shifted_localization_comparison.md` | `Posterior Readout and Diagnostics / Shifted-Crop Localization` | Fixed-vs-jitter comparison of localization behavior. |
+| `main_03_shift_jitter_summary.md` | `Posterior Readout and Diagnostics / Shift-Jitter Summary` | Fixed-vs-jitter comparison of holdout accuracy, shifted-crop robustness, and localization behavior. |
 
 ## Appendix Tables
 

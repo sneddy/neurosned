@@ -83,12 +83,12 @@ Metric conventions:
 | Regression repeated runs | `benchmarks/experiments/01_regression_baselines/` | Main scalar baseline table. | Complete: 12/12 configs, 5 seeds each. |
 | Main regression table | `benchmarks/experiments/paper_tables/main_01_regression_baselines.md` | Camera-ready scalar baseline table. | Complete. |
 | Main event-time objective table | `benchmarks/experiments/paper_tables/main_02_event_time_objectives.md` | Camera-ready ETS-U-Net objective table. | Complete. |
-| Main shifted-crop accuracy table | `benchmarks/experiments/paper_tables/main_03_shifted_accuracy_comparison.md` | Fixed-vs-jitter comparison of shifted-crop prediction accuracy. | Complete. |
-| Main shifted-crop localization table | `benchmarks/experiments/paper_tables/main_04_shifted_localization_comparison.md` | Fixed-vs-jitter comparison of localization behavior. | Complete. |
+| Main shift-jitter summary table | `benchmarks/experiments/paper_tables/main_03_shift_jitter_summary.md` | Fixed-vs-jitter comparison of holdout accuracy, shifted-crop robustness, and localization behavior. | Complete. |
 | Segmentation repeated runs | `benchmarks/experiments/02_segmentation_ablations/` | Event-time objective table and shifted-crop summaries. | Complete for selected paper-facing objectives. |
 | Regression shifted-crop appendix table | `benchmarks/experiments/paper_tables/appendix_01_regression_shifted_crop.md` | Appendix diagnostic for all scalar baselines. | Complete: 60/60 seed-runs. |
 | Fixed-window segmentation shifted-crop appendix table | `benchmarks/experiments/paper_tables/appendix_02_fixed_shifted_details.md` | Detailed diagnostic for fixed-window ETS-U-Net objectives. | Complete: 30/30 seed-runs. |
 | Shift-jitter repeated runs | `benchmarks/experiments/03_crop_shift_jitter/` | Jitter-trained event-time localization test. | Complete: 6/6 configs, 5 seeds each. |
+| Shift-jitter canonical holdout re-eval | `benchmarks/experiments/03_crop_shift_jitter_canonical_eval/` | Canonical `0.5 <= RT <= 2.5` holdout scores for jitter-trained checkpoints. | Complete: 30/30 seed-runs. |
 | Shift-jitter training appendix table | `benchmarks/experiments/paper_tables/appendix_03_jitter_shifted_details.md` | Detailed diagnostic after shift-jitter training. | Complete. |
 | Posterior geometry figures | TBD under `benchmarks/experiments/02_segmentation_ablations/figures/` | Camera-ready posterior profile panels. | Pending filtered-protocol regeneration. |
 | Shifted-crop summaries | per-run `shifted_eval/` folders | Crop-start robustness and localization diagnostics. | New pooled-summary format complete for regression, original segmentation, and shift-jitter runs. |
@@ -331,8 +331,8 @@ Current interpretation constraints:
   partial crop sensitivity, but neither family solves crop-relative
   localization without an explicit training-time intervention.
 
-Main fixed-vs-jitter shifted-crop accuracy table:
-`benchmarks/experiments/paper_tables/main_03_shifted_accuracy_comparison.md`.
+Main shift-jitter summary table:
+`benchmarks/experiments/paper_tables/main_03_shift_jitter_summary.md`.
 
 Detailed fixed-window segmentation shifted-crop appendix:
 `benchmarks/experiments/paper_tables/appendix_02_fixed_shifted_details.md`.
@@ -403,11 +403,8 @@ Role:
 
 Current shift-jitter comparison:
 
-Main shifted-crop accuracy comparison:
-`benchmarks/experiments/paper_tables/main_03_shifted_accuracy_comparison.md`.
-
-Main localization-behavior comparison:
-`benchmarks/experiments/paper_tables/main_04_shifted_localization_comparison.md`.
+Main shift-jitter summary table:
+`benchmarks/experiments/paper_tables/main_03_shift_jitter_summary.md`.
 
 Detailed shift-jitter appendix:
 `benchmarks/experiments/paper_tables/appendix_03_jitter_shifted_details.md`.
@@ -423,12 +420,13 @@ Detailed shift-jitter appendix:
 
 Interpretation:
 
-- Shift-jitter improves shifted-crop rel nRMSE compared with the original
-  fixed-crop segmentation ablations.
-- CE is the best jitter-trained row by rel nRMSE and RMSE.
-- EventNLL and mixture EventNLL remain close to CE while giving likelihood-style
-  event-time objectives.
-- Wasserstein has the strongest sensitivity/direction but worse scalar shifted
+- Canonical holdout re-evaluation shows that shift-jitter does not produce a
+  broad ordinary fixed-window gain under `0.5 <= RT <= 2.5`.
+- Shift-jitter consistently improves shifted-crop rel nRMSE, so the main effect
+  is robustness to crop placement rather than ordinary holdout improvement.
+- Direction improves across objectives and sensitivity improves modestly, but
+  sensitivity remains far below the ideal localizer value of `1.0`.
+- Wasserstein has the strongest sensitivity/direction but worse shifted-crop
   error, so it is a geometry-control row rather than the best predictor.
 
 Paper-facing configs:
@@ -494,6 +492,11 @@ Planned role:
 - Test whether event-time posterior/logit features contain reusable information
   beyond the scalar mean prediction.
 - This should be framed as a downstream utility check, not as the core method.
+- The intended claim is not that stacking is needed for the single-model
+  event-time result. The intended claim is narrower: posterior-producing models
+  expose distributional features that are useful for post-hoc alignment and
+  ensembling when different objectives have different confidence and posterior
+  shapes.
 
 Candidate feature families:
 
@@ -503,6 +506,66 @@ Candidate feature families:
 | posterior shape | width, entropy, mode-mean gap, aligned mass. |
 | logits/posterior samples | compact posterior summaries or learned meta-features. |
 | calibration features | temperature-calibrated readouts and uncertainty measures. |
+
+Expected table format:
+
+| row | feature/input type | learner | expected interpretation |
+| --- | --- | --- | --- |
+| Equal-weight scalar RT blend | One scalar RT prediction per base model. | Fixed equal weights | Basic ensemble reference; tests whether averaging base readouts is enough. |
+| Equal-weight logits soft-argmax blend | Raw segmentation logits from each model. | Fixed equal weights | SubmitWrapper-style segmentation blend: average logits first, then apply softmax/soft-argmax. |
+| Ridge stacking, RT only | Scalar RT predictions only. | Ridge | Linear learned reweighting of models; controls for simple model selection/blending. |
+| Boosting stacking, RT only | Scalar RT predictions only. | HistGradientBoosting / GBDT | Nonlinear learned reweighting using only point predictions. |
+| Ridge stacking, posterior meta-features | RT predictions plus posterior/logit summaries. | Ridge | Tests whether posterior features help even under a constrained linear meta-model. |
+| Boosting stacking, posterior meta-features | RT predictions plus posterior/logit summaries. | HistGradientBoosting / GBDT | Main utility row; tests whether distributional outputs add reusable nonlinear reliability signals. |
+
+Expected result columns:
+
+| column | meaning |
+| --- | --- |
+| R11 nRMSE | Final release-separated holdout score after the stacker design is fixed. |
+| R11 MAE | Final physical-unit holdout score. |
+| delta vs best single model | Practical value beyond selecting the best base model. |
+| delta vs RT-only stacker | Direct evidence that posterior/meta-features add information beyond scalar readouts. |
+
+Raw stacker artifacts may still store development OOF nRMSE/MAE for audit and
+debugging, but the paper-facing table should not report them. The only
+paper-facing score is the release-separated R11 result after the stacker design
+has been fixed.
+
+Caption/narrative context to preserve:
+
+- Base models must be trained before stacking and must not use R11 for any
+  decision.
+- The stacker should be selected on R9-R10 only, preferably with
+  subject-disjoint out-of-fold predictions inside the development split.
+- R11 is used only once for final reporting after the feature set and
+  meta-learner are fixed.
+- Scalar stacking should use the uncalibrated fixed-window predictions
+  (`best_val_predictions.csv` and `test_predictions.csv`). Temperature
+  calibration is deliberately left to the stacker rather than applied before
+  feature construction.
+- The equal-weight segmentation baseline follows the original
+  `SubmitWrapper` logic: average model logits, then compute a softmax
+  distribution and soft-argmax readout with temperature `0.92`. It should not
+  be implemented as an average of hard posterior modes.
+- Posterior meta-feature stacking should use the ported challenge-style
+  `MetaFeatureExtractor`, `RidgeMetaRegressor`, `HgbMetaRegressor`, and
+  monotonic-constraint helpers in `benchmarks/pkg/ensembling`.
+- The most important comparison is not equal blending versus stacking; it is
+  `RT-only stacking` versus `posterior meta-feature stacking`.
+- A positive result supports the statement that event-time posteriors contain
+  reusable information discarded by scalar RT predictions. It should be
+  described as downstream ensemble utility, not as the main evidence for the
+  event-time formulation.
+- If posterior meta-feature stacking does not improve over RT-only stacking,
+  keep this section as an appendix/control rather than a main claim.
+
+Expected artifact:
+
+| artifact | path |
+| --- | --- |
+| Camera-ready stacking ablation table | `benchmarks/experiments/paper_tables/appendix_04_distribution_aware_stacking.md` |
+| Raw stacker results | `benchmarks/experiments/07_distribution_aware_stacking/` |
 
 Metrics:
 
@@ -526,8 +589,7 @@ exist:
 ## Immediate Next Steps
 
 1. Recompute posterior geometry from filtered segmentation predictions/logits.
-2. Decide final manuscript placement for `main_03_shifted_accuracy_comparison.md` and
-   `main_04_shifted_localization_comparison.md`.
+2. Decide final manuscript placement for `main_03_shift_jitter_summary.md`.
 3. Reproduce distribution-aware stacking under the filtered protocol if it is
    kept in the paper narrative.
 4. Define the optional final training recipe only after the ablation and

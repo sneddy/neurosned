@@ -16,7 +16,11 @@ benchmarks/experiments/**/seed*/
 benchmarks/experiments/**/logs/
 benchmarks/experiments/**/monitoring/
 benchmarks/experiments/**/predictions/
+benchmarks/experiments/**/preds/
 benchmarks/experiments/**/*_predictions.csv
+benchmarks/experiments/**/*_tau_predictions.csv
+benchmarks/experiments/**/*_logits.npy
+benchmarks/experiments/**/*pred*.npy
 benchmarks/experiments/**/*.pt
 benchmarks/experiments/**/*.ckpt
 benchmarks/experiments/**/*.npy
