@@ -1,0 +1,161 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="640" viewBox="0 0 1600 640">
+  <defs>
+    <marker id="arrow" markerWidth="11" markerHeight="11" refX="10" refY="5.5" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 11 5.5 L 0 11 z" fill="#202326"/>
+    </marker>
+    <marker id="arrow-muted" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#626b70"/>
+    </marker>
+    <filter id="shadow" x="-12%" y="-12%" width="124%" height="124%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.13"/>
+    </filter>
+    <style>
+      .title { font: 700 21px Arial, Helvetica, sans-serif; fill: #202326; }
+      .heading { font: 700 17px Arial, Helvetica, sans-serif; fill: #202326; }
+      .label { font: 15px Arial, Helvetica, sans-serif; fill: #202326; }
+      .small { font: 13px Arial, Helvetica, sans-serif; fill: #3f474c; }
+      .tiny { font: 11.5px Arial, Helvetica, sans-serif; fill: #606b72; }
+      .formula { font: 16px Georgia, 'Times New Roman', serif; fill: #1c6e35; }
+      .formula-dark { font: 15px Georgia, 'Times New Roman', serif; fill: #202326; }
+      .wave { fill: none; stroke: #202326; stroke-width: 1.6; }
+      .wave-muted { fill: none; stroke: #5e6a71; stroke-width: 1.3; stroke-dasharray: 6 5; }
+      .axis { stroke: #202326; stroke-width: 1.25; }
+      .grid { stroke: #d6dde0; stroke-width: 1; }
+      .arrow { fill: none; stroke: #202326; stroke-width: 2.25; marker-end: url(#arrow); }
+      .dash-arrow { fill: none; stroke: #626b70; stroke-width: 1.8; stroke-dasharray: 6 6; marker-end: url(#arrow-muted); }
+      .main-crop { fill: #cbe9ee; stroke: #2a8c9c; stroke-width: 1.5; opacity: 0.82; }
+      .shift-crop { fill: #dff0e4; stroke: #62a873; stroke-width: 1.25; stroke-dasharray: 7 5; opacity: 0.62; }
+      .rt-line { stroke: #c72d2d; stroke-width: 2.7; }
+      .box-supervision { fill: #edf6f2; stroke: #1f2427; stroke-width: 2.4; filter: url(#shadow); }
+      .box-model { fill: #ee6c99; stroke: none; filter: url(#shadow); }
+      .box-temp { fill: #f5a187; stroke: none; filter: url(#shadow); }
+      .box-readout { fill: #79cfd1; stroke: none; filter: url(#shadow); }
+      .box-aug { fill: #cddc68; stroke: none; filter: url(#shadow); }
+      .box-diagnostic { fill: #f4efd8; stroke: #9b7a2e; stroke-width: 1.4; filter: url(#shadow); }
+      .box-note { fill: #eef2f7; stroke: #65758a; stroke-width: 1.4; filter: url(#shadow); }
+      .green { fill: #1c6e35; }
+      .red { fill: #c72d2d; }
+      .blue { fill: #207f91; }
+      .muted { fill: #606b72; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="640" fill="#ffffff"/>
+
+  <!-- Main title -->
+  <text class="title" x="48" y="40">Event-time posterior modeling from behavioral latency</text>
+  <text class="small" x="48" y="63">Main path uses the fixed 0.5--2.5 s EEG window; shifted crops are a separate diagnostic/intervention setup.</text>
+
+  <!-- Left EEG signal and windows -->
+  <g transform="translate(42,116)">
+    <text class="heading" x="35" y="-18">fixed 0.5--2.5 s EEG window</text>
+    <text class="tiny" x="38" y="0">stimulus-locked CCD trial; response latency marked in red</text>
+
+    <path class="wave" d="M0,108 L19,120 L37,91 L57,106 L77,72 L96,126 L116,96 L136,117 L155,85 L176,105 L196,93 L216,130 L236,100 L256,114 L276,84 L296,96 L316,128 L336,97 L356,112 L377,91 L397,103 L417,82 L437,113 L457,101 L477,121"/>
+    <path class="wave-muted" d="M0,168 L20,159 L39,176 L58,148 L78,170 L98,141 L118,184 L137,157 L158,176 L178,146 L198,166 L218,156 L238,187 L257,162 L278,174 L298,150 L318,164 L338,185 L358,160 L378,177 L398,150 L418,171 L438,154 L458,181 L478,165"/>
+
+    <rect class="shift-crop" x="38" y="45" width="205" height="158" rx="2"/>
+    <rect class="main-crop" x="76" y="45" width="205" height="158" rx="2"/>
+    <rect class="shift-crop" x="114" y="45" width="205" height="158" rx="2"/>
+    <line class="rt-line" x1="209" y1="45" x2="209" y2="203"/>
+
+    <line class="axis" x1="0" y1="220" x2="478" y2="220"/>
+    <text class="tiny" x="0" y="239">0</text>
+    <text class="tiny blue" x="73" y="239">0.5</text>
+    <text class="tiny green" x="111" y="239">0.8</text>
+    <text class="tiny red" x="199" y="239">RT</text>
+    <text class="tiny" x="246" y="239">2.0</text>
+    <text class="tiny blue" x="278" y="239">2.5</text>
+    <text class="tiny green" x="316" y="239">2.8</text>
+    <text class="tiny" x="398" y="239">4.0</text>
+    <text class="tiny" x="168" y="260">time from stimulus (s)</text>
+  </g>
+
+  <!-- Shared augmentation -->
+  <g transform="translate(230,405)">
+    <rect class="box-aug" x="0" y="0" width="285" height="70" rx="8"/>
+    <text class="label" x="20" y="25">shared regularization</text>
+    <text class="small" x="20" y="47">channel dropout, temporal cutout, Gaussian noise</text>
+  </g>
+  <path class="dash-arrow" d="M148,391 C185,424 209,435 226,438"/>
+
+  <!-- Supervision block -->
+  <g transform="translate(542,112)">
+    <text class="heading" x="0" y="-18">behavioral RT -> weak event-time supervision</text>
+    <rect class="box-supervision" x="0" y="0" width="315" height="210" rx="9"/>
+
+    <path d="M46,148 C69,147 86,129 101,96 C118,59 139,46 160,75 C181,103 196,144 232,148 Z" fill="#94c99b" opacity="0.23"/>
+    <path d="M46,148 C69,147 86,129 101,96 C118,59 139,46 160,75 C181,103 196,144 232,148" fill="none" stroke="#1c8a3f" stroke-width="3"/>
+    <path d="M39,148 C61,145 78,138 92,121 C108,100 120,90 136,99 C154,110 170,139 205,144" fill="none" stroke="#ccd7d7" stroke-width="3" opacity="0.9"/>
+    <line class="rt-line" x1="166" y1="78" x2="166" y2="148"/>
+    <line class="axis" x1="38" y1="148" x2="272" y2="148"/>
+    <text class="tiny" x="35" y="166">g0</text>
+    <text class="tiny" x="250" y="166">gT</text>
+    <text class="tiny red" x="157" y="167">RT</text>
+    <text class="formula" x="186" y="86">q(t)</text>
+
+    <text class="label" x="34" y="39">scalar behavioral latency</text>
+    <text class="small" x="34" y="60">constrains response-relevant timing</text>
+    <text class="small green" x="34" y="190">soft target q(t) or latent EventNLL</text>
+  </g>
+
+  <!-- Main arrow input -->
+  <path class="arrow" d="M494,231 L532,231"/>
+  <text class="label" x="470" y="276">X: 128 x 200</text>
+
+  <!-- Model box -->
+  <g transform="translate(940,184)">
+    <rect class="box-model" x="0" y="0" width="170" height="112" rx="9"/>
+    <text class="heading" x="42" y="32">model</text>
+    <text class="small" x="23" y="59">outputs logits z<tspan baseline-shift="sub" font-size="10">t</tspan></text>
+    <text class="small" x="23" y="81">event-time posterior</text>
+    <text class="tiny" x="23" y="101">CE / EventNLL / controls</text>
+  </g>
+  <path class="arrow" d="M858,231 L929,231"/>
+
+  <!-- Temperature -->
+  <g transform="translate(1115,95)">
+    <rect class="box-temp" x="0" y="0" width="215" height="80" rx="10"/>
+    <text class="label" x="31" y="28">readout temperature</text>
+    <text class="small" x="31" y="51">selected on R9--R10</text>
+    <text class="small" x="48" y="69">applied to R11</text>
+  </g>
+  <path class="arrow" d="M1222,176 L1222,208"/>
+
+  <!-- Readout -->
+  <g transform="translate(1170,184)">
+    <rect class="box-readout" x="0" y="0" width="245" height="112" rx="9"/>
+    <text class="heading" x="34" y="32">posterior mean readout</text>
+    <text class="formula-dark" x="28" y="62">p<tspan baseline-shift="sub" font-size="10">t</tspan>(tau) = softmax(z<tspan baseline-shift="sub" font-size="10">t</tspan>/tau)</text>
+    <text class="formula-dark" x="28" y="87">RT_hat = t0 + sum p<tspan baseline-shift="sub" font-size="10">t</tspan> g<tspan baseline-shift="sub" font-size="10">t</tspan></text>
+  </g>
+  <path class="arrow" d="M1110,231 L1159,231"/>
+  <path class="arrow" d="M1415,231 L1512,231"/>
+  <text class="title" x="1438" y="207">RT_hat</text>
+  <text class="small muted" x="1415" y="260">scalar prediction</text>
+
+  <!-- Diagnostic blocks -->
+  <g transform="translate(720,390)">
+    <rect class="box-diagnostic" x="0" y="0" width="310" height="86" rx="8"/>
+    <text class="label" x="20" y="27">posterior diagnostics</text>
+    <text class="small" x="20" y="49">width, target mass, mode-mean gap</text>
+    <text class="small" x="20" y="68">interval coverage and fixed NLL</text>
+  </g>
+  <path class="dash-arrow" d="M1250,302 C1226,372 1112,420 1041,428"/>
+
+  <g transform="translate(390,488)">
+    <rect class="box-note" x="0" y="0" width="430" height="76" rx="8"/>
+    <text class="label" x="20" y="27">shifted-crop diagnostic / shift-jitter intervention</text>
+    <text class="small" x="20" y="49">2 s crops from 5 s cache; crop start s in {0.2,...,0.8}</text>
+    <text class="small" x="20" y="67">crop-relative target: RT - s; tests shortcut vs localization</text>
+  </g>
+  <path class="dash-arrow" d="M320,379 C366,438 383,475 402,495"/>
+
+  <!-- Tiny legend -->
+  <g transform="translate(52,594)">
+    <rect x="0" y="0" width="16" height="16" class="main-crop"/>
+    <text class="tiny" x="24" y="13">main fixed window</text>
+    <rect x="155" y="0" width="16" height="16" class="shift-crop"/>
+    <text class="tiny" x="179" y="13">shifted crops: diagnostic/intervention only</text>
+  </g>
+</svg>
