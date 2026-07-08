@@ -212,7 +212,7 @@ In the CCD task, participants viewed two flickering grating stimuli and responde
 
 We use this task as a controlled evaluation setting for separating three possible sources of RT prediction performance: EEG backbone capacity, temporal readout parameterization, and distributional event-time supervision. The benchmark therefore fixes the data split, target support, input representation, and scalar evaluation rule before varying architectures and objectives in the subsequent model and diagnostic sections.
 
-To avoid subject leakage, all models use the same release-separated CCD split: R1--R8 for fitting, R9--R10 for development choices such as early stopping, checkpoint selection, readout-temperature tuning, and protocol diagnostics where applicable, and R11 for one-shot final reporting after all model and readout choices are fixed. R11 labels are not used for model fitting, checkpoint selection, readout-temperature selection, stacking, or protocol decisions. For consistency, the main analyzed set includes only trials whose response lies inside the fixed 2~s window (\(0.5 \leq \mathrm{RT} \leq 2.5\)~s). Table~\ref{tab:ccd_protocol_stats} reports the resulting partitions; metadata checks confirmed zero subject overlap across train, development, and R11 test after filtering.
+To avoid subject leakage, all models use the same release-separated CCD split: R1--R8 for fitting, R9--R10 for development choices such as early stopping, checkpoint selection, readout-temperature tuning, and protocol diagnostics where applicable, and R11 as a one-shot final holdout after all model and readout choices are fixed. R11 holdout labels are not used for model fitting, checkpoint selection, readout-temperature selection, stacking, or protocol decisions. For consistency, the main analyzed set includes only trials whose response lies inside the fixed 2~s window (\(0.5 \leq \mathrm{RT} \leq 2.5\)~s). Table~\ref{tab:ccd_protocol_stats} reports the resulting partitions; metadata checks confirmed zero subject overlap across train, development, and holdout after filtering.
 
 \begin{table}[!t]
 \centering
@@ -226,12 +226,12 @@ To avoid subject leakage, all models use the same release-separated CCD split: R
 \midrule
 Train & R1--R8 & 74{,}576 & 73{,}030 & 1{,}221 \\
 Development & R9--R10 & 17{,}867 & 17{,}348 & 308 \\
-Test & R11 & 15{,}751 & 15{,}164 & 292 \\
+Holdout & R11 & 15{,}751 & 15{,}164 & 292 \\
 \bottomrule
 \end{tabular*}
 \end{table}
 
-Scalar performance is evaluated using normalized RMSE (nRMSE), defined as RMSE divided by the standard deviation of the true targets within the evaluated split \citep{EEGChallengeWebsite2025}. Main scalar comparisons use the same support-filtered R9--R10 development set and R11 test set. Diagnostic analyses that require shifted crop starts, stricter RT support, posterior-only summaries, or stacking are introduced locally in the corresponding subsection or appendix and do not affect the main R11 model-selection protocol.
+Scalar performance is evaluated using normalized RMSE (nRMSE), defined as RMSE divided by the standard deviation of the true targets within the evaluated split \citep{EEGChallengeWebsite2025}. Main scalar comparisons use the same support-filtered R9--R10 development set and R11 holdout set. Diagnostic analyses that require shifted crop starts, stricter RT support, posterior-only summaries, or stacking are introduced locally in the corresponding subsection or appendix and do not affect the main holdout reporting protocol.
 
 \subsection{Shared Training, Readout Tuning, and Inference Protocol}
 \label{sec:shared_protocol}
@@ -284,18 +284,18 @@ ETR-CNN large is the strongest scalar baseline, with MSP-CNN and base ETR-CNN cl
 \renewcommand{\arraystretch}{1.15}
 \begin{tabularx}{\linewidth}{@{} >{\RaggedRight\arraybackslash}p{0.22\linewidth} Y >{\centering\arraybackslash}p{0.215\linewidth} >{\centering\arraybackslash}p{0.215\linewidth} @{}}
 \toprule
-\textbf{Model} & \textbf{Role} & \textbf{Valid nRMSE} $\downarrow$ & \textbf{R11 nRMSE} $\downarrow$ \\
+\textbf{Model} & \textbf{Role} & \textbf{Valid nRMSE} $\downarrow$ & \textbf{Holdout nRMSE} $\downarrow$ \\
 \midrule
 \multicolumn{4}{@{}l}{\textit{Task-specific regression baselines}} \\
 \addlinespace[0.15em]
 MSP-CNN & segment-pooling scalar & \mbox{0.9006 $\pm$ 0.0051} & \mbox{0.8998 $\pm$ 0.0080} \\
 ETR-CNN & temporal readout & \mbox{0.9008 $\pm$ 0.0060} & \mbox{0.8977 $\pm$ 0.0068} \\
-ETR-CNN large & capacity ablation & \mbox{0.8972 $\pm$ 0.0040} & \mbox{0.8928 $\pm$ 0.0042} \\
+ETR-CNN large & capacity ablation & \textbf{\mbox{0.8972 $\pm$ 0.0040}} & \textbf{\mbox{0.8928 $\pm$ 0.0042}} \\
 \midrule
 \multicolumn{4}{@{}l}{\textit{External regression baselines}} \\
 \addlinespace[0.15em]
-TIDNet & thinker-invariant CNN & \mbox{0.9235 $\pm$ 0.0024} & \mbox{0.9192 $\pm$ 0.0027} \\
-EEGConformer & conv-transformer & \mbox{0.9188 $\pm$ 0.0026} & \mbox{0.9287 $\pm$ 0.0057} \\
+TIDNet & thinker-invariant CNN & \mbox{0.9235 $\pm$ 0.0024} & \textbf{\mbox{0.9192 $\pm$ 0.0027}} \\
+EEGConformer & conv-transformer & \textbf{\mbox{0.9188 $\pm$ 0.0026}} & \mbox{0.9287 $\pm$ 0.0057} \\
 EEGNet & compact CNN & \mbox{0.9350 $\pm$ 0.0054} & \mbox{0.9335 $\pm$ 0.0028} \\
 LaBraM & foundation-style & \mbox{0.9304 $\pm$ 0.0061} & \mbox{0.9327 $\pm$ 0.0086} \\
 Deep4Net & deep ConvNet & \mbox{0.9269 $\pm$ 0.0045} & \mbox{0.9260 $\pm$ 0.0044} \\
@@ -423,7 +423,7 @@ p_t^{\mathrm{haz}} \propto h_t\prod_{k<t}(1-h_k),
 with the resulting event-bin probabilities normalized over the represented window. This keeps the same event-time likelihood in Eq.~\ref{eq:event_nll}, but changes the posterior parameterization from a categorical softmax to a discrete-time survival process. This extension tests whether the event-time formulation is tied to one softmax implementation.
 
 \subsection{Formulation Comparison and Robustness}
-Table~\ref{tab:r11_segmentation_losses} compares the paper-facing ETS-U-Net objective variants under the fixed backbone and release-separated protocol. Here, R11 \(\tau\)-nRMSE denotes R11 nRMSE after applying the posterior-readout temperature \(\tau\) selected on R9--R10; R11 labels are used only for evaluation. The CE and likelihood-family objectives form the strongest scalar-readout group after readout-temperature tuning, with R11 \(\tau\)-nRMSE between 0.8745 and 0.8778. This improves over the strongest scalar regression baseline, ETR-CNN large (0.8928 $\pm$ 0.0042; Table~\ref{tab:r11_regression_baselines}), while the time-only and Wasserstein controls remain closer to the scalar-regression regime.
+Table~\ref{tab:r11_segmentation_losses} compares the paper-facing ETS-U-Net objective variants under the fixed backbone and release-separated protocol. Here, holdout \(\tau\)-nRMSE denotes holdout nRMSE after applying the posterior-readout temperature \(\tau\) selected on R9--R10; R11 labels are used only for evaluation. The CE and likelihood-family objectives form the strongest scalar-readout group after readout-temperature tuning, with holdout \(\tau\)-nRMSE between 0.8745 and 0.8778. This improves over the strongest scalar regression baseline, ETR-CNN large (0.8928 $\pm$ 0.0042; Table~\ref{tab:r11_regression_baselines}), while the time-only and Wasserstein controls remain closer to the scalar-regression regime.
 
 \begin{table}[!t]
 \centering
@@ -434,7 +434,7 @@ Table~\ref{tab:r11_segmentation_losses} compares the paper-facing ETS-U-Net obje
 \renewcommand{\arraystretch}{1.15}
 \begin{tabularx}{\linewidth}{@{} >{\RaggedRight\arraybackslash}p{0.22\linewidth} Y >{\centering\arraybackslash}p{0.18\linewidth} >{\centering\arraybackslash}p{0.18\linewidth} >{\centering\arraybackslash}p{0.18\linewidth} @{}}
 \toprule
-\textbf{Model} & \textbf{Variant} & \textbf{Valid nRMSE} $\downarrow$ & \textbf{R11 nRMSE} $\downarrow$ & \textbf{R11 \(\tau\)-nRMSE} $\downarrow$ \\
+\textbf{Model} & \textbf{Variant} & \textbf{Valid nRMSE} $\downarrow$ & \textbf{Holdout nRMSE} $\downarrow$ & \textbf{Holdout \(\tau\)-nRMSE} $\downarrow$ \\
 \midrule
 \multicolumn{5}{@{}l}{\textit{Soft-target objective}} \\
 \addlinespace[0.15em]
