@@ -625,16 +625,22 @@ We reformulated EEG-based reaction-time prediction as event-time posterior model
 
 \appendix
 
-\section{Additional Posterior Geometry Examples}
+\section{Additional Readout and Shifted-Crop Details}
 
-Table~\ref{tab:posterior_geometry_metrics} reports the quantitative posterior metrics behind Figure~\ref{fig:posterior_geometry_main}, and Figure~\ref{fig:posterior_raster_main} shows the corresponding trial-sorted posterior maps in the main text. Figure~\ref{fig:appendix_temperature_sensitivity} shows the development-split temperature curves used to choose post-hoc readout temperatures.
+This appendix records the two protocol details that are secondary to the main narrative but important for reproducing the posterior diagnostics. First, the posterior readout temperature is selected only on the R9--R10 development split and then applied unchanged to the holdout split. Second, the shifted-crop table in the main text reports seed means for readability; the full seed-variability summary is given here.
+
+\paragraph{Readout-temperature selection.}
+Figure~\ref{fig:appendix_temperature_sensitivity} shows the development-split nRMSE curves used to select the posterior-readout temperature for each event-time objective. The minima differ across losses, confirming that objectives induce different posterior confidence scales. We therefore treat temperature selection as part of the scalar readout protocol before comparing posterior-mean predictions and posterior geometry on the holdout split.
 
 \begin{figure}[!t]
     \centering
     \includegraphics[width=0.9\linewidth]{img/ch1/temperature_sensitivity.png}
-    \caption{Temperature sensitivity on the R9-R10 development split. Vertical lines mark selected temperatures. The curves show that different losses induce different confidence scales, motivating a fixed readout-temperature selection protocol before comparing posterior-mean scalar readouts or posterior diagnostics.}
+    \caption{Readout-temperature sensitivity on the R9--R10 development split. Curves show posterior-mean nRMSE as a function of softmax temperature, and vertical lines mark selected temperatures. The selected temperature is then applied unchanged to holdout predictions and posterior diagnostics.}
     \label{fig:appendix_temperature_sensitivity}
 \end{figure}
+
+\paragraph{Shifted-crop seed variability.}
+Table~\ref{tab:shift_jitter_summary_full} expands the main shifted-crop diagnostic table by reporting mean $\pm$ standard deviation across seeds. These values support the same qualitative conclusion as the main-text summary: shift-jitter training improves shifted-crop relative nRMSE and usually moves sensitivity and direction in a more localizer-like direction, while all objectives remain far from ideal crop-relative event localization.
 
 \begin{table}[!htbp]
 \centering
@@ -722,6 +728,8 @@ MSP-CNN & Segment-pooling scalar baseline & \(c_0=48\), widen 2, depth per stage
 \end{table}
 
 Wrapped external EEG architectures are instantiated from the YAML-specified Braindecode constructors and trained from scratch under the same data split, target support, optimizer, augmentation, checkpoint-selection, and holdout-evaluation protocol. Seed-level summaries, selected readout temperatures, prediction files, and paper-facing aggregate tables are stored under \texttt{benchmarks/experiments/}.
+
+Upon publication, we will release the benchmark artifact used for the paper, including YAML configurations, data-preparation scripts, training and evaluation runners, model and loss code, selected readout temperatures, seed-level summaries, prediction files, shifted-crop diagnostics, aggregate tables, and figure-generation scripts. When raw HBN-EEG redistribution is restricted by source dataset terms, the release will provide the preparation code and expected split structure needed to reconstruct the CCD benchmark from the released data.
 
 
 \FloatBarrier

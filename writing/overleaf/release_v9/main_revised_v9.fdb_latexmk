@@ -1,13 +1,13 @@
 # Fdb version 4
-["bibtex main_revised_v9"] 1783581935.56513 "main_revised_v9.aux" "main_revised_v9.bbl" "main_revised_v9" 1783581937.75512 0
+["bibtex main_revised_v9"] 1783582962.38413 "main_revised_v9.aux" "main_revised_v9.bbl" "main_revised_v9" 1783582964.60942 0
   "../references.bib" 1783432481.92796 48424 b450da2c8bfc4185f3c37cc684890237 ""
   "/usr/share/texlive/texmf-dist/bibtex/bst/base/apalike.bst" 1292289607 24635 604dafcc79f521a11ea73e506e1fbd98 ""
-  "main_revised_v9.aux" 1783581937.66905 22399 d4b4c3f3e4848245e44292b3b22b4a7b "pdflatex"
+  "main_revised_v9.aux" 1783582964.52312 22594 768340ae16bd33cc28bb63d485a9e80e "pdflatex"
   (generated)
   "main_revised_v9.bbl"
   "main_revised_v9.blg"
   (rewritten before read)
-["pdflatex"] 1783581935.59145 "main_revised_v9.tex" "main_revised_v9.pdf" "main_revised_v9" 1783581937.75526 0
+["pdflatex"] 1783582962.41215 "main_revised_v9.tex" "main_revised_v9.pdf" "main_revised_v9" 1783582964.60957 0
   "../img/ch1/Ch1_ets_unet_1.png" 1783287928.43876 656743 21a6f927e0bd42ae983a77d449ae7a86 ""
   "../img/ch1/Ch1_regression.png" 1782817171.1466 48444 47d30a8139698ef0256a0c12e12a93e2 ""
   "../img/ch1/event_time_scheme.png" 1783548897.4398 183763 dc0a2a5baa652ee95db2dd59f3f0bab0 ""
@@ -149,10 +149,10 @@
   "/usr/share/texmf/web2c/texmf.cnf" 1707919699 40399 f2c302f7d2af602abb742093540a5834 ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1783400922.9385 5312232 f3296911be9cc021788f3f879cf0a47d ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1783400945 6800797 5ed2d920b69036cc5634ce37499ea8a3 ""
-  "main_revised_v9.aux" 1783581937.66905 22399 d4b4c3f3e4848245e44292b3b22b4a7b "pdflatex"
-  "main_revised_v9.bbl" 1783581935.58956 14279 b526ec04273f1fec71b1a056f273c4a2 "bibtex main_revised_v9"
-  "main_revised_v9.out" 1783581937.66905 6256 db848bab2f86a0bdb9979c9652523fbb "pdflatex"
-  "main_revised_v9.tex" 1783581927.17086 73997 40cf68839b65c888522809b7fb961565 ""
+  "main_revised_v9.aux" 1783582964.52312 22594 768340ae16bd33cc28bb63d485a9e80e "pdflatex"
+  "main_revised_v9.bbl" 1783582962.41018 14279 b526ec04273f1fec71b1a056f273c4a2 "bibtex main_revised_v9"
+  "main_revised_v9.out" 1783582964.52312 6284 a7faf6cba1ec2f84c272b9d72ee802e2 "pdflatex"
+  "main_revised_v9.tex" 1783582951.06978 75528 933cb3418bceb4fbb05bf7920e7d0a1e ""
   (generated)
   "main_revised_v9.aux"
   "main_revised_v9.log"

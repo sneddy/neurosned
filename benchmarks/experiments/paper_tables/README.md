@@ -22,6 +22,7 @@ experiment journal `benchmarks/EXPERIMENTS.md`.
 | `appendix_01_regression_shifted_crop.md` | Appendix shifted-crop details | Shifted-crop diagnostic for all scalar regression baselines. |
 | `appendix_02_fixed_shifted_details.md` | Appendix shifted-crop details | Detailed shifted-crop diagnostic for fixed-window ETS-U-Net objectives. |
 | `appendix_03_jitter_shifted_details.md` | Appendix shifted-crop details | Detailed shifted-crop diagnostic after shift-jitter training. |
+| `appendix_04_observation_noise_calibration.md` | Appendix posterior calibration details | Post-hoc RT observation-noise calibration for EventNLL-family predictive intervals. |
 
 ## Shifted-Crop Metric Convention
 
