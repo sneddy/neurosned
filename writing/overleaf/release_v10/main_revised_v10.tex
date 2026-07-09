@@ -75,11 +75,11 @@
 \end{center}
 
 \ \\
-{\bf \large Ayana Mussabayeva$^{1}$\textsuperscript{*}}\\
-ayana.mussabayeva@mbzuai.ac.ae
-
-\ \\ {\bf \large Anuar Aimoldin$^{1}$\textsuperscript{*}}\\
+{\bf \large Anuar Aimoldin$^{1}$\textsuperscript{*}}\\
 anuar.aimoldin@mbzuai.ac.ae
+
+\ \\ {\bf \large Ayana Mussabayeva$^{1}$\textsuperscript{*}}\\
+ayana.mussabayeva@mbzuai.ac.ae
 
 % \ \\
 % {\bf \large Ayana Mussabayeva$^{\displaystyle 1}$}\\
@@ -709,7 +709,7 @@ Wasserstein & 0.8896 $\pm$ 0.0033 & 0.8922 $\pm$ 0.0066 & 0.8932 $\pm$ 0.0033 & 
 \section{Reproducibility Details}
 \label{app:reproducibility_details}
 
-All reported experiments are specified by YAML configuration files under \texttt{benchmarks/configs/} and produce training summaries, prediction files, selected temperatures, and model summaries under \texttt{benchmarks/experiments/}. Table~\ref{tab:reproducibility_details} summarizes the shared settings needed to reproduce the controlled comparisons: data splits, input representation, optimization, augmentation, model selection, readout-temperature tuning, and the main architecture hyperparameters. Settings not listed in the table are objective-specific loss choices described in the main text.
+All reported experiments use YAML configuration files in \path{benchmarks/configs/}. They produce training summaries, prediction files, selected temperatures, and model summaries under \path{benchmarks/experiments/}. Table~\ref{tab:reproducibility_details} summarizes the shared settings needed to reproduce the controlled comparisons: data splits, input representation, optimization, augmentation, model selection, readout-temperature tuning, and the main architecture hyperparameters. Settings not listed in the table are objective-specific loss choices described in the main text.
 
 \begin{table}[!htbp]
 \centering
@@ -766,7 +766,7 @@ MSP-CNN & Segment-pooling scalar baseline & \(c_0=48\), widen 2, depth per stage
 \end{tabularx}
 \end{table}
 
-External EEG architectures are instantiated from the Braindecode constructors named in the YAML configuration files and trained from scratch under the same data split, target support, optimizer, augmentation, checkpoint-selection, and holdout-evaluation protocol. Seed-level summaries, selected readout temperatures, prediction files, and reported aggregate tables are stored under \texttt{benchmarks/experiments/}.
+External EEG architectures are instantiated from the Braindecode constructors named in the YAML configuration files and trained from scratch under the same data split, target support, optimizer, augmentation, checkpoint-selection, and holdout-evaluation protocol. Seed-level summaries, selected readout temperatures, prediction files, and reported aggregate tables are stored under \path{benchmarks/experiments/}.
 
 Upon publication, we will release the benchmark materials supporting this study, including YAML configurations, data-preparation scripts, training and evaluation runners, model and loss code, selected readout temperatures, seed-level summaries, prediction files, shifted-crop diagnostics, aggregate tables, and figure-generation scripts. When raw HBN-EEG redistribution is restricted by source dataset terms, the release will provide the preparation code and expected split structure needed to reconstruct the CCD benchmark from the released data.
 
