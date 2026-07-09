@@ -59,12 +59,7 @@
 \makeatletter  
 \long\def\@makecaption#1#2{%
   \vskip\abovecaptionskip
-  \sbox\@tempboxa{{\captionfonts #1: #2}}%
-  \ifdim \wd\@tempboxa >\hsize
-    {\captionfonts #1: #2\par}
-  \else
-    \hbox to\hsize{\hfil\box\@tempboxa\hfil}%
-  \fi
+  {\captionfonts\noindent #1: #2\par}%
   \vskip\belowcaptionskip}
 \makeatother   
 %%%%%
@@ -276,7 +271,7 @@ Table~\ref{tab:experiment_map} maps the shared protocol to the comparison blocks
 
 To support this controlled comparison, we keep preprocessing, optimization, augmentation, checkpointing, and inference fixed wherever possible, so that the main experimental axes remain EEG backbone capacity, temporal readout parameterization, and distributional event-time supervision. All neural models receive the same input normalization: for each 2~s trial window and EEG channel, we subtract the channel's temporal mean within the window and divide by its temporal standard deviation within the same window. The shared training recipe uses Adam with learning rate \(10^{-3}\), zero weight decay, train batch size 128, up to 100 epochs, and early stopping on development nRMSE with patience 20.
 
-Unless otherwise stated, training uses one fixed augmentation profile, so that regularization is not a model-specific tuning degree of freedom. The profile combines channel dropout, temporal cutout, and Gaussian noise with the same settings for all supervised neural models. Regression models use scalar RT supervision, while event-time models represent RT either as a soft crop-relative event-time target or as an observation under a latent event-time likelihood. When temperature scaling is used for event-time posterior readout, \(\tau\) is selected on R9--R10 to minimize development nRMSE of the posterior-mean readout and then applied unchanged to the holdout split. The main regression-baseline and event-time-objective comparisons are repeated over five seeds (2025--2029).
+Unless otherwise stated, training uses one fixed augmentation profile, so that regularization is not a model-specific tuning degree of freedom. The profile combines channel dropout, temporal cutout, and Gaussian noise with the same settings for all supervised neural models. Regression models use scalar RT supervision, while event-time models represent RT either as a soft crop-relative event-time target or as an observation under a latent event-time likelihood. When temperature scaling is used for event-time posterior readout, \(\tau\) is selected on R9--R10 to minimize development nRMSE of the posterior-mean readout and then applied unchanged to the holdout split. The main regression-baseline and event-time-objective comparisons are repeated over five seeds (2025--2029). Unless otherwise stated, repeated-run tables report seed mean $\pm$ standard deviation.
 
 \section{Scalar Regression Controls}
 \label{sec:baseline_regression}
@@ -298,7 +293,7 @@ ETR-CNN large is the strongest scalar baseline, with MSP-CNN and base ETR-CNN cl
 
 \begin{table}[!t]
 \centering
-\caption{Direct-regression and wrapped external backbone baselines. Values are mean $\pm$ sample standard deviation.}
+\caption{Direct-regression and wrapped external backbone baselines.}
 \label{tab:r11_regression_baselines}
 \footnotesize
 \setlength{\tabcolsep}{2pt}
@@ -445,7 +440,7 @@ with the resulting event-bin probabilities normalized over the represented windo
 
 \begin{table}[!htbp]
 \centering
-\caption{Event-time objective variants with a fixed ETS-U-Net backbone. Temperature is selected on R9--R10 for posterior-mean readout and then applied unchanged to the holdout split. Values are mean $\pm$ sample standard deviation over seeds 2025--2029.}
+\caption{Event-time objective variants with a fixed ETS-U-Net backbone. Temperature is selected on R9--R10 for posterior-mean readout and then applied unchanged to the holdout split.}
 \label{tab:r11_segmentation_losses}
 \footnotesize
 \setlength{\tabcolsep}{2pt}
