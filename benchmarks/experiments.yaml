@@ -3,7 +3,6 @@
 
 protocol:
   journal: benchmarks/EXPERIMENTS.md
-  archive: benchmarks/archive/unfiltered_protocol/EXPERIMENTS.md
   train_split: R1-R8
   development_split: R9-R10
   final_holdout: R11
@@ -71,9 +70,10 @@ experiments:
     generated_from: benchmarks/experiments/02_segmentation_ablations
     artifacts:
       - benchmarks/experiments/paper_tables/main_04_posterior_geometry.md
+      - benchmarks/experiments/paper_tables/appendix_04_observation_noise_calibration.md
       - benchmarks/experiments/paper_figures
     status: active
-    comment: Output-geometry evidence showing that similar scalar nRMSE can hide different posterior semantics.
+    comment: Output-geometry evidence showing that similar scalar nRMSE can hide different posterior semantics; includes post-hoc RT observation-noise calibration.
 
   - name: 04_shifted_crop_diagnostic
     kind: posthoc_evaluation
@@ -125,11 +125,13 @@ paper_tables:
     - main_02_event_time_objectives.md
     - main_03_shift_jitter_summary.md
     - main_04_posterior_geometry.md
+    - main_05_effect_size.md
     - main_06_experiments_map.md
   appendix:
     - appendix_01_regression_shifted_crop.md
     - appendix_02_fixed_shifted_details.md
     - appendix_03_jitter_shifted_details.md
+    - appendix_04_observation_noise_calibration.md
 
 paper_figures:
   directory: benchmarks/experiments/paper_figures

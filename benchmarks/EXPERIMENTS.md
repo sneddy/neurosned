@@ -1,8 +1,7 @@
 # Benchmark Experiments
 
 Current paper-facing experiment journal for the support-filtered protocol. The
-previous unfiltered-protocol journal is archived at
-`benchmarks/archive/unfiltered_protocol/EXPERIMENTS.md`.
+earlier unfiltered-protocol exploration is not part of the release benchmark.
 
 Status date: 2026-07-08.
 
@@ -244,9 +243,9 @@ Expected paper use:
 - Main segmentation table: CE, EventNLL, mixture EventNLL, hazard EventNLL,
   soft-argmax RT loss, Wasserstein.
 - Appendix/internal only unless needed: Laplace EventNLL, Student-t EventNLL,
-  heteroscedastic EventNLL, exact-bin hazard NLL. These remain in the archived
-  unfiltered protocol and should not be mixed into the new main table without
-  rerunning under the filtered protocol.
+  heteroscedastic EventNLL, exact-bin hazard NLL. These exploratory probes are
+  not part of the release benchmark and should not be mixed into the new main
+  table without rerunning under the filtered protocol.
 
 ## 03 Posterior Geometry
 

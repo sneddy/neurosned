@@ -1,186 +1,235 @@
-# Benchmarks
+# EEG Reaction-Time Benchmark
 
-This package keeps benchmark experiments reproducible by moving run parameters
-from notebooks into YAML configs.
+This directory contains the code, configs, and paper-facing artifacts for the
+benchmark used in the Neural Computation manuscript:
 
-## Running
+**Behavioral Latency as Weak Event-Time Supervision for EEG Decoding**
 
-Run one config from the command line:
+The benchmark compares scalar EEG reaction-time regression with event-time
+posterior modeling on the Healthy Brain Network contrast change detection EEG
+task. The release is organized so that the paper tables can be inspected
+directly, while the training and analysis runs can be regenerated from YAML
+configs.
+
+## Scope
+
+The benchmark implements the support-filtered, release-separated protocol used
+in the manuscript:
+
+| component | value |
+| --- | --- |
+| train split | HBN releases R1-R8 |
+| development split | HBN releases R9-R10 |
+| final holdout | HBN release R11 |
+| main input window | fixed 0.5-2.5 s post-stimulus EEG window |
+| modeled RT support | 0.5 <= RT <= 2.5 s |
+| repeated seeds | 2025, 2026, 2027, 2028, 2029 |
+| main scalar metric | nRMSE on R11 |
+
+The code supports four paper-facing experiment blocks:
+
+1. Scalar RT regression baselines.
+2. Event-time posterior objective comparisons.
+3. Posterior geometry, calibration, and effect-size analyses.
+4. Shifted-crop and shift-jitter shortcut-vs-localization diagnostics.
+
+## What Is Included
+
+- `configs/`: YAML configs for all paper-facing model runs.
+- `data/`: dataset wrappers for fixed-window, segmentation, and shifted-crop
+  training.
+- `pkg/`: reusable training, evaluation, model, loss, and plotting code.
+- `preparation/`: scripts for downloading, checking, and preparing HBN release
+  splits.
+- `scripts/`: command-line entrypoints for training, re-evaluation, figures,
+  effect sizes, and observation-noise calibration.
+- `runners/`: shell scripts that launch the paper-facing experiment groups.
+- `experiments/paper_tables/`: compact Markdown tables used by the manuscript.
+- `experiments/paper_figures/`: paper figure images and source CSV files.
+- `experiments.yaml`: a human-readable map of experiment groups and outputs.
+- `EXPERIMENTS.md`: the experiment journal for the current manuscript protocol.
+
+Large runtime artifacts are not part of the code release. Checkpoints,
+per-seed directories, logits, dense predictions, raw release data, and prepared
+pickle datasets are intentionally ignored by Git and regenerated locally.
+
+## Environment
+
+Create an environment from the repository root:
 
 ```bash
-python benchmarks/scripts/run.py benchmarks/configs/0_demo/unet_deeper_demo.yaml
+python -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip
+pip install -r benchmarks/requirements.txt
 ```
 
-Use a different artefact root when needed:
+For notebook inspection only:
 
 ```bash
-python benchmarks/scripts/run.py benchmarks/configs/0_demo/unet_deeper_demo.yaml --output-dir /tmp/neurosned-runs
+pip install -r benchmarks/requirements-dev.txt
 ```
 
-Refresh holdout metrics for an existing run from its best checkpoint:
+PyTorch installation can be platform-specific. If the pinned `torch` wheel in
+`benchmarks/requirements.txt` does not match your CUDA/CPU setup, install the
+appropriate PyTorch build first, then install the remaining requirements.
+
+## Data Preparation
+
+Run commands from the repository root. The preparation scripts materialize raw
+release caches under `release_data/` and prepared split pickle files under
+`data/new_validation/`; both locations are outside Git.
 
 ```bash
-python benchmarks/scripts/reeval.py benchmarks/experiments/<experiment>/<run_name> --device cuda --enable-temperature
+python benchmarks/preparation/scripts/download_releases.py
+python benchmarks/preparation/scripts/check_releases.py
+python benchmarks/preparation/scripts/prepare_splitted_datasets.py
+python benchmarks/preparation/scripts/summarize_protocol_counts.py
 ```
 
-For interactive inspection, open `benchmarks/prod.ipynb` and choose one config:
+The expected prepared files are:
 
-```python
-CONFIG_PATH = PROJECT_ROOT / "benchmarks/configs/segmentation/unet_deeper_demo.yaml"
-config = load_experiment_config(CONFIG_PATH)
+- `data/new_validation/r1_r8_train.pkl`
+- `data/new_validation/r1_r8_train_5sec.pkl`
+- `data/new_validation/r9_r10_val.pkl`
+- `data/new_validation/r9_r10_val_5sec.pkl`
+- `data/new_validation/r11_test.pkl`
+- `data/new_validation/r11_test_5sec.pkl`
+
+The manuscript support filter is applied by the benchmark config loader at
+dataset construction time; the prepared pickle files themselves are not
+rewritten for the filtered protocol.
+
+## Running One Config
+
+Run a single scalar baseline:
+
+```bash
+python benchmarks/scripts/run_repeated.py \
+  benchmarks/configs/01_regression_baselines/etr_cnn_large.yaml \
+  --device cuda \
+  --output-dir benchmarks/experiments
 ```
 
-The notebook should stay a runner: load config, build datasets, build model,
-create an `ArtefactsManager`, initialize trainer, run training. Avoid adding
-experiment constants directly to the notebook.
+Run a single event-time posterior model:
 
-Each run is saved under `benchmarks/experiments/<experiment>/<run_name>/`. The
-directory is runtime output and is ignored by Git.
-
-## Configs
-
-Experiment configs live in `benchmarks/configs/`. To start a new experiment,
-copy an existing YAML and change only the section you are testing.
-
-Important sections:
-
-- `experiment`: paper-facing experiment group and artifact subdirectory.
-- `name`: concrete config variant inside that group.
-- `data`: prepared pickle paths and optional dataset wrappers.
-- `data.train_dataset.params`: segmentation crop and augmentation settings.
-- `loaders`: `DataLoader` batch size, shuffle, workers, and memory options.
-- `model`: importable model class via `module_name`, `class_name`, `params`.
-- `optimizer`: importable optimizer class and optimizer kwargs.
-- `trainer`: trainer class, epochs, checkpoints, monitor, plateau schedule.
-- `trainer.params`: task-specific knobs passed directly to the trainer.
-- `trainer.stages`: optional main/finetune stages with optimizer, loader,
-  dataset, plateau and trainer-param overrides.
-
-Importable objects use this pattern:
-
-```yaml
-model:
-  module_name: benchmarks.pkg.models.segmentation.sneddy_unet
-  class_name: SneddySegUNet1D
-  params:
-    n_chans: 128
-    n_times: 200
-    sfreq: 100
+```bash
+python benchmarks/scripts/run_repeated.py \
+  benchmarks/configs/02_segmentation_ablations/ets_unet_event_nll_mixture.yaml \
+  --device cuda \
+  --output-dir benchmarks/experiments
 ```
 
-This also works for dataset wrappers and optimizers. `module_name` must be a
-normal Python import path from the project root.
+Use `--device auto` to let the runner choose CUDA when available.
 
-For repeated sweep/final/multiseed configs, use `benchmarks/pkg/multiseed.py`
-to generate YAML variants from an existing template. The generated YAML files
-then become the configs used by runs.
+Each repeated run creates:
 
-Multi-stage training is optional. When `trainer.stages` is present, each stage
-reuses the same model and output checkpoint. A stage can use `reload: best`,
-switch optimizer settings, update train dataset augmentation, and override
-trainer params. Without `trainer.stages`, configs run as a single stage.
+- `seed*/config.yaml`: resolved config snapshot.
+- `seed*/best_model.pth`: best validation checkpoint.
+- `seed*/summary.json`: scalar, posterior, and shifted-crop summaries.
+- `seed*/predictions/`: validation and holdout predictions/logits.
+- `repeated_summary.{csv,json}`: aggregate seed-level summary.
 
-## Tuning
+These runtime outputs are ignored by Git except for compact paper-facing
+summary files that are explicitly committed.
 
-For segmentation, most controlled changes are usually in:
+## Reproducing the Paper Runs
 
-- `model.params`: architecture size and model-specific options.
-- `data.train_dataset.params.sigma`: soft target width.
-- `data.train_dataset.params.cropping_offset` and `crop_proba`: crop jitter.
-- `data.train_dataset.params.dropout_proba` and `dropout_range`: channel dropout.
-- `trainer.params.temperature`: temporal distribution sharpness.
-- `trainer.params.lambda_time` and `lambda_ce`: timing vs. distribution loss.
-- `trainer.params.mixup_p` and `mixup_alpha`: mixup strength.
-- `optimizer.params.lr`: starting learning rate.
-- `trainer.plateau.factor`: LR decay after reload-best plateau.
+Run all scalar baselines:
 
-For regression, wrap fixed 2-second pickle datasets with
-`benchmarks.data.regression.FixedWindowDataset` when you need channel selection
-or per-sample transforms. Keep batch-level mixup in `trainer.params`.
+```bash
+DEVICE=cuda sh benchmarks/runners/run_regression_baselines.sh
+```
 
-## Outputs
+Run all event-time objective comparisons:
 
-`ArtefactsManager` owns benchmark outputs:
+```bash
+DEVICE=cuda sh benchmarks/runners/run_segmentation_ablations.sh
+```
 
-- `benchmarks/experiments/<experiment>/<run_name>/`: one concrete run.
-- `config.yaml`: resolved config snapshot and paths used by the run.
-- `model.txt`: model architecture and parameter count.
-- `best_model.pth`: best validation checkpoint.
-- `metrics.csv`: epoch history from the trainer, including epoch timings.
-- `summary.json`: per-run summary, including wall time and time-to-best.
-- `logs/run.log`: stdout/stderr copied from the run.
-- `monitoring/gpu.csv`: GPU utilization and memory sampled during training.
-- `figures/gpu_usage.png`: GPU utilization and memory plot.
-- `figures/*.png`: optional diagnostic validation plots.
-- `predictions/best_val_predictions.csv`: scalar predictions with row ids and metadata.
-- `predictions/best_logits.npy`: dense best-epoch segmentation logits in the same row order.
-- `benchmarks/experiments/summary.{jsonl,csv,md}`: global run index.
+Run all shift-jitter training interventions:
 
-## Experiments Map
+```bash
+DEVICE=cuda sh benchmarks/runners/run_crop_shift_jitter.sh
+```
 
-The paper-facing benchmark should separate model comparisons from protocol
-engineering. The clean structure is:
+Re-evaluate shift-jitter checkpoints on the canonical fixed-window holdout:
 
-`benchmarks/experiments.yaml` is a human map of experiment groups, config
-locations and artifact locations. It is not loaded by the code.
+```bash
+DEVICE=cuda sh benchmarks/runners/reeval_crop_shift_jitter_canonical.sh
+```
 
-1. **Protocol calibration**
-   - Goal: choose one simple, reproducible training protocol for SneddyUNet.
-   - Keep it deliberately plain: one seed group, one optimizer schedule, no
-     staged fine-tuning, no restart-heavy tricks.
-   - Output: the default protocol used by the main ablations.
+The full repeated benchmark is GPU-oriented and is not intended as a quick CPU
+smoke test.
 
-2. **Regression baselines**
-   - Goal: compare the best SneddyNet-style regression model against standard
-     Braindecode architectures under the same simple protocol.
-   - Candidates: EEGNet, Deep4Net/ShallowFBCSPNet-style baselines, and the
-     strongest local regression model.
-   - Output: whether the custom regression family is competitive on fixed
-     2-second windows.
+## Derived Analyses
 
-3. **Regression vs. segmentation framing**
-   - Goal: compare SneddyNet regression with SneddyUNet segmentation under the
-     same data split and simple protocol.
-   - This answers whether predicting a temporal distribution is better than
-     direct scalar regression for reaction time.
+Regenerate posterior geometry figures:
 
-4. **Component ablations**
-   - Goal: quantify what each modeling/training choice contributes.
-   - Run one-factor changes against the simple SneddyUNet protocol:
-     segmentation loss weights, soft-label sigma, crop jitter, channel dropout,
-     mixup, architecture width/depth, and optional model blocks.
-   - Output: a compact ablation table with validation and R11 holdout metrics.
+```bash
+sh benchmarks/runners/plot_paper_figures.sh
+```
 
-5. **Advanced training protocol**
-   - Goal: show the best achievable result when using the full engineering
-     recipe.
-   - This can include multi-stage training, checkpoint warm starts, reload-best
-     LR decay, longer schedules, seed ensembles, or candidate selection.
-   - Keep this separate from ablations so the paper does not confuse model
-     contribution with optimization budget.
+Regenerate the scalar-vs-event-time effect-size table:
 
-Recommended reporting order:
+```bash
+python benchmarks/scripts/reg_vs_seg_effect_size.py
+```
 
-1. Simple protocol definition.
-2. Regression baselines.
-3. Regression vs. segmentation.
-4. SneddyUNet component ablations.
-5. Final advanced protocol result.
+Regenerate the observation-noise calibration appendix table:
 
-For Neural Computation-style reporting, the main claim should rest on the
-simple protocol and controlled ablations; the advanced protocol should be
-presented as the final optimized benchmark, not as evidence for every design
-choice.
+```bash
+python benchmarks/scripts/calibrate_observation_noise.py
+```
 
-## Code Map
+Run post-hoc shifted-crop evaluation for existing checkpoints:
 
-- `benchmarks/scripts/run.py`: command-line entrypoint mirroring `prod.ipynb`.
-- `benchmarks/scripts/reeval.py`: post-training holdout/calibration refresh from `best_model.pth`.
-- `benchmarks/scripts/run_repeated.py`: repeated-seed runner for final evaluation.
-- `benchmarks/pkg/config.py`: typed YAML schema and builders.
-- `benchmarks/pkg/artefacts_manager.py`: run directories, summaries and saved outputs.
-- `benchmarks/pkg/multiseed.py`: sweep/final/multiseed YAML variant helpers.
-- `benchmarks/pkg/training/trainers/`: trainer classes.
-- `benchmarks/pkg/training/`: scheduling, labels, metrics and plots.
-- `benchmarks/data/`: dataset wrappers.
-- `benchmarks/preparation/`: data download/check/split preparation scripts.
+```bash
+DEVICE=cuda sh benchmarks/runners/eval_shifted_regression.sh
+DEVICE=cuda sh benchmarks/runners/eval_shifted_seg.sh
+```
+
+## Paper Artifacts
+
+The current paper-facing tables are in `experiments/paper_tables/`:
+
+- `main_01_regression_baselines.md`
+- `main_02_event_time_objectives.md`
+- `main_03_shift_jitter_summary.md`
+- `main_04_posterior_geometry.md`
+- `main_05_effect_size.md`
+- `main_06_experiments_map.md`
+- `appendix_01_regression_shifted_crop.md`
+- `appendix_02_fixed_shifted_details.md`
+- `appendix_03_jitter_shifted_details.md`
+- `appendix_04_observation_noise_calibration.md`
+
+The current paper-facing figures and source CSV files are in
+`experiments/paper_figures/`.
+
+## Directory Map
+
+```text
+benchmarks/
+  configs/                 Paper-facing YAML experiment configs.
+  data/                    Dataset wrappers.
+  experiments/             Compact paper artifacts plus local run outputs.
+  pkg/                     Models, losses, training, evaluation, plotting.
+  preparation/             HBN release download and split preparation.
+  runners/                 Shell launchers for experiment groups.
+  scripts/                 Python CLIs for training and derived analyses.
+  EXPERIMENTS.md           Current protocol and experiment journal.
+  experiments.yaml         Machine-readable-ish experiment map.
+  requirements.txt         Runtime dependencies for benchmark reproduction.
+```
+
+## Notes for Release Users
+
+- The benchmark assumes commands are run from the repository root.
+- The prepared data and checkpoints are intentionally not versioned.
+- Foundation-style EEG architectures in this benchmark are trained from scratch
+  under the shared protocol; pretrained weights are not used.
+- Temperature tuning in the event-time models is a scalar posterior-mean
+  readout protocol selected on R9-R10 and applied unchanged to R11.
+- Observation-noise calibration is a post-hoc predictive RT interval analysis;
+  it does not retrain the EEG model or change the scalar readout.

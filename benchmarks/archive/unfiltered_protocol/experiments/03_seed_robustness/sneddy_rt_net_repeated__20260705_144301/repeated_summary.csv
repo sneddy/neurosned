@@ -1,6 +1,0 @@
-seed,run_name,run_dir,status,best_epoch,best_metric,test_nrmse,test_nrmse_ci_low,test_nrmse_ci_high,test_posterior_crps,test_posterior_fixed_kernel_event_nll,test_tau_nrmse,test_tau_nrmse_ci_low,test_tau_nrmse_ci_high,test_tau_posterior_crps,test_tau_posterior_fixed_kernel_event_nll
-2025,seed2025,benchmarks/experiments/03_seed_robustness/sneddy_rt_net_repeated__20260705_144301/seed2025,training_finished,15,0.9325771697212644,0.9459376353498512,0.9301527780230314,0.9637950592402704,,,,,,,
-2026,seed2026,benchmarks/experiments/03_seed_robustness/sneddy_rt_net_repeated__20260705_144301/seed2026,training_finished,20,0.9389471696270196,0.9513690049230809,0.9371382573163496,0.9667822017061993,,,,,,,
-2027,seed2027,benchmarks/experiments/03_seed_robustness/sneddy_rt_net_repeated__20260705_144301/seed2027,training_finished,13,0.9338553923183335,0.9451210411364135,0.9285370598290744,0.9631557837116856,,,,,,,
-2028,seed2028,benchmarks/experiments/03_seed_robustness/sneddy_rt_net_repeated__20260705_144301/seed2028,training_finished,11,0.9347535060906005,0.9478719900263542,0.932758619632636,0.9657259039693141,,,,,,,
-2029,seed2029,benchmarks/experiments/03_seed_robustness/sneddy_rt_net_repeated__20260705_144301/seed2029,training_finished,17,0.9393019623762691,0.9569658794891961,0.9396595654246049,0.9754238221452847,,,,,,,

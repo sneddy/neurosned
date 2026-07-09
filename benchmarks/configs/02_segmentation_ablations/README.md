@@ -2,7 +2,7 @@
 
 Paper-facing ETS-U-Net event-time segmentation configs for the support-filtered
 protocol. Exploratory and negative kernel probes from the earlier unfiltered
-protocol remain archived under `benchmarks/archive/unfiltered_protocol/`.
+protocol are not part of the release benchmark.
 
 ## Configs
 
