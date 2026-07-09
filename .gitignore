@@ -7,6 +7,7 @@ data/new_validation/prepare_manifest.json
 data/new_validation/reload_*_manifest.json
 release_data/
 artefacts
+artifacts/
 *.pth
 
 # Benchmark experiment outputs.
