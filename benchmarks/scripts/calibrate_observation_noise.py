@@ -693,50 +693,73 @@ def write_markdown_table(
             "models. The trained EEG model, event-time posterior, and posterior-mean scalar "
             "readout are fixed. A single multiplicative scale on the RT observation kernel is "
             f"selected on R9-R10 by `{selection_objective}` and applied unchanged to R11. "
-            "Latent columns summarize central intervals of the event-time posterior itself. "
-            "Predictive columns summarize the behavioral-RT predictive distribution obtained "
-            "by convolving the latent posterior with the observation kernel. Values are mean "
-            "+/- sample standard deviation across seeds."
+            "Each model block separates the latent event-time posterior from the behavioral-RT "
+            "predictive distribution obtained by convolving that posterior with the observation "
+            "kernel. Values are mean +/- sample standard deviation across seeds."
         ),
         "",
-        "| Model | Scale c | Latent Cov80 | Base Pred Cov80 | Cal Pred Cov80 | Base Pred CovMAE | Cal Pred CovMAE | Cal Pred Width80 ms | Base Pred NLL | Cal Pred NLL |",
-        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
     for _, row in group_summary.iterrows():
-        lines.append(
-            "| "
-            + " | ".join(
-                [
-                    display_label(str(row["label"])),
-                    fmt_pm(row["selected_scale_mean"], row["selected_scale_std"], 2),
-                    fmt_pm(row["test_latent_coverage80_mean"], row["test_latent_coverage80_std"], 3),
-                    fmt_pm(row["test_base_predictive_coverage80_mean"], row["test_base_predictive_coverage80_std"], 3),
-                    fmt_pm(
-                        row["test_calibrated_predictive_coverage80_mean"],
-                        row["test_calibrated_predictive_coverage80_std"],
-                        3,
-                    ),
-                    fmt_pm(row["test_base_predictive_coverage_mae_mean"], row["test_base_predictive_coverage_mae_std"], 3),
-                    fmt_pm(
-                        row["test_calibrated_predictive_coverage_mae_mean"],
-                        row["test_calibrated_predictive_coverage_mae_std"],
-                        3,
-                    ),
-                    fmt_pm(
-                        row["test_calibrated_predictive_width80_ms_mean"],
-                        row["test_calibrated_predictive_width80_ms_std"],
-                        0,
-                    ),
-                    fmt_pm(row["test_base_predictive_nll_mean"], row["test_base_predictive_nll_std"], 3),
-                    fmt_pm(row["test_calibrated_predictive_nll_mean"], row["test_calibrated_predictive_nll_std"], 3),
-                ]
-            )
-            + " |"
+        lines.extend(
+            [
+                f"### {display_label(str(row['label']))}",
+                "",
+                "| Distribution | Scale c | Coverage MAE | Coverage80 | Width80 ms | Predictive NLL |",
+                "| --- | ---: | ---: | ---: | ---: | ---: |",
+                "| "
+                + " | ".join(
+                    [
+                        "Latent event-time posterior",
+                        "-",
+                        fmt_pm(row["test_latent_coverage_mae_mean"], row["test_latent_coverage_mae_std"], 3),
+                        fmt_pm(row["test_latent_coverage80_mean"], row["test_latent_coverage80_std"], 3),
+                        fmt_pm(row["test_latent_width80_ms_mean"], row["test_latent_width80_ms_std"], 0),
+                        "-",
+                    ]
+                )
+                + " |",
+                "| "
+                + " | ".join(
+                    [
+                        "Base predictive RT",
+                        "1.00",
+                        fmt_pm(row["test_base_predictive_coverage_mae_mean"], row["test_base_predictive_coverage_mae_std"], 3),
+                        fmt_pm(row["test_base_predictive_coverage80_mean"], row["test_base_predictive_coverage80_std"], 3),
+                        fmt_pm(row["test_base_predictive_width80_ms_mean"], row["test_base_predictive_width80_ms_std"], 0),
+                        fmt_pm(row["test_base_predictive_nll_mean"], row["test_base_predictive_nll_std"], 3),
+                    ]
+                )
+                + " |",
+                "| "
+                + " | ".join(
+                    [
+                        "Calibrated predictive RT",
+                        fmt_pm(row["selected_scale_mean"], row["selected_scale_std"], 2),
+                        fmt_pm(
+                            row["test_calibrated_predictive_coverage_mae_mean"],
+                            row["test_calibrated_predictive_coverage_mae_std"],
+                            3,
+                        ),
+                        fmt_pm(
+                            row["test_calibrated_predictive_coverage80_mean"],
+                            row["test_calibrated_predictive_coverage80_std"],
+                            3,
+                        ),
+                        fmt_pm(
+                            row["test_calibrated_predictive_width80_ms_mean"],
+                            row["test_calibrated_predictive_width80_ms_std"],
+                            0,
+                        ),
+                        fmt_pm(row["test_calibrated_predictive_nll_mean"], row["test_calibrated_predictive_nll_std"], 3),
+                    ]
+                )
+                + " |",
+                "",
+            ]
         )
     levels = ", ".join(f"{level:.2f}" for level in coverage_levels)
     lines.extend(
         [
-            "",
             f"Coverage MAE is averaged over central interval levels `{levels}`.",
             (
                 "Interpretation note: this calibration changes only the RT observation-noise "

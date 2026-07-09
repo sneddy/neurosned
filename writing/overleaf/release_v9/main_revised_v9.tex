@@ -281,7 +281,7 @@ Unless otherwise stated, training uses one fixed augmentation profile, so that r
 \section{Scalar Regression Controls}
 \label{sec:baseline_regression}
 
-The regression baselines establish how far scalar supervision can go before introducing event-time targets. We separate two types of controls: compact task-specific temporal controls and supervised external EEG backbones trained from scratch under the same protocol.
+The regression baselines establish how far scalar supervision can go before introducing event-time targets. We use compact task-specific temporal regressors as strong scalar controls and wrapped external EEG backbones as architecture-capacity controls.
 
 The compact controls form a progression of window-level temporal inductive biases. MSP-CNN (multiscale segment-statistic pooling CNN; Figure~\ref{fig:ch1_regression}) explicitly accounts for temporal structure by collecting mean and max statistics from coarse temporal segments of the feature map. These segment-level summaries act as early/middle/late activation cues and are mapped to scalar RT. ETR-CNN (event-time readout CNN) turns this coarse temporal summary into a learned time-indexed readout: it preserves temporal scores over the input window and predicts RT as the expected time under learned time-bin weights. ETR-CNN large keeps the same readout while increasing feature capacity.
 
