@@ -438,6 +438,10 @@ p_t^{\mathrm{haz}} \propto h_t\prod_{k<t}(1-h_k),
 \end{equation}
 with the resulting event-bin probabilities normalized over the represented window. This keeps the same event-time likelihood in Eq.~\ref{eq:event_nll}, but changes the posterior parameterization from a categorical softmax to a discrete-time survival process. This extension tests whether the event-time formulation is tied to one softmax implementation.
 
+\subsection{Formulation Comparison and Robustness}
+
+The comparison in Table~\ref{tab:r11_segmentation_losses} evaluates the paper-facing ETS-U-Net objective variants under the fixed backbone and release-separated protocol. Here, holdout \(\tau\)-nRMSE denotes holdout nRMSE after applying the posterior-readout temperature \(\tau\) selected on R9--R10; holdout labels are used only for evaluation. The CE and likelihood-family objectives form the strongest scalar-readout group after readout-temperature tuning, with holdout \(\tau\)-nRMSE between 0.8745 and 0.8778. This improves over the strongest scalar regression baseline, ETR-CNN large (0.8928 $\pm$ 0.0042; Table~\ref{tab:r11_regression_baselines}), while the soft-argmax RT-loss and Wasserstein controls remain closer to the scalar-regression regime.
+
 \begin{table}[!htbp]
 \centering
 \caption{Event-time objective variants with a fixed ETS-U-Net backbone. Temperature is selected on R9--R10 for posterior-mean readout and then applied unchanged to the holdout split.}
@@ -467,10 +471,6 @@ Wasserstein & CDF match to Gaussian soft event-time label & \mbox{0.8997 $\pm$ 0
 \end{tabularx}
 \end{table}
 \FloatBarrier
-
-\subsection{Formulation Comparison and Robustness}
-
-The comparison in Table~\ref{tab:r11_segmentation_losses} evaluates the paper-facing ETS-U-Net objective variants under the fixed backbone and release-separated protocol. Here, holdout \(\tau\)-nRMSE denotes holdout nRMSE after applying the posterior-readout temperature \(\tau\) selected on R9--R10; holdout labels are used only for evaluation. The CE and likelihood-family objectives form the strongest scalar-readout group after readout-temperature tuning, with holdout \(\tau\)-nRMSE between 0.8745 and 0.8778. This improves over the strongest scalar regression baseline, ETR-CNN large (0.8928 $\pm$ 0.0042; Table~\ref{tab:r11_regression_baselines}), while the soft-argmax RT-loss and Wasserstein controls remain closer to the scalar-regression regime.
 
 \paragraph{Objective ablations.}
 The ablations separate expectation-style temporal readout from distributional supervision. The soft-argmax RT-loss control directly optimizes posterior-mean RT error but removes distribution matching; it remains close to the strongest scalar-regression baseline and trails the CE/EventNLL group by roughly 0.014--0.017 holdout \(\tau\)-nRMSE. CE and the likelihood-family variants form a tight top group: mixture EventNLL has the best mean temperature-tuned scalar readout, but CE, Gaussian EventNLL, mixture EventNLL, and hazard EventNLL are close relative to seed variability. The hazard result shows that the likelihood-family conclusion is not tied to a categorical softmax posterior, while the Wasserstein control shows that an alternative distributional distance alone does not match the CE/EventNLL scalar readouts. Thus, the central gain is best attributed to distributional event-time supervision rather than to the U-Net backbone or soft-argmax readout alone.

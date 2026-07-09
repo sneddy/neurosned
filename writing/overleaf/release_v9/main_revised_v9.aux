@@ -85,48 +85,48 @@
 \@writefile{toc}{\contentsline {paragraph}{Observation-kernel and hazard extensions.}{14}{section*.3}\protected@file@percent }
 \newlabel{eq:event_nll_mixture_kernel}{{5}{14}{Observation-kernel and hazard extensions}{equation.5}{}}
 \newlabel{eq:hazard_readout}{{6}{14}{Observation-kernel and hazard extensions}{equation.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Formulation Comparison and Robustness}{14}{subsection.5.4}\protected@file@percent }
 \@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Event-time objective variants with a fixed ETS-U-Net backbone. Temperature is selected on R9--R10 for posterior-mean readout and then applied unchanged to the holdout split.}}{15}{table.4}\protected@file@percent }
 \newlabel{tab:r11_segmentation_losses}{{4}{15}{Event-time objective variants with a fixed ETS-U-Net backbone. Temperature is selected on R9--R10 for posterior-mean readout and then applied unchanged to the holdout split}{table.4}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Formulation Comparison and Robustness}{15}{subsection.5.4}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Objective ablations.}{15}{section*.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Practical effect size.}{15}{section*.5}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Trial-sorted event-time posterior maps on the holdout split for matched segmentation losses. Rows are quantile bins of representable holdout trials sorted by observed RT; the x-axis is time from stimulus onset; color shows log-transformed posterior density averaged within each bin. The overlaid curve marks the mean observed RT in each bin.}}{16}{figure.5}\protected@file@percent }
 \newlabel{fig:posterior_raster_main}{{5}{16}{Trial-sorted event-time posterior maps on the holdout split for matched segmentation losses. Rows are quantile bins of representable holdout trials sorted by observed RT; the x-axis is time from stimulus onset; color shows log-transformed posterior density averaged within each bin. The overlaid curve marks the mean observed RT in each bin}{figure.5}{}}
-\@writefile{toc}{\contentsline {paragraph}{Practical effect size.}{16}{section*.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {6}Posterior Readout and Diagnostics}{17}{section.6}\protected@file@percent }
-\newlabel{sec:posterior_diagnostics}{{6}{17}{Posterior Readout and Diagnostics}{section.6}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Scalar Readout and Temperature Tuning}{17}{subsection.6.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Posterior-mean scalar readout.}{17}{section*.6}\protected@file@percent }
-\newlabel{eq:rt_soft_argmax}{{7}{17}{Posterior-mean scalar readout}{equation.7}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Posterior Readout and Diagnostics}{16}{section.6}\protected@file@percent }
+\newlabel{sec:posterior_diagnostics}{{6}{16}{Posterior Readout and Diagnostics}{section.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Scalar Readout and Temperature Tuning}{16}{subsection.6.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Posterior-mean scalar readout.}{16}{section*.6}\protected@file@percent }
+\newlabel{eq:rt_soft_argmax}{{7}{16}{Posterior-mean scalar readout}{equation.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Posterior geometry differs across event-time losses even when scalar nRMSE is similar. Panel A reports holdout scalar readout after selecting the softmax temperature on R9--R10 to minimize nRMSE. Panel B aligns predicted posteriors to the observed RT. Panels C--E summarize posterior width, near-target mass, and mode-mean disagreement. Panel F compares empirical coverage of central posterior intervals; the diagonal is ideal interval coverage.}}{17}{figure.6}\protected@file@percent }
+\newlabel{fig:posterior_geometry_main}{{6}{17}{Posterior geometry differs across event-time losses even when scalar nRMSE is similar. Panel A reports holdout scalar readout after selecting the softmax temperature on R9--R10 to minimize nRMSE. Panel B aligns predicted posteriors to the observed RT. Panels C--E summarize posterior width, near-target mass, and mode-mean disagreement. Panel F compares empirical coverage of central posterior intervals; the diagonal is ideal interval coverage}{figure.6}{}}
 \@writefile{toc}{\contentsline {paragraph}{Readout-temperature tuning.}{17}{section*.7}\protected@file@percent }
 \newlabel{eq:rt_tau_tuning}{{8}{17}{Readout-temperature tuning}{equation.8}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Posterior Geometry Diagnostics}{17}{subsection.6.2}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Posterior geometry differs across event-time losses even when scalar nRMSE is similar. Panel A reports holdout scalar readout after selecting the softmax temperature on R9--R10 to minimize nRMSE. Panel B aligns predicted posteriors to the observed RT. Panels C--E summarize posterior width, near-target mass, and mode-mean disagreement. Panel F compares empirical coverage of central posterior intervals; the diagonal is ideal interval coverage.}}{18}{figure.6}\protected@file@percent }
-\newlabel{fig:posterior_geometry_main}{{6}{18}{Posterior geometry differs across event-time losses even when scalar nRMSE is similar. Panel A reports holdout scalar readout after selecting the softmax temperature on R9--R10 to minimize nRMSE. Panel B aligns predicted posteriors to the observed RT. Panels C--E summarize posterior width, near-target mass, and mode-mean disagreement. Panel F compares empirical coverage of central posterior intervals; the diagonal is ideal interval coverage}{figure.6}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Quantitative posterior geometry on the holdout split for matched event-time segmentation losses. Values are mean $\pm $ standard deviation across seeds after R9--R10 readout-temperature selection; arrows indicate the preferred direction, Coverage80 is best when close to 0.80, and bold marks the best point estimate per metric.}}{18}{table.5}\protected@file@percent }
 \newlabel{tab:posterior_geometry_metrics}{{5}{18}{Quantitative posterior geometry on the holdout split for matched event-time segmentation losses. Values are mean $\pm $ standard deviation across seeds after R9--R10 readout-temperature selection; arrows indicate the preferred direction, Coverage80 is best when close to 0.80, and bold marks the best point estimate per metric}{table.5}{}}
 \@writefile{toc}{\contentsline {paragraph}{From latent posterior to calibrated RT intervals.}{19}{section*.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Shifted-Crop Shortcut-vs-Localization Diagnostic}{19}{subsection.6.3}\protected@file@percent }
 \@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Shifted-crop diagnostic and shift-jitter intervention on the 5~s holdout dataset. Values are seed means; full mean $\pm $ standard deviation values are reported in Appendix Table~\ref {tab:shift_jitter_summary_full}. Arrows indicate the preferred direction.}}{20}{table.6}\protected@file@percent }
 \newlabel{tab:shift_jitter_summary}{{6}{20}{Shifted-crop diagnostic and shift-jitter intervention on the 5~s holdout dataset. Values are seed means; full mean $\pm $ standard deviation values are reported in Appendix Table~\ref {tab:shift_jitter_summary_full}. Arrows indicate the preferred direction}{table.6}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Shifted-Crop Shortcut-vs-Localization Diagnostic}{20}{subsection.6.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {7}Discussion}{21}{section.7}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.1}Event-Time Supervision and Objective Geometry}{21}{subsection.7.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7}Discussion}{20}{section.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.1}Event-Time Supervision and Objective Geometry}{20}{subsection.7.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {7.2}Posterior Diagnostics and Shifted-Crop Behavior}{21}{subsection.7.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {7.3}Scope and Limitations}{22}{subsection.7.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {8}Conclusion}{23}{section.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {8}Conclusion}{22}{section.8}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Readout-temperature sensitivity on the R9--R10 development split. Curves show posterior-mean nRMSE as a function of softmax temperature, and vertical lines mark selected temperatures. The selected temperature is then applied unchanged to holdout predictions and posterior diagnostics.}}{23}{figure.7}\protected@file@percent }
+\newlabel{fig:appendix_temperature_sensitivity}{{7}{23}{Readout-temperature sensitivity on the R9--R10 development split. Curves show posterior-mean nRMSE as a function of softmax temperature, and vertical lines mark selected temperatures. The selected temperature is then applied unchanged to holdout predictions and posterior diagnostics}{figure.7}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {A}Additional Readout, Calibration, and Shifted-Crop Details}{23}{appendix.A}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Readout-temperature selection.}{23}{section*.9}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Observation-noise calibration.}{23}{section*.10}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Shifted-crop seed variability.}{23}{section*.11}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Readout-temperature sensitivity on the R9--R10 development split. Curves show posterior-mean nRMSE as a function of softmax temperature, and vertical lines mark selected temperatures. The selected temperature is then applied unchanged to holdout predictions and posterior diagnostics.}}{24}{figure.7}\protected@file@percent }
-\newlabel{fig:appendix_temperature_sensitivity}{{7}{24}{Readout-temperature sensitivity on the R9--R10 development split. Curves show posterior-mean nRMSE as a function of softmax temperature, and vertical lines mark selected temperatures. The selected temperature is then applied unchanged to holdout predictions and posterior diagnostics}{figure.7}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces Post-hoc RT observation-noise calibration for EventNLL-family posteriors. Values are mean $\pm $ standard deviation across seeds. Coverage MAE is averaged over central interval levels 50\%, 60\%, 70\%, 80\%, and 90\%.}}{24}{table.7}\protected@file@percent }
 \newlabel{tab:observation_noise_calibration}{{7}{24}{Post-hoc RT observation-noise calibration for EventNLL-family posteriors. Values are mean $\pm $ standard deviation across seeds. Coverage MAE is averaged over central interval levels 50\%, 60\%, 70\%, 80\%, and 90\%}{table.7}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {8}{\ignorespaces Full shifted-crop diagnostic and shift-jitter intervention summary with seed variability. Values are mean $\pm $ standard deviation across seeds; the corresponding main-text table reports means only for readability.}}{25}{table.8}\protected@file@percent }
-\newlabel{tab:shift_jitter_summary_full}{{8}{25}{Full shifted-crop diagnostic and shift-jitter intervention summary with seed variability. Values are mean $\pm $ standard deviation across seeds; the corresponding main-text table reports means only for readability}{table.8}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {B}Reproducibility Details}{25}{appendix.B}\protected@file@percent }
-\newlabel{app:reproducibility_details}{{B}{25}{Reproducibility Details}{appendix.B}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {9}{\ignorespaces Reproducibility summary for the main controlled comparisons.}}{26}{table.9}\protected@file@percent }
-\newlabel{tab:reproducibility_details}{{9}{26}{Reproducibility summary for the main controlled comparisons}{table.9}{}}
+\@writefile{toc}{\contentsline {paragraph}{Shifted-crop seed variability.}{24}{section*.11}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {8}{\ignorespaces Full shifted-crop diagnostic and shift-jitter intervention summary with seed variability. Values are mean $\pm $ standard deviation across seeds; the corresponding main-text table reports means only for readability.}}{24}{table.8}\protected@file@percent }
+\newlabel{tab:shift_jitter_summary_full}{{8}{24}{Full shifted-crop diagnostic and shift-jitter intervention summary with seed variability. Values are mean $\pm $ standard deviation across seeds; the corresponding main-text table reports means only for readability}{table.8}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {B}Reproducibility Details}{24}{appendix.B}\protected@file@percent }
+\newlabel{app:reproducibility_details}{{B}{24}{Reproducibility Details}{appendix.B}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {9}{\ignorespaces Reproducibility summary for the main controlled comparisons.}}{25}{table.9}\protected@file@percent }
+\newlabel{tab:reproducibility_details}{{9}{25}{Reproducibility summary for the main controlled comparisons}{table.9}{}}
 \bibdata{../references}
 \bibcite{altaheri2022atcnet}{{1}{2022}{{Altaheri et~al.}}{{}}}
 \bibcite{EEGFoundationChallengeArxiv2025}{{2}{2025}{{Aristimunha et~al.}}{{}}}
