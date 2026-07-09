@@ -579,151 +579,296 @@ ets_unet_hazard_event_nll,ETS-U-Net hazard EventNLL,Hazard EventNLL,2029,1.65,1.
 ets_unet_hazard_event_nll,ETS-U-Net hazard EventNLL,Hazard EventNLL,2029,1.7,1.9876279087001685,0.6705323400331679,0.65,0.8755891232523444,seed,,,,
 ets_unet_hazard_event_nll,ETS-U-Net hazard EventNLL,Hazard EventNLL,2029,1.75,2.0740712916233743,0.6996942790350136,0.65,0.8755891232523444,seed,,,,
 ets_unet_hazard_event_nll,ETS-U-Net hazard EventNLL,Hazard EventNLL,2029,1.8,2.156582932285429,0.7275298327877705,0.65,0.8755891232523444,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2025,0.4,0.9215192638312508,0.3108773355705691,0.7,0.9014506960821367,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2025,0.45,0.9142622253665106,0.3084291515004153,0.7,0.9014506960821367,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2025,0.5,0.9088450471845333,0.3066016499107876,0.7,0.9014506960821367,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2025,0.55,0.9050484238578715,0.3053208474465498,0.7,0.9014506960821367,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2025,0.6,0.9026719951659717,0.3045191519759204,0.7,0.9014506960821367,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2025,0.65,0.9015301231575489,0.3041339379695791,0.7,0.9014506960821367,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2025,0.7,0.9014506960821367,0.3041071430033256,0.7,0.9014506960821367,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2025,0.75,0.9022751836490022,0.30438528639984297,0.7,0.9014506960821367,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2025,0.8,0.9038589640656423,0.3049195795561324,0.7,0.9014506960821367,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2025,0.85,0.9060715892799162,0.305666015423756,0.7,0.9014506960821367,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2025,0.9,0.9087967783822439,0.3065853662830482,0.7,0.9014506960821367,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2025,0.95,0.9119321057298515,0.3076430785308784,0.7,0.9014506960821367,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2025,1.0,0.9153884215701925,0.30880907722619416,0.7,0.9014506960821367,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2025,1.05,0.9190889435731051,0.3100574596156223,0.7,0.9014506960821367,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2025,1.1,0.9229683020418682,0.3113661730325054,0.7,0.9014506960821367,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2025,1.15,0.9269713372589928,0.3127166091778346,0.7,0.9014506960821367,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2025,1.2,0.931052043042601,0.3140932477257704,0.7,0.9014506960821367,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2025,1.25,0.9351723336340245,0.3154832403294115,0.7,0.9014506960821367,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2025,1.3,0.939301069381038,0.31687608193206035,0.7,0.9014506960821367,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2025,1.35,0.9434130177681117,0.3182632602676087,0.7,0.9014506960821367,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2025,1.4,0.9474879543725473,0.3196379525653466,0.7,0.9014506960821367,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2025,1.45,0.9515099104906669,0.32099477173436153,0.7,0.9014506960821367,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2025,1.5,0.9554664391146084,0.3223295187385705,0.7,0.9014506960821367,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2025,1.55,0.9593480657550907,0.32363899733010415,0.7,0.9014506960821367,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2025,1.6,0.9631477494707228,0.32492083222589957,0.7,0.9014506960821367,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2025,1.65,0.9668604274418077,0.32617331546828326,0.7,0.9014506960821367,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2025,1.7,0.9704827126180992,0.3273953044255195,0.7,0.9014506960821367,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2025,1.75,0.974012498447179,0.32858608844572207,0.7,0.9014506960821367,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2025,1.8,0.9774487927331154,0.3297453328085658,0.7,0.9014506960821367,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2026,0.4,0.9109017489303569,0.3072954845205458,0.7,0.8908084078429814,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2026,0.45,0.9043808805923527,0.3050956496889904,0.7,0.8908084078429814,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2026,0.5,0.8993000845044716,0.30338162762523996,0.7,0.8908084078429814,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2026,0.55,0.8955300153720324,0.3021097832994504,0.7,0.8908084078429814,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2026,0.6,0.8929422481820395,0.30123679214161253,0.7,0.8908084078429814,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2026,0.65,0.8914098865628877,0.3007198452735547,0.7,0.8908084078429814,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2026,0.7,0.8908084078429814,0.3005169345920466,0.7,0.8908084078429814,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2026,0.75,0.8910173326233666,0.30058741600422106,0.7,0.8908084078429814,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2026,0.8,0.8919222195263612,0.30089268236211153,0.7,0.8908084078429814,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2026,0.85,0.8934164446005536,0.30139676375035773,0.7,0.8908084078429814,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2026,0.9,0.8954024923344045,0.30206676301358376,0.7,0.8908084078429814,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2026,0.95,0.8977926729362787,0.3028730977330055,0.7,0.8908084078429814,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2026,1.0,0.900509305548022,0.30378956203408986,0.7,0.8908084078429814,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2026,1.05,0.9034844927888447,0.30479325052824585,0.7,0.8908084078429814,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2026,1.1,0.9066595878429522,0.3058643785332107,0.7,0.8908084078429814,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2026,1.15,0.9099844500056599,0.30698603092926,0.7,0.8908084078429814,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2026,1.2,0.9134166637483423,0.3081438987083857,0.7,0.8908084078429814,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2026,1.25,0.9169205929947003,0.30932595993150847,0.7,0.8908084078429814,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2026,1.3,0.9204665963291677,0.3105222149766395,0.7,0.8908084078429814,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2026,1.35,0.9240302165816974,0.311724413142835,0.7,0.8908084078429814,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2026,1.4,0.9275913865486772,0.3129257846977235,0.7,0.8908084078429814,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2026,1.45,0.9311338727857549,0.31412085323931804,0.7,0.8908084078429814,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2026,1.5,0.9346445778792448,0.3153052003151465,0.7,0.8908084078429814,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2026,1.55,0.9381131184132135,0.31647532304815995,0.7,0.8908084078429814,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2026,1.6,0.9415313420637684,0.3176284712270171,0.7,0.8908084078429814,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2026,1.65,0.9448929546136812,0.31876252147832995,0.7,0.8908084078429814,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2026,1.7,0.9481932313065017,0.31987587989109295,0.7,0.8908084078429814,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2026,1.75,0.9514286945803453,0.3209673732991929,0.7,0.8908084078429814,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2026,1.8,0.9545969440989432,0.32203619194186517,0.7,0.8908084078429814,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2027,0.4,0.9201650869563319,0.3104204998696899,0.85,0.8875105445831714,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2027,0.45,0.9119510453704179,0.3076494678764158,0.85,0.8875105445831714,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2027,0.5,0.905232308830404,0.30538288160313887,0.85,0.8875105445831714,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2027,0.55,0.8998079365532803,0.30355295306356156,0.85,0.8875105445831714,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2027,0.6,0.895526087654586,0.30210845827198485,0.85,0.8875105445831714,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2027,0.65,0.8922651218965598,0.3010083615230278,0.85,0.8875105445831714,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2027,0.7,0.8899217688944926,0.3002178242372903,0.85,0.8875105445831714,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2027,0.75,0.888403958631282,0.29970578631356115,0.85,0.8875105445831714,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2027,0.8,0.8876267976850187,0.29944360869691605,0.85,0.8875105445831714,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2027,0.85,0.8875105445831714,0.299404390358274,0.85,0.8875105445831714,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2027,0.9,0.8879798145768938,0.2995627000225833,0.85,0.8875105445831714,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2027,0.95,0.888963501906023,0.2998945499446813,0.85,0.8875105445831714,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2027,1.0,0.8903949322394457,0.3003774473355174,0.85,0.8875105445831714,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2027,1.05,0.8922121362504628,0.300990486653637,0.85,0.8875105445831714,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2027,1.1,0.894358107663863,0.3017144366581489,0.85,0.8875105445831714,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2027,1.15,0.8967808725068568,0.30253176377073965,0.85,0.8875105445831714,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2027,1.2,0.8994335494441372,0.3034266524298901,0.85,0.8875105445831714,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2027,1.25,0.9022741761999745,0.30438494653383935,0.85,0.8875105445831714,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2027,1.3,0.9052655449010857,0.30539409389299965,0.85,0.8875105445831714,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2027,1.35,0.9083749013262677,0.3064430447709021,0.85,0.8875105445831714,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2027,1.4,0.9115736105376656,0.3075221390838849,0.85,0.8875105445831714,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2027,1.45,0.9148368293953858,0.3086229959228988,0.85,0.8875105445831714,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2027,1.5,0.9181431140939416,0.3097383811547294,0.85,0.8875105445831714,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2027,1.55,0.9214740895312574,0.3108620958826218,0.85,0.8875105445831714,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2027,1.6,0.9248141200069081,0.311988865355327,0.85,0.8875105445831714,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2027,1.65,0.9281499180273352,0.31311420699634757,0.85,0.8875105445831714,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2027,1.7,0.9314703671287925,0.31423437063271814,0.85,0.8875105445831714,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2027,1.75,0.9347661411575047,0.3153462100580048,0.85,0.8875105445831714,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2027,1.8,0.9380295327049986,0.3164471251544408,0.85,0.8875105445831714,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2028,0.4,0.9187016142134601,0.3099267928742521,0.7,0.889077159748905,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2028,0.45,0.9081764532559675,0.30637609770884333,0.7,0.889077159748905,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2028,0.5,0.9005062091095181,0.3037885174411121,0.7,0.889077159748905,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2028,0.55,0.8951487211876329,0.30198115254286495,0.7,0.889077159748905,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2028,0.6,0.8916760603204729,0.3008096398028767,0.7,0.889077159748905,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2028,0.65,0.8897453777916842,0.3001583181605194,0.7,0.889077159748905,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2028,0.7,0.889077159748905,0.29993289276479224,0.7,0.889077159748905,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2028,0.75,0.88944021850789,0.30005537174497066,0.7,0.889077159748905,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2028,0.8,0.890641477070728,0.3004606199866556,0.7,0.889077159748905,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2028,0.85,0.8925188175735645,0.30109394653379046,0.7,0.889077159748905,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2028,0.9,0.8949359727595474,0.3019093812114713,0.7,0.889077159748905,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2028,0.95,0.8977785909209558,0.3028683471221666,0.7,0.889077159748905,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2028,1.0,0.9009509930410272,0.30393856665761715,0.7,0.889077159748905,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2028,1.05,0.9043734974824362,0.3050931589743313,0.7,0.889077159748905,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2028,1.1,0.9079800695345026,0.3063098470611633,0.7,0.889077159748905,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2028,1.15,0.9117162376596765,0.30757025477870664,0.7,0.889077159748905,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2028,1.2,0.9155373460866986,0.30885931736626465,0.7,0.889077159748905,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2028,1.25,0.9194069498702699,0.31016474001033295,0.7,0.889077159748905,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2028,1.3,0.9232955199075225,0.31147656097795406,0.7,0.889077159748905,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2028,1.35,0.9271792861196668,0.3127867613605166,0.7,0.889077159748905,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2028,1.4,0.9310392145425302,0.31408891999212674,0.7,0.889077159748905,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2028,1.45,0.9348602763949246,0.315377966867592,0.7,0.889077159748905,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2028,1.5,0.9386306410676577,0.3166499108948015,0.7,0.889077159748905,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2028,1.55,0.9423412083370765,0.31790168208553754,0.7,0.889077159748905,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2028,1.6,0.9459850740848565,0.31913095131441627,0.7,0.889077159748905,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2028,1.65,0.9495571160128685,0.32033599055853357,0.7,0.889077159748905,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2028,1.7,0.9530537014199644,0.32151557431507233,0.7,0.889077159748905,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2028,1.75,0.9564723808523697,0.3226688762533275,0.7,0.889077159748905,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2028,1.8,0.9598116829426709,0.32379540000301243,0.7,0.889077159748905,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2029,0.4,0.9012119175298061,0.3040265903300898,0.55,0.8945881237524181,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2029,0.45,0.8971532337104487,0.30265738095899164,0.55,0.8945881237524181,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2029,0.5,0.8950742386628322,0.301956025635848,0.55,0.8945881237524181,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2029,0.55,0.8945881237524181,0.3017920332874924,0.55,0.8945881237524181,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2029,0.6,0.8953685081092063,0.30205529833151396,0.55,0.8945881237524181,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2029,0.65,0.8971427924274901,0.30265385856032506,0.55,0.8945881237524181,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2029,0.7,0.8996856314523577,0.30351169306456444,0.55,0.8945881237524181,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2029,0.75,0.9028124375892247,0.30456653065594974,0.55,0.8945881237524181,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2029,0.8,0.9063732616391466,0.30576778551466316,0.55,0.8945881237524181,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2029,0.85,0.9102472482947951,0.30707468673400057,0.55,0.8945881237524181,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2029,0.9,0.9143376630414951,0.30845460063026126,0.55,0.8945881237524181,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2029,0.95,0.9185676604957943,0.30988160317885216,0.55,0.8945881237524181,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2029,1.0,0.922876627480269,0.31133524633941484,0.55,0.8945881237524181,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2029,1.05,0.9272171045264043,0.3127995195154283,0.55,0.8945881237524181,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2029,1.1,0.9315522863553402,0.3142620063337617,0.55,0.8945881237524181,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2029,1.15,0.9358538486863549,0.31571315151188517,0.55,0.8945881237524181,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2029,1.2,0.9401003344633008,0.3171457164464333,0.55,0.8945881237524181,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2029,1.25,0.9442756578984716,0.31855427454783936,0.55,0.8945881237524181,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2029,1.3,0.9483680882922986,0.31993486842880886,0.55,0.8945881237524181,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2029,1.35,0.9523692760598255,0.32128468133137894,0.55,0.8945881237524181,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2029,1.4,0.9562735432896217,0.32260179779480297,0.55,0.8945881237524181,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2029,1.45,0.960077348347584,0.3238850230380093,0.55,0.8945881237524181,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2029,1.5,0.9637787555305487,0.3251337040456291,0.55,0.8945881237524181,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2029,1.55,0.9673771373593187,0.32634762913564047,0.55,0.8945881237524181,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2029,1.6,0.9708728281628283,0.3275269110949296,0.55,0.8945881237524181,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2029,1.65,0.9742669261434973,0.32867192040543386,0.55,0.8945881237524181,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2029,1.7,0.9775610898625253,0.3297832165878349,0.55,0.8945881237524181,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2029,1.75,0.9807573899909283,0.3308614981893183,0.55,0.8945881237524181,seed,,,,
-ets_unet_time_only,ETS-U-Net time-only,Time-only,2029,1.8,0.9838582124609816,0.33190757011141764,0.55,0.8945881237524181,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2025,0.4,0.9215192638312508,0.3108773355705691,0.7,0.9014506960821367,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2025,0.45,0.9142622253665106,0.3084291515004153,0.7,0.9014506960821367,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2025,0.5,0.9088450471845333,0.3066016499107876,0.7,0.9014506960821367,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2025,0.55,0.9050484238578715,0.3053208474465498,0.7,0.9014506960821367,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2025,0.6,0.9026719951659717,0.3045191519759204,0.7,0.9014506960821367,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2025,0.65,0.9015301231575489,0.3041339379695791,0.7,0.9014506960821367,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2025,0.7,0.9014506960821367,0.3041071430033256,0.7,0.9014506960821367,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2025,0.75,0.9022751836490022,0.30438528639984297,0.7,0.9014506960821367,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2025,0.8,0.9038589640656423,0.3049195795561324,0.7,0.9014506960821367,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2025,0.85,0.9060715892799162,0.305666015423756,0.7,0.9014506960821367,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2025,0.9,0.9087967783822439,0.3065853662830482,0.7,0.9014506960821367,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2025,0.95,0.9119321057298515,0.3076430785308784,0.7,0.9014506960821367,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2025,1.0,0.9153884215701925,0.30880907722619416,0.7,0.9014506960821367,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2025,1.05,0.9190889435731051,0.3100574596156223,0.7,0.9014506960821367,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2025,1.1,0.9229683020418682,0.3113661730325054,0.7,0.9014506960821367,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2025,1.15,0.9269713372589928,0.3127166091778346,0.7,0.9014506960821367,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2025,1.2,0.931052043042601,0.3140932477257704,0.7,0.9014506960821367,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2025,1.25,0.9351723336340245,0.3154832403294115,0.7,0.9014506960821367,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2025,1.3,0.939301069381038,0.31687608193206035,0.7,0.9014506960821367,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2025,1.35,0.9434130177681117,0.3182632602676087,0.7,0.9014506960821367,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2025,1.4,0.9474879543725473,0.3196379525653466,0.7,0.9014506960821367,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2025,1.45,0.9515099104906669,0.32099477173436153,0.7,0.9014506960821367,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2025,1.5,0.9554664391146084,0.3223295187385705,0.7,0.9014506960821367,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2025,1.55,0.9593480657550907,0.32363899733010415,0.7,0.9014506960821367,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2025,1.6,0.9631477494707228,0.32492083222589957,0.7,0.9014506960821367,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2025,1.65,0.9668604274418077,0.32617331546828326,0.7,0.9014506960821367,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2025,1.7,0.9704827126180992,0.3273953044255195,0.7,0.9014506960821367,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2025,1.75,0.974012498447179,0.32858608844572207,0.7,0.9014506960821367,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2025,1.8,0.9774487927331154,0.3297453328085658,0.7,0.9014506960821367,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2026,0.4,0.9109017489303569,0.3072954845205458,0.7,0.8908084078429814,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2026,0.45,0.9043808805923527,0.3050956496889904,0.7,0.8908084078429814,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2026,0.5,0.8993000845044716,0.30338162762523996,0.7,0.8908084078429814,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2026,0.55,0.8955300153720324,0.3021097832994504,0.7,0.8908084078429814,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2026,0.6,0.8929422481820395,0.30123679214161253,0.7,0.8908084078429814,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2026,0.65,0.8914098865628877,0.3007198452735547,0.7,0.8908084078429814,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2026,0.7,0.8908084078429814,0.3005169345920466,0.7,0.8908084078429814,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2026,0.75,0.8910173326233666,0.30058741600422106,0.7,0.8908084078429814,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2026,0.8,0.8919222195263612,0.30089268236211153,0.7,0.8908084078429814,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2026,0.85,0.8934164446005536,0.30139676375035773,0.7,0.8908084078429814,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2026,0.9,0.8954024923344045,0.30206676301358376,0.7,0.8908084078429814,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2026,0.95,0.8977926729362787,0.3028730977330055,0.7,0.8908084078429814,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2026,1.0,0.900509305548022,0.30378956203408986,0.7,0.8908084078429814,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2026,1.05,0.9034844927888447,0.30479325052824585,0.7,0.8908084078429814,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2026,1.1,0.9066595878429522,0.3058643785332107,0.7,0.8908084078429814,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2026,1.15,0.9099844500056599,0.30698603092926,0.7,0.8908084078429814,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2026,1.2,0.9134166637483423,0.3081438987083857,0.7,0.8908084078429814,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2026,1.25,0.9169205929947003,0.30932595993150847,0.7,0.8908084078429814,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2026,1.3,0.9204665963291677,0.3105222149766395,0.7,0.8908084078429814,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2026,1.35,0.9240302165816974,0.311724413142835,0.7,0.8908084078429814,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2026,1.4,0.9275913865486772,0.3129257846977235,0.7,0.8908084078429814,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2026,1.45,0.9311338727857549,0.31412085323931804,0.7,0.8908084078429814,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2026,1.5,0.9346445778792448,0.3153052003151465,0.7,0.8908084078429814,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2026,1.55,0.9381131184132135,0.31647532304815995,0.7,0.8908084078429814,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2026,1.6,0.9415313420637684,0.3176284712270171,0.7,0.8908084078429814,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2026,1.65,0.9448929546136812,0.31876252147832995,0.7,0.8908084078429814,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2026,1.7,0.9481932313065017,0.31987587989109295,0.7,0.8908084078429814,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2026,1.75,0.9514286945803453,0.3209673732991929,0.7,0.8908084078429814,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2026,1.8,0.9545969440989432,0.32203619194186517,0.7,0.8908084078429814,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2027,0.4,0.9201650869563319,0.3104204998696899,0.85,0.8875105445831714,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2027,0.45,0.9119510453704179,0.3076494678764158,0.85,0.8875105445831714,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2027,0.5,0.905232308830404,0.30538288160313887,0.85,0.8875105445831714,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2027,0.55,0.8998079365532803,0.30355295306356156,0.85,0.8875105445831714,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2027,0.6,0.895526087654586,0.30210845827198485,0.85,0.8875105445831714,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2027,0.65,0.8922651218965598,0.3010083615230278,0.85,0.8875105445831714,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2027,0.7,0.8899217688944926,0.3002178242372903,0.85,0.8875105445831714,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2027,0.75,0.888403958631282,0.29970578631356115,0.85,0.8875105445831714,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2027,0.8,0.8876267976850187,0.29944360869691605,0.85,0.8875105445831714,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2027,0.85,0.8875105445831714,0.299404390358274,0.85,0.8875105445831714,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2027,0.9,0.8879798145768938,0.2995627000225833,0.85,0.8875105445831714,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2027,0.95,0.888963501906023,0.2998945499446813,0.85,0.8875105445831714,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2027,1.0,0.8903949322394457,0.3003774473355174,0.85,0.8875105445831714,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2027,1.05,0.8922121362504628,0.300990486653637,0.85,0.8875105445831714,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2027,1.1,0.894358107663863,0.3017144366581489,0.85,0.8875105445831714,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2027,1.15,0.8967808725068568,0.30253176377073965,0.85,0.8875105445831714,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2027,1.2,0.8994335494441372,0.3034266524298901,0.85,0.8875105445831714,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2027,1.25,0.9022741761999745,0.30438494653383935,0.85,0.8875105445831714,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2027,1.3,0.9052655449010857,0.30539409389299965,0.85,0.8875105445831714,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2027,1.35,0.9083749013262677,0.3064430447709021,0.85,0.8875105445831714,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2027,1.4,0.9115736105376656,0.3075221390838849,0.85,0.8875105445831714,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2027,1.45,0.9148368293953858,0.3086229959228988,0.85,0.8875105445831714,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2027,1.5,0.9181431140939416,0.3097383811547294,0.85,0.8875105445831714,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2027,1.55,0.9214740895312574,0.3108620958826218,0.85,0.8875105445831714,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2027,1.6,0.9248141200069081,0.311988865355327,0.85,0.8875105445831714,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2027,1.65,0.9281499180273352,0.31311420699634757,0.85,0.8875105445831714,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2027,1.7,0.9314703671287925,0.31423437063271814,0.85,0.8875105445831714,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2027,1.75,0.9347661411575047,0.3153462100580048,0.85,0.8875105445831714,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2027,1.8,0.9380295327049986,0.3164471251544408,0.85,0.8875105445831714,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2028,0.4,0.9187016142134601,0.3099267928742521,0.7,0.889077159748905,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2028,0.45,0.9081764532559675,0.30637609770884333,0.7,0.889077159748905,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2028,0.5,0.9005062091095181,0.3037885174411121,0.7,0.889077159748905,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2028,0.55,0.8951487211876329,0.30198115254286495,0.7,0.889077159748905,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2028,0.6,0.8916760603204729,0.3008096398028767,0.7,0.889077159748905,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2028,0.65,0.8897453777916842,0.3001583181605194,0.7,0.889077159748905,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2028,0.7,0.889077159748905,0.29993289276479224,0.7,0.889077159748905,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2028,0.75,0.88944021850789,0.30005537174497066,0.7,0.889077159748905,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2028,0.8,0.890641477070728,0.3004606199866556,0.7,0.889077159748905,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2028,0.85,0.8925188175735645,0.30109394653379046,0.7,0.889077159748905,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2028,0.9,0.8949359727595474,0.3019093812114713,0.7,0.889077159748905,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2028,0.95,0.8977785909209558,0.3028683471221666,0.7,0.889077159748905,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2028,1.0,0.9009509930410272,0.30393856665761715,0.7,0.889077159748905,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2028,1.05,0.9043734974824362,0.3050931589743313,0.7,0.889077159748905,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2028,1.1,0.9079800695345026,0.3063098470611633,0.7,0.889077159748905,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2028,1.15,0.9117162376596765,0.30757025477870664,0.7,0.889077159748905,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2028,1.2,0.9155373460866986,0.30885931736626465,0.7,0.889077159748905,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2028,1.25,0.9194069498702699,0.31016474001033295,0.7,0.889077159748905,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2028,1.3,0.9232955199075225,0.31147656097795406,0.7,0.889077159748905,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2028,1.35,0.9271792861196668,0.3127867613605166,0.7,0.889077159748905,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2028,1.4,0.9310392145425302,0.31408891999212674,0.7,0.889077159748905,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2028,1.45,0.9348602763949246,0.315377966867592,0.7,0.889077159748905,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2028,1.5,0.9386306410676577,0.3166499108948015,0.7,0.889077159748905,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2028,1.55,0.9423412083370765,0.31790168208553754,0.7,0.889077159748905,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2028,1.6,0.9459850740848565,0.31913095131441627,0.7,0.889077159748905,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2028,1.65,0.9495571160128685,0.32033599055853357,0.7,0.889077159748905,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2028,1.7,0.9530537014199644,0.32151557431507233,0.7,0.889077159748905,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2028,1.75,0.9564723808523697,0.3226688762533275,0.7,0.889077159748905,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2028,1.8,0.9598116829426709,0.32379540000301243,0.7,0.889077159748905,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2029,0.4,0.9012119175298061,0.3040265903300898,0.55,0.8945881237524181,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2029,0.45,0.8971532337104487,0.30265738095899164,0.55,0.8945881237524181,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2029,0.5,0.8950742386628322,0.301956025635848,0.55,0.8945881237524181,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2029,0.55,0.8945881237524181,0.3017920332874924,0.55,0.8945881237524181,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2029,0.6,0.8953685081092063,0.30205529833151396,0.55,0.8945881237524181,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2029,0.65,0.8971427924274901,0.30265385856032506,0.55,0.8945881237524181,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2029,0.7,0.8996856314523577,0.30351169306456444,0.55,0.8945881237524181,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2029,0.75,0.9028124375892247,0.30456653065594974,0.55,0.8945881237524181,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2029,0.8,0.9063732616391466,0.30576778551466316,0.55,0.8945881237524181,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2029,0.85,0.9102472482947951,0.30707468673400057,0.55,0.8945881237524181,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2029,0.9,0.9143376630414951,0.30845460063026126,0.55,0.8945881237524181,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2029,0.95,0.9185676604957943,0.30988160317885216,0.55,0.8945881237524181,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2029,1.0,0.922876627480269,0.31133524633941484,0.55,0.8945881237524181,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2029,1.05,0.9272171045264043,0.3127995195154283,0.55,0.8945881237524181,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2029,1.1,0.9315522863553402,0.3142620063337617,0.55,0.8945881237524181,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2029,1.15,0.9358538486863549,0.31571315151188517,0.55,0.8945881237524181,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2029,1.2,0.9401003344633008,0.3171457164464333,0.55,0.8945881237524181,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2029,1.25,0.9442756578984716,0.31855427454783936,0.55,0.8945881237524181,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2029,1.3,0.9483680882922986,0.31993486842880886,0.55,0.8945881237524181,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2029,1.35,0.9523692760598255,0.32128468133137894,0.55,0.8945881237524181,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2029,1.4,0.9562735432896217,0.32260179779480297,0.55,0.8945881237524181,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2029,1.45,0.960077348347584,0.3238850230380093,0.55,0.8945881237524181,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2029,1.5,0.9637787555305487,0.3251337040456291,0.55,0.8945881237524181,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2029,1.55,0.9673771373593187,0.32634762913564047,0.55,0.8945881237524181,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2029,1.6,0.9708728281628283,0.3275269110949296,0.55,0.8945881237524181,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2029,1.65,0.9742669261434973,0.32867192040543386,0.55,0.8945881237524181,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2029,1.7,0.9775610898625253,0.3297832165878349,0.55,0.8945881237524181,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2029,1.75,0.9807573899909283,0.3308614981893183,0.55,0.8945881237524181,seed,,,,
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",2029,1.8,0.9838582124609816,0.33190757011141764,0.55,0.8945881237524181,seed,,,,
 ets_unet_wasserstein,ETS-U-Net Wasserstein,Wasserstein,2025,0.2,0.900029142862069,0.30362757768681875,1.7,0.894683740282358,seed,,,,
 ets_unet_wasserstein,ETS-U-Net Wasserstein,Wasserstein,2025,0.25,0.8994213080304232,0.3034225227516203,1.7,0.894683740282358,seed,,,,
 ets_unet_wasserstein,ETS-U-Net Wasserstein,Wasserstein,2025,0.3,0.8989803417780957,0.30327376144083645,1.7,0.894683740282358,seed,,,,
@@ -1175,35 +1320,64 @@ ets_unet_hazard_event_nll,ETS-U-Net hazard EventNLL,Hazard EventNLL,mean,1.65,2.
 ets_unet_hazard_event_nll,ETS-U-Net hazard EventNLL,Hazard EventNLL,mean,1.7,2.0995326387860516,0.7082837421929099,0.6399999999999999,0.8751615671255172,group_mean,0.08203719068169749,0.02767549660415025,0.04183300132670377,0.002812928538976431
 ets_unet_hazard_event_nll,ETS-U-Net hazard EventNLL,Hazard EventNLL,mean,1.75,2.1855965955292933,0.7373176806151666,0.6399999999999999,0.8751615671255172,group_mean,0.08335252776822573,0.028119229583900462,0.04183300132670377,0.002812928538976431
 ets_unet_hazard_event_nll,ETS-U-Net hazard EventNLL,Hazard EventNLL,mean,1.8,2.2667865337223354,0.7647073540069689,0.6399999999999999,0.8751615671255172,group_mean,0.08401130415894145,0.028341469809493817,0.04183300132670377,0.002812928538976431
-ets_unet_time_only,ETS-U-Net time-only,Time-only,mean,0.4,0.9144999262922411,0.30850934063302937,0.7,0.8926869864019226,group_mean,0.00849319409029894,0.0028652049424322578,0.10606601717798211,0.005562651938473088
-ets_unet_time_only,ETS-U-Net time-only,Time-only,mean,0.45,0.9071847676591395,0.3060415495467313,0.7,0.8926869864019226,group_mean,0.006750642695155803,0.002277349912072228,0.10606601717798211,0.005562651938473088
-ets_unet_time_only,ETS-U-Net time-only,Time-only,mean,0.5,0.9017915776583518,0.3042221404432253,0.7,0.8926869864019226,group_mean,0.005351925283904694,0.0018054883253506519,0.10606601717798211,0.005562651938473088
-ets_unet_time_only,ETS-U-Net time-only,Time-only,mean,0.55,0.898024644144647,0.30295135392798384,0.7,0.8926869864019226,group_mean,0.004438957964675835,0.001497496014387044,0.10606601717798211,0.005562651938473088
-ets_unet_time_only,ETS-U-Net time-only,Time-only,mean,0.6,0.8956369798864554,0.30214586810478167,0.7,0.8926869864019226,group_mean,0.004258118038883616,0.0014364891136074173,0.10606601717798211,0.005562651938473088
-ets_unet_time_only,ETS-U-Net time-only,Time-only,mean,0.65,0.894418660367234,0.30173486429740126,0.7,0.8926869864019226,group_mean,0.00483538561753559,0.0016312320927357,0.10606601717798211,0.005562651938473088
-ets_unet_time_only,ETS-U-Net time-only,Time-only,mean,0.7,0.8941887328041747,0.30165729753240383,0.7,0.8926869864019226,group_mean,0.005888840343140987,0.0019866182589226727,0.10606601717798211,0.005562651938473088
-ets_unet_time_only,ETS-U-Net time-only,Time-only,mean,0.75,0.894789826200153,0.30186007822370914,0.7,0.8926869864019226,group_mean,0.00714181672427047,0.002409313664419613,0.10606601717798211,0.005562651938473088
-ets_unet_time_only,ETS-U-Net time-only,Time-only,mean,0.8,0.8960845439973794,0.30229685522329575,0.7,0.8926869864019226,group_mean,0.008437782785840606,0.0028465117697916015,0.10606601717798211,0.005562651938473088
-ets_unet_time_only,ETS-U-Net time-only,Time-only,mean,0.85,0.8979529288664002,0.30292716056003577,0.7,0.8926869864019226,group_mean,0.009698138760520258,0.003271696703690724,0.10606601717798211,0.005562651938473088
-ets_unet_time_only,ETS-U-Net time-only,Time-only,mean,0.9,0.9002905442189169,0.3037157622321896,0.7,0.8926869864019226,group_mean,0.010883429123157245,0.003671558024312585,0.10606601717798211,0.005562651938473088
-ets_unet_time_only,ETS-U-Net time-only,Time-only,mean,0.95,0.9030069063977807,0.30463213530191674,0.7,0.8926869864019226,group_mean,0.011974315995615548,0.00403957203946056,0.10606601717798211,0.005562651938473088
-ets_unet_time_only,ETS-U-Net time-only,Time-only,mean,1.0,0.9060240559757913,0.3056499799185667,0.7,0.8926869864019226,group_mean,0.012962623749513449,0.004372980675953021,0.10606601717798211,0.005562651938473088
-ets_unet_time_only,ETS-U-Net time-only,Time-only,mean,1.05,0.9092752349242506,0.30674677505745296,0.7,0.8926869864019226,group_mean,0.013846738091008625,0.004671239346836413,0.10606601717798211,0.005562651938473088
-ets_unet_time_only,ETS-U-Net time-only,Time-only,mean,1.1,0.9127036706877053,0.30790336832375803,0.7,0.8926869864019226,group_mean,0.014629046426319276,0.004935153450883364,0.10606601717798211,0.005562651938473088
-ets_unet_time_only,ETS-U-Net time-only,Time-only,mean,1.15,0.9162613492235081,0.3091035620336852,0.7,0.8926869864019226,group_mean,0.015314342582596977,0.005166340200311294,0.10606601717798211,0.005562651938473088
-ets_unet_time_only,ETS-U-Net time-only,Time-only,mean,1.2,0.919907987357016,0.31033376653534883,0.7,0.8926869864019226,group_mean,0.015908828161894588,0.005366891724496259,0.10606601717798211,0.005562651938473088
-ets_unet_time_only,ETS-U-Net time-only,Time-only,mean,1.25,0.9236099421194881,0.3115826322705863,0.7,0.8926869864019226,group_mean,0.01641941038166196,0.005539138194321615,0.10606601717798211,0.005562651938473088
-ets_unet_time_only,ETS-U-Net time-only,Time-only,mean,1.3,0.9273393637622224,0.3128407640416925,0.7,0.8926869864019226,group_mean,0.01685326927555421,0.005685501816049991,0.10606601717798211,0.005562651938473088
-ets_unet_time_only,ETS-U-Net time-only,Time-only,mean,1.35,0.9310733395711137,0.3141004321746483,0.7,0.8926869864019226,group_mean,0.01721752669098097,0.005808385166636603,0.10606601717798211,0.005562651938473088
-ets_unet_time_only,ETS-U-Net time-only,Time-only,mean,1.4,0.9347931418582084,0.3153553188267769,0.7,0.8926869864019226,group_mean,0.017519059585236724,0.005910108208609034,0.10606601717798211,0.005562651938473088
-ets_unet_time_only,ETS-U-Net time-only,Time-only,mean,1.45,0.9384836474828633,0.31660032216043593,0.7,0.8926869864019226,group_mean,0.017764370638900556,0.005992864641102872,0.10606601717798211,0.005562651938473088
-ets_unet_time_only,ETS-U-Net time-only,Time-only,mean,1.5,0.9421327055372002,0.3178313430297754,0.7,0.8926869864019226,group_mean,0.017959516560955794,0.006058697713375038,0.10606601717798211,0.005562651938473088
-ets_unet_time_only,ETS-U-Net time-only,Time-only,mean,1.55,0.9457307238791912,0.3190451454964128,0.7,0.8926869864019226,group_mean,0.018110081825137233,0.006109491364680385,0.10606601717798211,0.005562651938473088
-ets_unet_time_only,ETS-U-Net time-only,Time-only,mean,1.6,0.9492702227578167,0.32023920624351787,0.7,0.8926869864019226,group_mean,0.01822115354413121,0.006146961748006427,0.10606601717798211,0.005562651938473088
-ets_unet_time_only,ETS-U-Net time-only,Time-only,mean,1.65,0.952745468447838,0.3214115909813856,0.7,0.8926869864019226,group_mean,0.018297362337234543,0.00617267101690278,0.10606601717798211,0.005562651938473088
-ets_unet_time_only,ETS-U-Net time-only,Time-only,mean,1.7,0.9561522204671766,0.3225608691704476,0.7,0.8926869864019226,group_mean,0.01834286582733143,0.006188021758135979,0.10606601717798211,0.005562651938473088
-ets_unet_time_only,ETS-U-Net time-only,Time-only,mean,1.75,0.9594874210056654,0.3236860092491131,0.7,0.8926869864019226,group_mean,0.01836140429931238,0.006194275768226916,0.10606601717798211,0.005562651938473088
-ets_unet_time_only,ETS-U-Net time-only,Time-only,mean,1.8,0.962749032988142,0.3247863240038603,0.7,0.8926869864019226,group_mean,0.01835632498195,0.006192562245015732,0.10606601717798211,0.005562651938473088
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",mean,0.4,0.9144999262922411,0.30850934063302937,0.7,0.8926869864019226,group_mean,0.00849319409029894,0.0028652049424322578,0.10606601717798211,0.005562651938473088
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",mean,0.45,0.9071847676591395,0.3060415495467313,0.7,0.8926869864019226,group_mean,0.006750642695155803,0.002277349912072228,0.10606601717798211,0.005562651938473088
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",mean,0.5,0.9017915776583518,0.3042221404432253,0.7,0.8926869864019226,group_mean,0.005351925283904694,0.0018054883253506519,0.10606601717798211,0.005562651938473088
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",mean,0.55,0.898024644144647,0.30295135392798384,0.7,0.8926869864019226,group_mean,0.004438957964675835,0.001497496014387044,0.10606601717798211,0.005562651938473088
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",mean,0.6,0.8956369798864554,0.30214586810478167,0.7,0.8926869864019226,group_mean,0.004258118038883616,0.0014364891136074173,0.10606601717798211,0.005562651938473088
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",mean,0.65,0.894418660367234,0.30173486429740126,0.7,0.8926869864019226,group_mean,0.00483538561753559,0.0016312320927357,0.10606601717798211,0.005562651938473088
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",mean,0.7,0.8941887328041747,0.30165729753240383,0.7,0.8926869864019226,group_mean,0.005888840343140987,0.0019866182589226727,0.10606601717798211,0.005562651938473088
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",mean,0.75,0.894789826200153,0.30186007822370914,0.7,0.8926869864019226,group_mean,0.00714181672427047,0.002409313664419613,0.10606601717798211,0.005562651938473088
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",mean,0.8,0.8960845439973794,0.30229685522329575,0.7,0.8926869864019226,group_mean,0.008437782785840606,0.0028465117697916015,0.10606601717798211,0.005562651938473088
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",mean,0.85,0.8979529288664002,0.30292716056003577,0.7,0.8926869864019226,group_mean,0.009698138760520258,0.003271696703690724,0.10606601717798211,0.005562651938473088
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",mean,0.9,0.9002905442189169,0.3037157622321896,0.7,0.8926869864019226,group_mean,0.010883429123157245,0.003671558024312585,0.10606601717798211,0.005562651938473088
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",mean,0.95,0.9030069063977807,0.30463213530191674,0.7,0.8926869864019226,group_mean,0.011974315995615548,0.00403957203946056,0.10606601717798211,0.005562651938473088
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",mean,1.0,0.9060240559757913,0.3056499799185667,0.7,0.8926869864019226,group_mean,0.012962623749513449,0.004372980675953021,0.10606601717798211,0.005562651938473088
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",mean,1.05,0.9092752349242506,0.30674677505745296,0.7,0.8926869864019226,group_mean,0.013846738091008625,0.004671239346836413,0.10606601717798211,0.005562651938473088
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",mean,1.1,0.9127036706877053,0.30790336832375803,0.7,0.8926869864019226,group_mean,0.014629046426319276,0.004935153450883364,0.10606601717798211,0.005562651938473088
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",mean,1.15,0.9162613492235081,0.3091035620336852,0.7,0.8926869864019226,group_mean,0.015314342582596977,0.005166340200311294,0.10606601717798211,0.005562651938473088
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",mean,1.2,0.919907987357016,0.31033376653534883,0.7,0.8926869864019226,group_mean,0.015908828161894588,0.005366891724496259,0.10606601717798211,0.005562651938473088
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",mean,1.25,0.9236099421194881,0.3115826322705863,0.7,0.8926869864019226,group_mean,0.01641941038166196,0.005539138194321615,0.10606601717798211,0.005562651938473088
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",mean,1.3,0.9273393637622224,0.3128407640416925,0.7,0.8926869864019226,group_mean,0.01685326927555421,0.005685501816049991,0.10606601717798211,0.005562651938473088
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",mean,1.35,0.9310733395711137,0.3141004321746483,0.7,0.8926869864019226,group_mean,0.01721752669098097,0.005808385166636603,0.10606601717798211,0.005562651938473088
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",mean,1.4,0.9347931418582084,0.3153553188267769,0.7,0.8926869864019226,group_mean,0.017519059585236724,0.005910108208609034,0.10606601717798211,0.005562651938473088
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",mean,1.45,0.9384836474828633,0.31660032216043593,0.7,0.8926869864019226,group_mean,0.017764370638900556,0.005992864641102872,0.10606601717798211,0.005562651938473088
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",mean,1.5,0.9421327055372002,0.3178313430297754,0.7,0.8926869864019226,group_mean,0.017959516560955794,0.006058697713375038,0.10606601717798211,0.005562651938473088
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",mean,1.55,0.9457307238791912,0.3190451454964128,0.7,0.8926869864019226,group_mean,0.018110081825137233,0.006109491364680385,0.10606601717798211,0.005562651938473088
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",mean,1.6,0.9492702227578167,0.32023920624351787,0.7,0.8926869864019226,group_mean,0.01822115354413121,0.006146961748006427,0.10606601717798211,0.005562651938473088
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",mean,1.65,0.952745468447838,0.3214115909813856,0.7,0.8926869864019226,group_mean,0.018297362337234543,0.00617267101690278,0.10606601717798211,0.005562651938473088
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",mean,1.7,0.9561522204671766,0.3225608691704476,0.7,0.8926869864019226,group_mean,0.01834286582733143,0.006188021758135979,0.10606601717798211,0.005562651938473088
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",mean,1.75,0.9594874210056654,0.3236860092491131,0.7,0.8926869864019226,group_mean,0.01836140429931238,0.006194275768226916,0.10606601717798211,0.005562651938473088
+ets_unet_time_only,Soft-argmax RT loss,"Soft-argmax
+RT loss",mean,1.8,0.962749032988142,0.3247863240038603,0.7,0.8926869864019226,group_mean,0.01835632498195,0.006192562245015732,0.10606601717798211,0.005562651938473088
 ets_unet_wasserstein,ETS-U-Net Wasserstein,Wasserstein,mean,0.2,0.9031261580453904,0.30467236520912155,2.0700000000000003,0.8935705301512895,group_mean,0.003699614777368359,0.0012480763341225069,0.7839005038906404,0.008502610918008729
 ets_unet_wasserstein,ETS-U-Net Wasserstein,Wasserstein,mean,0.25,0.9024455587321253,0.3044427629540158,2.0700000000000003,0.8935705301512895,group_mean,0.0035301616754792407,0.0011909108131322645,0.7839005038906404,0.008502610918008729
 ets_unet_wasserstein,ETS-U-Net Wasserstein,Wasserstein,mean,0.3,0.9019309885434094,0.3042691711306968,2.0700000000000003,0.8935705301512895,group_mean,0.00341950354805311,0.0011535799561836742,0.7839005038906404,0.008502610918008729

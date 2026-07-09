@@ -125,6 +125,7 @@ paper_tables:
     - main_02_event_time_objectives.md
     - main_03_shift_jitter_summary.md
     - main_04_posterior_geometry.md
+    - main_06_experiments_map.md
   appendix:
     - appendix_01_regression_shifted_crop.md
     - appendix_02_fixed_shifted_details.md

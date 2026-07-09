@@ -153,10 +153,16 @@ def display_label(label: str) -> str:
         "ETS-U-Net EventNLL": "EventNLL",
         "ETS-U-Net mixture EventNLL": "Mixture EventNLL",
         "ETS-U-Net hazard EventNLL": "Hazard EventNLL",
-        "ETS-U-Net time-only": "Time-only",
+        "ETS-U-Net time-only": "Soft-argmax\nRT loss",
+        "Soft-argmax RT loss": "Soft-argmax\nRT loss",
         "ETS-U-Net Wasserstein": "Wasserstein",
     }
     return replacements.get(label, label)
+
+
+def display_label_singleline(label: str) -> str:
+    """Return a compact one-line label for point annotations."""
+    return display_label(label).replace("\n", " ")
 
 
 def selected(figures: list[str], name: str) -> bool:
@@ -316,7 +322,7 @@ def pareto_frame(groups: list[PosteriorGroup], seed_summary: pd.DataFrame, *, ne
             {
                 "name": group.name,
                 "label": group.label,
-                "display_label": display_label(group.label),
+                "display_label": display_label_singleline(group.label),
                 "color": group.color,
                 "n_runs": int(len(frame)),
                 "nrmse_mean": nrmse_mean,
@@ -679,17 +685,17 @@ def plot_trial_raster(
     vmax = float(np.quantile(np.concatenate([values.ravel() for values in transformed]), 0.995))
     vmax = max(vmax, 1e-6)
 
-    fig = plt.figure(figsize=(8.8, 1.30 * len(groups) + 1.10))
+    fig = plt.figure(figsize=(7.2, 0.86 * len(groups) + 0.70))
     grid_spec = fig.add_gridspec(
         len(groups),
         2,
-        width_ratios=[1.0, 0.032],
-        left=0.28,
-        right=0.91,
-        bottom=0.08,
-        top=0.92,
-        hspace=0.13,
-        wspace=0.06,
+        width_ratios=[1.0, 0.026],
+        left=0.055,
+        right=0.955,
+        bottom=0.10,
+        top=0.975,
+        hspace=0.10,
+        wspace=0.035,
     )
     axes = [fig.add_subplot(grid_spec[i, 0]) for i in range(len(groups))]
     color_axis = fig.add_subplot(grid_spec[:, 1])
@@ -708,7 +714,17 @@ def plot_trial_raster(
         )
         line = ax.plot(targets, display_rows, color="#111111", linewidth=1.15, label="Observed RT")[0]
         line.set_path_effects([pe.Stroke(linewidth=2.5, foreground="white"), pe.Normal()])
-        ax.set_ylabel(display_label(group.label), rotation=0, ha="right", va="center", labelpad=30, color=group.color)
+        ax.text(
+            0.012,
+            0.92,
+            display_label(group.label).replace("\n", " "),
+            transform=ax.transAxes,
+            ha="left",
+            va="top",
+            fontsize=8.2,
+            fontweight="semibold",
+            color="white",
+        )
         ax.set_yticks([])
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
@@ -717,11 +733,9 @@ def plot_trial_raster(
         if index < len(axes) - 1:
             ax.tick_params(axis="x", labelbottom=False)
     axes[-1].set_xlabel("Time from stimulus onset (s)")
-    fig.suptitle("R11 event-time posteriors sorted by observed RT", y=0.985)
-    fig.text(0.035, 0.5, "RT-sorted quantile bins", rotation=90, va="center", ha="center")
     if image is not None:
         color_bar = fig.colorbar(image, cax=color_axis)
-        color_bar.set_label("log(1 + posterior density)")
+        color_bar.set_label("log(1 + density)")
         color_bar.ax.tick_params(labelsize=8)
     paths = save_figure(fig, output_dir, "trial_sorted_posterior_raster", formats, dpi=dpi)
     plt.close(fig)

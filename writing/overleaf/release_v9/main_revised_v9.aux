@@ -40,12 +40,8 @@
 \newlabel{tab:ccd_protocol_stats}{{1}{7}{Release-separated CCD protocol statistics after window construction and RT-support filtering. Prepared trials are 2~s CCD windows with stimulus and response annotations; analyzed trials additionally satisfy \(0.5 \leq \mathrm {RT} \leq 2.5\)~s}{table.1}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Shared Evaluation Protocol}{7}{subsection.3.2}\protected@file@percent }
 \citation{EEGChallengeWebsite2025}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Shared Training, Readout Tuning, and Inference Protocol}{8}{subsection.3.3}\protected@file@percent }
-\newlabel{sec:shared_protocol}{{3.3}{8}{Shared Training, Readout Tuning, and Inference Protocol}{subsection.3.3}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {4}Regression Controls}{8}{section.4}\protected@file@percent }
-\newlabel{sec:regression_controls}{{4}{8}{Regression Controls}{section.4}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Scalar Regression Baselines}{8}{subsection.4.1}\protected@file@percent }
-\newlabel{sec:baseline_regression}{{4.1}{8}{Scalar Regression Baselines}{subsection.4.1}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Controlled comparison and diagnostic blocks under the shared protocol. The first two blocks define the main scalar-performance comparisons; the final block evaluates posterior readout, posterior geometry, and shortcut-vs-localization behavior after event-time models have been trained.}}{8}{table.2}\protected@file@percent }
+\newlabel{tab:experiment_map}{{2}{8}{Controlled comparison and diagnostic blocks under the shared protocol. The first two blocks define the main scalar-performance comparisons; the final block evaluates posterior readout, posterior geometry, and shortcut-vs-localization behavior after event-time models have been trained}{table.2}{}}
 \citation{braindecode}
 \citation{lawhern2018eegnet}
 \citation{kostas2020thinkerinvariance}
@@ -54,10 +50,10 @@
 \citation{wang2024eegpt}
 \citation{wang2024medformer}
 \citation{Jiang2024LaBraM}
-\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Model-family-specific targets and readouts within the shared protocol.}}{9}{table.2}\protected@file@percent }
-\newlabel{tab:shared_protocol_by_family}{{2}{9}{Model-family-specific targets and readouts within the shared protocol}{table.2}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {5}Event-Time Posterior Formulation}{9}{section.5}\protected@file@percent }
-\newlabel{sec:event_time_formulation}{{5}{9}{Event-Time Posterior Formulation}{section.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Shared Training, Readout Tuning, and Inference Protocol}{9}{subsection.3.3}\protected@file@percent }
+\newlabel{sec:shared_protocol}{{3.3}{9}{Shared Training, Readout Tuning, and Inference Protocol}{subsection.3.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Scalar Regression Controls}{9}{section.4}\protected@file@percent }
+\newlabel{sec:baseline_regression}{{4}{9}{Scalar Regression Controls}{section.4}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces MSP-CNN direct RT regression baseline architecture. A lightweight 1-D temporal ConvNet maps an EEG trial window to a scalar reaction-time prediction. A learned $1\times 1$ channel-squeeze layer (128$\rightarrow $48) is followed by residual depthwise-separable stages with anti-aliased temporal downsampling, segment-wise pooling (2 and 4 segments; mean+max), and an MLP head.}}{10}{figure.2}\protected@file@percent }
 \newlabel{fig:ch1_regression}{{2}{10}{MSP-CNN direct RT regression baseline architecture. A lightweight 1-D temporal ConvNet maps an EEG trial window to a scalar reaction-time prediction. A learned $1\times 1$ channel-squeeze layer (128$\rightarrow $48) is followed by residual depthwise-separable stages with anti-aliased temporal downsampling, segment-wise pooling (2 and 4 segments; mean+max), and an MLP head}{figure.2}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Direct-regression and wrapped external backbone baselines. Values are mean $\pm $ sample standard deviation.}}{10}{table.3}\protected@file@percent }
@@ -69,50 +65,52 @@
 \citation{yu2016dilated}
 \@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Event-time posterior formulation for EEG reaction-time prediction. A fixed 0.5--2.5~s stimulus-locked EEG window is mapped to time-bin logits, and behavioral RT provides weak event-time supervision either through a soft target distribution or a latent EventNLL likelihood. Scalar RT is read out as the posterior expectation after selecting a readout temperature on R9--R10. Shifted crops are used only for diagnostic and shift-jitter intervention analyses. The schematic shows the categorical posterior readout; the hazard EventNLL variant uses a hazard-derived probability mass function with the same expectation readout.}}{11}{figure.3}\protected@file@percent }
 \newlabel{fig:event_time_scheme}{{3}{11}{Event-time posterior formulation for EEG reaction-time prediction. A fixed 0.5--2.5~s stimulus-locked EEG window is mapped to time-bin logits, and behavioral RT provides weak event-time supervision either through a soft target distribution or a latent EventNLL likelihood. Scalar RT is read out as the posterior expectation after selecting a readout temperature on R9--R10. Shifted crops are used only for diagnostic and shift-jitter intervention analyses. The schematic shows the categorical posterior readout; the hazard EventNLL variant uses a hazard-derived probability mass function with the same expectation readout}{figure.3}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Event-Time Segmentation Architecture}{11}{subsection.5.1}\protected@file@percent }
-\newlabel{sec:event_time_architectures}{{5.1}{11}{Event-Time Segmentation Architecture}{subsection.5.1}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Soft-Target Event-Time Objectives}{11}{subsection.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}Event-Time Posterior Formulation}{11}{section.5}\protected@file@percent }
+\newlabel{sec:event_time_formulation}{{5}{11}{Event-Time Posterior Formulation}{section.5}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces ETS-U-Net for RT segmentation. A lightweight 1-D U-Net maps an EEG trial window to per-time logits and an event-time distribution $p(t)$. The encoder applies a $1\times 1$ channel-squeeze layer followed by residual blocks with temporal downsampling (\texttt  {TimeDown}); a bottleneck aggregates context, and the decoder upsamples with skip connections to recover time-resolved outputs. The right panel shows an example prediction $p(t)$ and Gaussian soft target $q(t)$, together with the resulting predicted vs.\ observed response time.}}{12}{figure.4}\protected@file@percent }
 \newlabel{fig:ets_unet}{{4}{12}{ETS-U-Net for RT segmentation. A lightweight 1-D U-Net maps an EEG trial window to per-time logits and an event-time distribution $p(t)$. The encoder applies a $1\times 1$ channel-squeeze layer followed by residual blocks with temporal downsampling (\texttt {TimeDown}); a bottleneck aggregates context, and the decoder upsamples with skip connections to recover time-resolved outputs. The right panel shows an example prediction $p(t)$ and Gaussian soft target $q(t)$, together with the resulting predicted vs.\ observed response time}{figure.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Event-Time Segmentation Architecture}{12}{subsection.5.1}\protected@file@percent }
+\newlabel{sec:event_time_architectures}{{5.1}{12}{Event-Time Segmentation Architecture}{subsection.5.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Soft-Target Event-Time Objectives}{12}{subsection.5.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Soft target distribution.}{12}{section*.1}\protected@file@percent }
-\newlabel{eq:rt_soft_target}{{1}{12}{Soft target distribution}{equation.1}{}}
-\@writefile{toc}{\contentsline {paragraph}{Model output and losses.}{12}{section*.2}\protected@file@percent }
-\newlabel{eq:rt_pred_dist}{{2}{12}{Model output and losses}{equation.2}{}}
-\newlabel{eq:rt_loss}{{3}{12}{Model output and losses}{equation.3}{}}
+\newlabel{eq:rt_soft_target}{{1}{12}{Soft target distribution}{equation.5.1}{}}
+\@writefile{toc}{\contentsline {paragraph}{Model output and losses.}{13}{section*.2}\protected@file@percent }
+\newlabel{eq:rt_pred_dist}{{2}{13}{Model output and losses}{equation.5.2}{}}
+\newlabel{eq:rt_loss}{{3}{13}{Model output and losses}{equation.5.3}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Likelihood-Based Event-Time Objectives}{13}{subsection.5.3}\protected@file@percent }
 \newlabel{sec:event_nll}{{5.3}{13}{Likelihood-Based Event-Time Objectives}{subsection.5.3}{}}
-\newlabel{eq:event_nll}{{4}{13}{Likelihood-Based Event-Time Objectives}{equation.4}{}}
+\newlabel{eq:event_nll}{{4}{13}{Likelihood-Based Event-Time Objectives}{equation.5.4}{}}
 \@writefile{toc}{\contentsline {paragraph}{Observation-kernel and hazard extensions.}{13}{section*.3}\protected@file@percent }
-\newlabel{eq:event_nll_mixture_kernel}{{5}{13}{Observation-kernel and hazard extensions}{equation.5}{}}
-\newlabel{eq:hazard_readout}{{6}{13}{Observation-kernel and hazard extensions}{equation.6}{}}
+\newlabel{eq:event_nll_mixture_kernel}{{5}{14}{Observation-kernel and hazard extensions}{equation.5.5}{}}
+\newlabel{eq:hazard_readout}{{6}{14}{Observation-kernel and hazard extensions}{equation.5.6}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Event-time objective variants with a fixed ETS-U-Net backbone. Temperature is selected on R9--R10 for posterior-mean readout and then applied unchanged to the holdout split. Values are mean $\pm $ sample standard deviation over seeds 2025--2029.}}{14}{table.4}\protected@file@percent }
+\newlabel{tab:r11_segmentation_losses}{{4}{14}{Event-time objective variants with a fixed ETS-U-Net backbone. Temperature is selected on R9--R10 for posterior-mean readout and then applied unchanged to the holdout split. Values are mean $\pm $ sample standard deviation over seeds 2025--2029}{table.4}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Formulation Comparison and Robustness}{14}{subsection.5.4}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Event-time objective variants with a fixed ETS-U-Net backbone. Values are mean $\pm $ sample standard deviation.}}{14}{table.4}\protected@file@percent }
-\newlabel{tab:r11_segmentation_losses}{{4}{14}{Event-time objective variants with a fixed ETS-U-Net backbone. Values are mean $\pm $ sample standard deviation}{table.4}{}}
-\@writefile{toc}{\contentsline {paragraph}{Objective ablations.}{14}{section*.4}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Trial-sorted event-time posterior maps on R11 for matched segmentation losses. Rows are quantile bins of representable R11 trials sorted by observed RT; the x-axis is time from stimulus onset; color shows log-transformed posterior density averaged within each bin. The black curve marks the mean observed RT in each bin.}}{15}{figure.5}\protected@file@percent }
-\newlabel{fig:posterior_raster_main}{{5}{15}{Trial-sorted event-time posterior maps on R11 for matched segmentation losses. Rows are quantile bins of representable R11 trials sorted by observed RT; the x-axis is time from stimulus onset; color shows log-transformed posterior density averaged within each bin. The black curve marks the mean observed RT in each bin}{figure.5}{}}
+\@writefile{toc}{\contentsline {paragraph}{Objective ablations.}{15}{section*.4}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Practical effect size.}{15}{section*.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {6}Posterior Readout and Diagnostics}{16}{section.6}\protected@file@percent }
-\newlabel{sec:posterior_diagnostics}{{6}{16}{Posterior Readout and Diagnostics}{section.6}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Scalar Readout and Temperature Tuning}{16}{subsection.6.1}\protected@file@percent }
-\newlabel{eq:rt_soft_argmax}{{7}{16}{Scalar Readout and Temperature Tuning}{equation.7}{}}
-\newlabel{eq:rt_tau_tuning}{{8}{16}{Scalar Readout and Temperature Tuning}{equation.8}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Posterior Readout and Diagnostics}{15}{section.6}\protected@file@percent }
+\newlabel{sec:posterior_diagnostics}{{6}{15}{Posterior Readout and Diagnostics}{section.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Scalar Readout and Temperature Tuning}{15}{subsection.6.1}\protected@file@percent }
+\newlabel{eq:rt_soft_argmax}{{7}{15}{Scalar Readout and Temperature Tuning}{equation.6.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Trial-sorted event-time posterior maps on the holdout split for matched segmentation losses. Rows are quantile bins of representable holdout trials sorted by observed RT; the x-axis is time from stimulus onset; color shows log-transformed posterior density averaged within each bin. The overlaid curve marks the mean observed RT in each bin.}}{16}{figure.5}\protected@file@percent }
+\newlabel{fig:posterior_raster_main}{{5}{16}{Trial-sorted event-time posterior maps on the holdout split for matched segmentation losses. Rows are quantile bins of representable holdout trials sorted by observed RT; the x-axis is time from stimulus onset; color shows log-transformed posterior density averaged within each bin. The overlaid curve marks the mean observed RT in each bin}{figure.5}{}}
+\newlabel{eq:rt_tau_tuning}{{8}{16}{Scalar Readout and Temperature Tuning}{equation.6.8}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Posterior Geometry Diagnostics}{16}{subsection.6.2}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Posterior geometry differs across event-time losses even when scalar nRMSE is similar. Panel A reports R11 scalar readout after selecting the softmax temperature on R9--R10 to minimize nRMSE. Panel B aligns predicted posteriors to the observed RT. Panels C--E summarize posterior width, near-target mass, and mode-mean disagreement. Panel F compares empirical coverage of central posterior intervals; the diagonal is ideal interval coverage.}}{17}{figure.6}\protected@file@percent }
-\newlabel{fig:posterior_geometry_main}{{6}{17}{Posterior geometry differs across event-time losses even when scalar nRMSE is similar. Panel A reports R11 scalar readout after selecting the softmax temperature on R9--R10 to minimize nRMSE. Panel B aligns predicted posteriors to the observed RT. Panels C--E summarize posterior width, near-target mass, and mode-mean disagreement. Panel F compares empirical coverage of central posterior intervals; the diagonal is ideal interval coverage}{figure.6}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Quantitative posterior geometry on R11 for matched event-time segmentation losses. Values are mean $\pm $ standard deviation across seeds after R9--R10 readout-temperature selection; arrows indicate the preferred direction, Coverage80 is best when close to 0.80, and bold marks the best point estimate per metric.}}{18}{table.5}\protected@file@percent }
-\newlabel{tab:posterior_geometry_metrics}{{5}{18}{Quantitative posterior geometry on R11 for matched event-time segmentation losses. Values are mean $\pm $ standard deviation across seeds after R9--R10 readout-temperature selection; arrows indicate the preferred direction, Coverage80 is best when close to 0.80, and bold marks the best point estimate per metric}{table.5}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Posterior geometry differs across event-time losses even when scalar nRMSE is similar. Panel A reports holdout scalar readout after selecting the softmax temperature on R9--R10 to minimize nRMSE. Panel B aligns predicted posteriors to the observed RT. Panels C--E summarize posterior width, near-target mass, and mode-mean disagreement. Panel F compares empirical coverage of central posterior intervals; the diagonal is ideal interval coverage.}}{18}{figure.6}\protected@file@percent }
+\newlabel{fig:posterior_geometry_main}{{6}{18}{Posterior geometry differs across event-time losses even when scalar nRMSE is similar. Panel A reports holdout scalar readout after selecting the softmax temperature on R9--R10 to minimize nRMSE. Panel B aligns predicted posteriors to the observed RT. Panels C--E summarize posterior width, near-target mass, and mode-mean disagreement. Panel F compares empirical coverage of central posterior intervals; the diagonal is ideal interval coverage}{figure.6}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Quantitative posterior geometry on the holdout split for matched event-time segmentation losses. Values are mean $\pm $ standard deviation across seeds after R9--R10 readout-temperature selection; arrows indicate the preferred direction, Coverage80 is best when close to 0.80, and bold marks the best point estimate per metric.}}{18}{table.5}\protected@file@percent }
+\newlabel{tab:posterior_geometry_metrics}{{5}{18}{Quantitative posterior geometry on the holdout split for matched event-time segmentation losses. Values are mean $\pm $ standard deviation across seeds after R9--R10 readout-temperature selection; arrows indicate the preferred direction, Coverage80 is best when close to 0.80, and bold marks the best point estimate per metric}{table.5}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Shifted-Crop Shortcut-vs-Localization Diagnostic}{18}{subsection.6.3}\protected@file@percent }
 \@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Shifted-crop diagnostic and shift-jitter intervention on the 5~s holdout dataset. Values are seed means; full mean $\pm $ standard deviation values are reported in Appendix Table~\ref {tab:shift_jitter_summary_full}. Arrows indicate the preferred direction.}}{19}{table.6}\protected@file@percent }
 \newlabel{tab:shift_jitter_summary}{{6}{19}{Shifted-crop diagnostic and shift-jitter intervention on the 5~s holdout dataset. Values are seed means; full mean $\pm $ standard deviation values are reported in Appendix Table~\ref {tab:shift_jitter_summary_full}. Arrows indicate the preferred direction}{table.6}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {7}Discussion}{19}{section.7}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.1}Event-Time Supervision and Objective Geometry}{19}{subsection.7.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7}Discussion}{20}{section.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.1}Event-Time Supervision and Objective Geometry}{20}{subsection.7.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {7.2}Posterior Diagnostics and Shifted-Crop Behavior}{20}{subsection.7.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {7.3}Scope and Limitations}{21}{subsection.7.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {8}Conclusion}{21}{section.8}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {A}Additional Posterior Geometry Examples}{21}{appendix.A}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Temperature sensitivity on the R9-R10 development split. Vertical lines mark selected temperatures. The curves show that different losses induce different confidence scales, motivating a fixed readout-temperature selection protocol before comparing posterior-mean scalar readouts or posterior diagnostics.}}{22}{figure.7}\protected@file@percent }
 \newlabel{fig:appendix_temperature_sensitivity}{{7}{22}{Temperature sensitivity on the R9-R10 development split. Vertical lines mark selected temperatures. The curves show that different losses induce different confidence scales, motivating a fixed readout-temperature selection protocol before comparing posterior-mean scalar readouts or posterior diagnostics}{figure.7}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {A}Additional Posterior Geometry Examples}{22}{appendix.A}\protected@file@percent }
 \@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces Full shifted-crop diagnostic and shift-jitter intervention summary with seed variability. Values are mean $\pm $ standard deviation across seeds; the corresponding main-text table reports means only for readability.}}{22}{table.7}\protected@file@percent }
 \newlabel{tab:shift_jitter_summary_full}{{7}{22}{Full shifted-crop diagnostic and shift-jitter intervention summary with seed variability. Values are mean $\pm $ standard deviation across seeds; the corresponding main-text table reports means only for readability}{table.7}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {B}Reproducibility Details}{22}{appendix.B}\protected@file@percent }
@@ -169,4 +167,4 @@
 \bibcite{Yue2024BrainGPT}{{47}{2025}{{Yue et~al.}}{{}}}
 \bibcite{Zanini2018RiemannianTL}{{48}{2018}{{Zanini et~al.}}{{}}}
 \bibcite{zhang2019shiftinvariant}{{49}{2019}{{Zhang}}{{}}}
-\gdef \@abspage@last{29}
+\gdef \@abspage@last{28}

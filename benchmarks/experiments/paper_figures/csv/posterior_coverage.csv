@@ -119,36 +119,36 @@ ets_unet_hazard_event_nll,ETS-U-Net hazard EventNLL,mean,,0.6,0.3052360854655763
 ets_unet_hazard_event_nll,ETS-U-Net hazard EventNLL,mean,,0.7,0.378224742811923,321.9999999999999,group_mean,0.004030407591438611,24.899799195977547
 ets_unet_hazard_event_nll,ETS-U-Net hazard EventNLL,mean,,0.8,0.4678317066737009,445.0,group_mean,0.0069187024436365,14.14213562373097
 ets_unet_hazard_event_nll,ETS-U-Net hazard EventNLL,mean,,0.9,0.5913215510419414,664.0,group_mean,0.0109277352431626,29.664793948382517
-ets_unet_time_only,ETS-U-Net time-only,2025,0.7,0.5,0.5101556317594302,349.9999999999999,seed,,
-ets_unet_time_only,ETS-U-Net time-only,2025,0.7,0.6,0.6145476127670799,470.0,seed,,
-ets_unet_time_only,ETS-U-Net time-only,2025,0.7,0.7,0.721511474544975,630.0000000000001,seed,,
-ets_unet_time_only,ETS-U-Net time-only,2025,0.7,0.8,0.8230018464785017,850.0000000000001,seed,,
-ets_unet_time_only,ETS-U-Net time-only,2025,0.7,0.9,0.9311527301503562,1219.9999999999998,seed,,
-ets_unet_time_only,ETS-U-Net time-only,2026,0.7,0.5,0.48094170403587444,280.0,seed,,
-ets_unet_time_only,ETS-U-Net time-only,2026,0.7,0.6,0.5850039567396466,370.0000000000001,seed,,
-ets_unet_time_only,ETS-U-Net time-only,2026,0.7,0.7,0.6942099709839092,509.9999999999998,seed,,
-ets_unet_time_only,ETS-U-Net time-only,2026,0.7,0.8,0.8071089422316011,710.0,seed,,
-ets_unet_time_only,ETS-U-Net time-only,2026,0.7,0.9,0.9204695331047217,1100.0,seed,,
-ets_unet_time_only,ETS-U-Net time-only,2027,0.85,0.5,0.5383803745713532,329.99999999999983,seed,,
-ets_unet_time_only,ETS-U-Net time-only,2027,0.85,0.6,0.6413215510419414,439.99999999999994,seed,,
-ets_unet_time_only,ETS-U-Net time-only,2027,0.85,0.7,0.7515826958586125,580.0000000000001,seed,,
-ets_unet_time_only,ETS-U-Net time-only,2027,0.85,0.8,0.8546557636507518,800.0000000000002,seed,,
-ets_unet_time_only,ETS-U-Net time-only,2027,0.85,0.9,0.9518596676338696,1220.0000000000002,seed,,
-ets_unet_time_only,ETS-U-Net time-only,2028,0.7,0.5,0.5681218675811132,360.0000000000001,seed,,
-ets_unet_time_only,ETS-U-Net time-only,2028,0.7,0.6,0.6749538380374571,490.0000000000002,seed,,
-ets_unet_time_only,ETS-U-Net time-only,2028,0.7,0.7,0.7838301239778422,689.9999999999998,seed,,
-ets_unet_time_only,ETS-U-Net time-only,2028,0.7,0.8,0.8831442891057768,960.0,seed,,
-ets_unet_time_only,ETS-U-Net time-only,2028,0.7,0.9,0.957465048799789,1349.9999999999995,seed,,
-ets_unet_time_only,ETS-U-Net time-only,2029,0.55,0.5,0.5414138749670272,350.0000000000001,seed,,
-ets_unet_time_only,ETS-U-Net time-only,2029,0.55,0.6,0.6457399103139013,480.0000000000002,seed,,
-ets_unet_time_only,ETS-U-Net time-only,2029,0.55,0.7,0.7455816407280401,660.0000000000001,seed,,
-ets_unet_time_only,ETS-U-Net time-only,2029,0.55,0.8,0.8481930888947508,899.9999999999999,seed,,
-ets_unet_time_only,ETS-U-Net time-only,2029,0.55,0.9,0.9412424162490108,1250.0,seed,,
-ets_unet_time_only,ETS-U-Net time-only,mean,,0.5,0.5278026905829597,334.0,group_mean,0.03327971799005756,32.093613071762455
-ets_unet_time_only,ETS-U-Net time-only,mean,,0.6,0.6323133737800053,450.0000000000001,group_mean,0.0340346571087344,48.476798574163325
-ets_unet_time_only,ETS-U-Net time-only,mean,,0.7,0.7393431812186758,614.0,group_mean,0.03362584051262175,70.9224929059886
-ets_unet_time_only,ETS-U-Net time-only,mean,,0.8,0.8432207860722765,844.0,group_mean,0.029420398475864345,95.55103348472998
-ets_unet_time_only,ETS-U-Net time-only,mean,,0.9,0.9404378791875494,1228.0,group_mean,0.01504973317144034,89.27485648266243
+ets_unet_time_only,Soft-argmax RT loss,2025,0.7,0.5,0.5101556317594302,349.9999999999999,seed,,
+ets_unet_time_only,Soft-argmax RT loss,2025,0.7,0.6,0.6145476127670799,470.0,seed,,
+ets_unet_time_only,Soft-argmax RT loss,2025,0.7,0.7,0.721511474544975,630.0000000000001,seed,,
+ets_unet_time_only,Soft-argmax RT loss,2025,0.7,0.8,0.8230018464785017,850.0000000000001,seed,,
+ets_unet_time_only,Soft-argmax RT loss,2025,0.7,0.9,0.9311527301503562,1219.9999999999998,seed,,
+ets_unet_time_only,Soft-argmax RT loss,2026,0.7,0.5,0.48094170403587444,280.0,seed,,
+ets_unet_time_only,Soft-argmax RT loss,2026,0.7,0.6,0.5850039567396466,370.0000000000001,seed,,
+ets_unet_time_only,Soft-argmax RT loss,2026,0.7,0.7,0.6942099709839092,509.9999999999998,seed,,
+ets_unet_time_only,Soft-argmax RT loss,2026,0.7,0.8,0.8071089422316011,710.0,seed,,
+ets_unet_time_only,Soft-argmax RT loss,2026,0.7,0.9,0.9204695331047217,1100.0,seed,,
+ets_unet_time_only,Soft-argmax RT loss,2027,0.85,0.5,0.5383803745713532,329.99999999999983,seed,,
+ets_unet_time_only,Soft-argmax RT loss,2027,0.85,0.6,0.6413215510419414,439.99999999999994,seed,,
+ets_unet_time_only,Soft-argmax RT loss,2027,0.85,0.7,0.7515826958586125,580.0000000000001,seed,,
+ets_unet_time_only,Soft-argmax RT loss,2027,0.85,0.8,0.8546557636507518,800.0000000000002,seed,,
+ets_unet_time_only,Soft-argmax RT loss,2027,0.85,0.9,0.9518596676338696,1220.0000000000002,seed,,
+ets_unet_time_only,Soft-argmax RT loss,2028,0.7,0.5,0.5681218675811132,360.0000000000001,seed,,
+ets_unet_time_only,Soft-argmax RT loss,2028,0.7,0.6,0.6749538380374571,490.0000000000002,seed,,
+ets_unet_time_only,Soft-argmax RT loss,2028,0.7,0.7,0.7838301239778422,689.9999999999998,seed,,
+ets_unet_time_only,Soft-argmax RT loss,2028,0.7,0.8,0.8831442891057768,960.0,seed,,
+ets_unet_time_only,Soft-argmax RT loss,2028,0.7,0.9,0.957465048799789,1349.9999999999995,seed,,
+ets_unet_time_only,Soft-argmax RT loss,2029,0.55,0.5,0.5414138749670272,350.0000000000001,seed,,
+ets_unet_time_only,Soft-argmax RT loss,2029,0.55,0.6,0.6457399103139013,480.0000000000002,seed,,
+ets_unet_time_only,Soft-argmax RT loss,2029,0.55,0.7,0.7455816407280401,660.0000000000001,seed,,
+ets_unet_time_only,Soft-argmax RT loss,2029,0.55,0.8,0.8481930888947508,899.9999999999999,seed,,
+ets_unet_time_only,Soft-argmax RT loss,2029,0.55,0.9,0.9412424162490108,1250.0,seed,,
+ets_unet_time_only,Soft-argmax RT loss,mean,,0.5,0.5278026905829597,334.0,group_mean,0.03327971799005756,32.093613071762455
+ets_unet_time_only,Soft-argmax RT loss,mean,,0.6,0.6323133737800053,450.0000000000001,group_mean,0.0340346571087344,48.476798574163325
+ets_unet_time_only,Soft-argmax RT loss,mean,,0.7,0.7393431812186758,614.0,group_mean,0.03362584051262175,70.9224929059886
+ets_unet_time_only,Soft-argmax RT loss,mean,,0.8,0.8432207860722765,844.0,group_mean,0.029420398475864345,95.55103348472998
+ets_unet_time_only,Soft-argmax RT loss,mean,,0.9,0.9404378791875494,1228.0,group_mean,0.01504973317144034,89.27485648266243
 ets_unet_wasserstein,ETS-U-Net Wasserstein,2025,1.7,0.5,0.5452387232920074,319.9999999999996,seed,,
 ets_unet_wasserstein,ETS-U-Net Wasserstein,2025,1.7,0.6,0.6173832761804273,389.9999999999999,seed,,
 ets_unet_wasserstein,ETS-U-Net Wasserstein,2025,1.7,0.7,0.6829992086520706,480.0,seed,,

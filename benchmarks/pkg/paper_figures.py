@@ -46,9 +46,9 @@ PAPER_LABELS = {
     "event_nll_mixture": "ETS-U-Net mixture EventNLL",
     "ets_unet_hazard_event_nll": "ETS-U-Net hazard EventNLL",
     "hazard_event_nll": "ETS-U-Net hazard EventNLL",
-    "ets_unet_time_only": "ETS-U-Net time-only",
-    "unet_deeper_time_only": "ETS-U-Net time-only",
-    "time_only": "ETS-U-Net time-only",
+    "ets_unet_time_only": "Soft-argmax RT loss",
+    "unet_deeper_time_only": "Soft-argmax RT loss",
+    "time_only": "Soft-argmax RT loss",
     "ets_unet_wasserstein": "ETS-U-Net Wasserstein",
     "unet_deeper_wass_only": "ETS-U-Net Wasserstein",
     "wass_only": "ETS-U-Net Wasserstein",
@@ -60,7 +60,7 @@ PAPER_COLORS = {
     "ETS-U-Net EventNLL": "#2ca02c",
     "ETS-U-Net mixture EventNLL": "#17becf",
     "ETS-U-Net hazard EventNLL": "#9467bd",
-    "ETS-U-Net time-only": "#d62728",
+    "Soft-argmax RT loss": "#d62728",
     "ETS-U-Net Wasserstein": "#8c564b",
 }
 

@@ -13,6 +13,7 @@ experiment journal `benchmarks/EXPERIMENTS.md`.
 | `main_03_shift_jitter_summary.md` | `Posterior Readout and Diagnostics / Shift-Jitter Summary` | Fixed-vs-jitter comparison of holdout accuracy, shifted-crop robustness, and localization behavior. |
 | `main_04_posterior_geometry.md` | `Posterior Geometry Diagnostics` | Distributional posterior geometry, concentration, and coverage metrics. |
 | `main_05_effect_size.md` | `Event-Time Posterior Formulation` | Practical effect-size summary for the strongest scalar baseline versus the strongest event-time objectives. |
+| `main_06_experiments_map.md` | `Dataset and Evaluation Protocol / Shared Training, Readout Tuning, and Inference Protocol` | Design map linking comparison blocks to backbone capacity, temporal readout, and distributional supervision axes. |
 
 ## Appendix Tables
 

@@ -152,7 +152,7 @@ We address this mismatch by treating behavioral RT as weak event-time supervisio
 
 This formulation is complementary to work on stronger EEG architectures, self-supervised pretraining, and foundation-style EEG models, which target representation learning across subjects, tasks, and recording setups \citep{wang2024eegpt,Jiang2024LaBraM,Chen2024EEGFormer,Wang2025EEGMamba,ElOuahidi2025REVE,Yue2024BrainGPT}. We ask a different question: when the target is a behavioral latency, can changing the output space from a scalar to a latent event-time posterior change both what the model learns and what evidence can be inspected?
 
-We study this question on the Healthy Brain Network contrast change detection EEG task \citep{Shirazi2024HBNEEG}, following the RT prediction setting introduced by the EEG Foundation Challenge \citep{EEGFoundationChallengeArxiv2025,EEGChallengeWebsite2025}. Under a subject-disjoint, release-separated protocol, we compare direct scalar regression, temporal-readout regression, time-only segmentation, and distributionally supervised event-time models. This control structure separates architecture capacity, differentiable expectation readout, scalar timing loss with a temporal head, and full posterior supervision.
+We study this question on the Healthy Brain Network contrast change detection EEG task \citep{Shirazi2024HBNEEG}, following the RT prediction setting introduced by the EEG Foundation Challenge \citep{EEGFoundationChallengeArxiv2025,EEGChallengeWebsite2025}. Under a subject-disjoint, release-separated protocol, we compare direct scalar regression, temporal-readout regression, soft-argmax RT-loss controls, and distributionally supervised event-time models. This control structure separates architecture capacity, differentiable expectation readout, scalar timing loss with a temporal head, and full posterior supervision.
 
 The posterior view also changes what can be evaluated from each trial. Posterior width, target-aligned mass, mode-mean disagreement, and interval coverage characterize localization, uncertainty, and calibration even when scalar errors are similar. We further introduce shifted-crop inference as a shortcut-vs-localization diagnostic: a crop-relative timing localizer should shift its predicted crop-relative response time opposite to the crop shift, whereas a crop-invariant scalar shortcut should remain closer to fixed absolute timing.
 
@@ -160,10 +160,10 @@ Our results support this event-time formulation. Distributional event-time super
 
 Our contributions are:
 \begin{enumerate}
-    \item We recast behavioral RT labels as weak event-time supervision signals and formulate EEG RT decoding as event-time posterior modeling rather than direct scalar regression.
-    \item We evaluate this formulation under a subject-disjoint, release-separated HBN-EEG protocol against compact scalar regression, temporal-readout regression, time-only segmentation, and standardized external EEG architecture controls.
-    \item We show through loss ablations and five-seed robustness checks that distributional event-time supervision improves over scalar, temporal-readout, and time-only controls, and we evaluate EventNLL as a latent event-time likelihood in which observed RT is treated as a noisy realization of an unobserved response-relevant event.
-    \item We use posterior geometry, shifted-crop inference, and shift-jitter training to separate scalar accuracy from temporal evidence, uncertainty, shortcut behavior, and partial response-timing localization.
+    \item We recast behavioral RT as weak event-time supervision and formulate EEG RT decoding as event-time posterior modeling rather than direct scalar regression.
+    \item We evaluate this formulation under a subject-disjoint, release-separated HBN-EEG protocol designed to separate EEG backbone capacity, temporal readout parameterization, and distributional event-time supervision.
+    \item We show through controlled baselines and loss ablations, with seed-level variability reported for the main comparisons, that distributional event-time supervision improves over scalar regression, temporal-readout regression, and soft-argmax RT-loss controls. We also evaluate EventNLL as a latent event-time likelihood in which observed RT is treated as a noisy realization of an unobserved response-relevant event.
+    \item We turn the learned event-time posterior into a temporally resolved evaluation object: posterior geometry separates scalar accuracy from temporal concentration and interval behavior, while shifted-crop diagnostics and shift-jitter training test shortcut behavior and partial response-timing localization.
 \end{enumerate}
 
 \section{Related Work}
@@ -231,42 +231,54 @@ Holdout & R11 & 15{,}751 & 15{,}164 & 292 \\
 \end{tabular*}
 \end{table}
 
-The main analysis keeps trials whose behavioral RT falls inside the modeled event-time support, 0.5--2.5~s after stimulus onset. This filter removes 1{,}546/74{,}576 training trials (2.07\%), 519/17{,}867 development trials (2.90\%), and 587/15{,}751 R11 trials (3.73\%). In the prepared CCD split artifacts, excluded trials are fast responses below 0.5~s; no prepared trial has RT above 2.5~s. The conclusions therefore apply to support-representable responses in the analyzed post-stimulus window, and should not be interpreted as claims about very fast anticipatory responses or RT regimes outside the represented support.
+The main analysis keeps trials whose behavioral RT falls inside the modeled event-time support, 0.5--2.5~s after stimulus onset. This filter removes 1{,}546/74{,}576 training trials (2.07\%), 519/17{,}867 development trials (2.90\%), and 587/15{,}751 holdout trials (3.73\%). In the prepared CCD split artifacts, excluded trials are fast responses below 0.5~s; no prepared trial has RT above 2.5~s. The conclusions therefore apply to support-representable responses in the analyzed post-stimulus window, and should not be interpreted as claims about very fast anticipatory responses or RT regimes outside the represented support.
 
-Scalar performance is evaluated using normalized RMSE (nRMSE), defined as RMSE divided by the standard deviation of the true targets within the evaluated split \citep{EEGChallengeWebsite2025}. Main scalar comparisons use the same support-filtered R9--R10 development set and R11 holdout set. Diagnostic analyses that require shifted crop starts, stricter RT support, or posterior-only summaries are introduced locally in the corresponding subsection or appendix and do not affect the main holdout reporting protocol.
+Scalar performance is evaluated using normalized RMSE (nRMSE), defined as RMSE divided by the standard deviation of the true targets within the evaluated split \citep{EEGChallengeWebsite2025}. Main scalar comparisons use the same support-filtered R9--R10 development set and final holdout set. Diagnostic analyses that require shifted crop starts, stricter RT support, or posterior-only summaries are introduced locally in the corresponding subsection or appendix and do not affect the main holdout reporting protocol.
+
+\begin{table}[!t]
+\centering
+\caption{Controlled comparison and diagnostic blocks under the shared protocol. The first two blocks define the main scalar-performance comparisons; the final block evaluates posterior readout, posterior geometry, and shortcut-vs-localization behavior after event-time models have been trained.}
+\label{tab:experiment_map}
+\scriptsize
+\setlength{\tabcolsep}{2pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabularx}{\linewidth}{@{} >{\RaggedRight\arraybackslash}p{0.15\linewidth} >{\RaggedRight\arraybackslash}p{0.18\linewidth} >{\RaggedRight\arraybackslash}p{0.18\linewidth} >{\RaggedRight\arraybackslash}p{0.14\linewidth} >{\RaggedRight\arraybackslash}X @{}}
+\toprule
+\textbf{Comparison block / model family} & \textbf{Model capacity} & \textbf{Temporal readout} & \textbf{Supervision} & \textbf{Role} \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Scalar regression controls}} \\
+\addlinespace[0.15em]
+External EEG backbones & Standard EEG architectures trained from scratch & Scalar RT head & Scalar RT & Assesses whether generic EEG backbone capacity explains performance. \\
+MSP-CNN family & Compact scalar CNN & Segment-pooling scalar readout & Scalar RT & Scalar baseline with coarse temporal pooling. \\
+ETR-CNN family & Compact scalar CNN & Temporal expectation readout & Scalar RT & Isolates temporal expectation readout under scalar RT supervision. \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Event-time objective comparison}} \\
+\addlinespace[0.15em]
+Soft-argmax RT-loss control & Shared segmentation backbone & Posterior-mean readout & Scalar RT only & Isolates posterior-mean readout without distributional supervision. \\
+CE soft-target objective & Shared segmentation backbone & Posterior-mean readout & Soft event-time target & Direct soft-label event-time supervision. \\
+Likelihood-based objectives & Shared segmentation backbone & Posterior-mean readout & Latent event-time likelihood & Probabilistic latent-event supervision. \\
+Wasserstein control & Shared segmentation backbone & Posterior-mean readout & Distributional geometry loss & Alternative geometry-based distributional supervision. \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Posterior and localization diagnostics}} \\
+\addlinespace[0.15em]
+Readout-temperature tuning & Trained event-time models & Temperature-adjusted posterior mean & Learned posterior & Standardizes scalar posterior-mean readout. \\
+Posterior geometry diagnostics & Trained event-time models & Posterior summaries & Learned posterior & Exposes posterior structure beyond scalar nRMSE. \\
+Shifted-crop diagnostic & Trained fixed-window models & Crop-relative posterior mean & No new training & Probes shortcut-vs-localization behavior. \\
+Shift-jitter intervention & Matched event-time models & Crop-relative posterior mean & Shifted crop-relative targets & Intervenes on crop-start variation to improve robustness and localizer-like movement. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Table~\ref{tab:experiment_map} maps the shared protocol to the comparison blocks used below. The scalar regression controls vary compact temporal regressors and external EEG backbones under scalar RT supervision. The event-time objective comparison fixes the ETS-U-Net backbone and varies the output supervision. Posterior geometry, shifted-crop inference, and shift-jitter training are diagnostic extensions applied after training; they evaluate posterior semantics and shortcut-vs-localization behavior rather than defining a separate scalar benchmark family.
 
 \subsection{Shared Training, Readout Tuning, and Inference Protocol}
 \label{sec:shared_protocol}
 
 To support this controlled comparison, we keep preprocessing, optimization, augmentation, checkpointing, and inference fixed wherever possible, so that the main experimental axes remain EEG backbone capacity, temporal readout parameterization, and distributional event-time supervision. All neural models receive the same input normalization: for each 2~s trial window and EEG channel, we subtract the channel's temporal mean within the window and divide by its temporal standard deviation within the same window. The shared training recipe uses Adam with learning rate \(10^{-3}\), zero weight decay, train batch size 128, up to 100 epochs, and early stopping on development nRMSE with patience 20.
 
-Unless otherwise stated, training uses one fixed augmentation profile, so that regularization is not a model-specific tuning degree of freedom. The profile combines channel dropout, temporal cutout, and Gaussian noise with the same settings for all supervised neural models. Table~\ref{tab:shared_protocol_by_family} summarizes the remaining model-family-specific differences. Regression models use scalar RT supervision, while event-time models represent RT either as a soft crop-relative event-time target or as an observation under a latent event-time likelihood. When temperature scaling is used for event-time posterior readout, \(\tau\) is selected on R9--R10 to minimize development nRMSE of the posterior-mean readout and then applied unchanged to R11. The main regression-baseline and event-time-objective comparisons are repeated over five seeds (2025--2029).
+Unless otherwise stated, training uses one fixed augmentation profile, so that regularization is not a model-specific tuning degree of freedom. The profile combines channel dropout, temporal cutout, and Gaussian noise with the same settings for all supervised neural models. Regression models use scalar RT supervision, while event-time models represent RT either as a soft crop-relative event-time target or as an observation under a latent event-time likelihood. When temperature scaling is used for event-time posterior readout, \(\tau\) is selected on R9--R10 to minimize development nRMSE of the posterior-mean readout and then applied unchanged to the holdout split. The main regression-baseline and event-time-objective comparisons are repeated over five seeds (2025--2029).
 
-\begin{table}[!t]
-\centering
-\caption{Model-family-specific targets and readouts within the shared protocol.}
-\label{tab:shared_protocol_by_family}
-\footnotesize
-\setlength{\tabcolsep}{3pt}
-\renewcommand{\arraystretch}{1.12}
-\begin{tabularx}{\linewidth}{@{} >{\RaggedRight\arraybackslash}p{0.28\linewidth} >{\RaggedRight\arraybackslash}X >{\RaggedRight\arraybackslash}p{0.34\linewidth} @{}}
-\toprule
-\textbf{Model family} & \textbf{Target or supervision} & \textbf{Readout / tuning} \\
-\midrule
-Direct scalar regression & Scalar RT target. & Scalar RT output; segment-pooling MLP for MSP-CNN. \\
-Temporal-readout regression & Scalar RT target or RT-derived readout loss. & Expected time over learned time-bin weights. \\
-External EEG backbones & Scalar RT target; supervised from scratch. & Scalar RT output. \\
-Soft-label event-time segmentation & Gaussian soft event-time target \(q(t)\). & Temperature-scaled posterior mean; \(\tau\) tuned on R9--R10. \\
-EventNLL / likelihood variants & Observed RT under a latent event-time likelihood. & Temperature-scaled posterior mean; \(\tau\) tuned on R9--R10. \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-\section{Regression Controls}
-\label{sec:regression_controls}
-
-\subsection{Scalar Regression Baselines}
-
+\section{Scalar Regression Controls}
 \label{sec:baseline_regression}
 
 The regression baselines establish how far scalar supervision can go before introducing event-time targets. We separate two types of controls: compact task-specific temporal controls and supervised external EEG backbones trained from scratch under the same protocol.
@@ -398,7 +410,7 @@ where
 D_{\mathrm{KL}}(q\|p)=\sum_{t=0}^{T-1} q_t \log\frac{q_t}{p_t}, \;
 H(p)=-\sum_{t=0}^{T-1} p_t \log p_t.
 \end{equation*}
-This expression defines an ablation family rather than a single prescribed loss. CE-only supervision sets the scalar time term to zero and asks the model to match a Gaussian soft event-time label. The time-only ablation removes distributional matching while keeping the same readout, and the Wasserstein-only ablation tests whether a CDF-based geometry loss is sufficient on its own. A CE+time hybrid is available by enabling both CE and soft-argmax time terms, but is not a separate row in the five-seed comparison. Entropy, KL, focal, and related terms serve as posterior-geometry controls when enabled.
+This expression defines an ablation family rather than a single prescribed loss. CE-only supervision sets the scalar time term to zero and asks the model to match a Gaussian soft event-time label. The soft-argmax RT-loss ablation removes distributional matching while keeping the same readout, and the Wasserstein-only ablation tests whether a CDF-based geometry loss is sufficient on its own. A CE+time hybrid is available by enabling both CE and soft-argmax time terms, but is not a separate row in the five-seed comparison. Entropy, KL, focal, and related terms serve as posterior-geometry controls when enabled.
 
 \subsection{Likelihood-Based Event-Time Objectives}
 \label{sec:event_nll}
@@ -431,48 +443,50 @@ p_t^{\mathrm{haz}} \propto h_t\prod_{k<t}(1-h_k),
 \end{equation}
 with the resulting event-bin probabilities normalized over the represented window. This keeps the same event-time likelihood in Eq.~\ref{eq:event_nll}, but changes the posterior parameterization from a categorical softmax to a discrete-time survival process. This extension tests whether the event-time formulation is tied to one softmax implementation.
 
-\subsection{Formulation Comparison and Robustness}
-Table~\ref{tab:r11_segmentation_losses} compares the paper-facing ETS-U-Net objective variants under the fixed backbone and release-separated protocol. Here, holdout \(\tau\)-nRMSE denotes holdout nRMSE after applying the posterior-readout temperature \(\tau\) selected on R9--R10; R11 labels are used only for evaluation. The CE and likelihood-family objectives form the strongest scalar-readout group after readout-temperature tuning, with holdout \(\tau\)-nRMSE between 0.8745 and 0.8778. This improves over the strongest scalar regression baseline, ETR-CNN large (0.8928 $\pm$ 0.0042; Table~\ref{tab:r11_regression_baselines}), while the time-only and Wasserstein controls remain closer to the scalar-regression regime.
-
 \begin{table}[!htbp]
 \centering
-\caption{Event-time objective variants with a fixed ETS-U-Net backbone. Values are mean $\pm$ sample standard deviation.}
+\caption{Event-time objective variants with a fixed ETS-U-Net backbone. Temperature is selected on R9--R10 for posterior-mean readout and then applied unchanged to the holdout split. Values are mean $\pm$ sample standard deviation over seeds 2025--2029.}
 \label{tab:r11_segmentation_losses}
 \footnotesize
 \setlength{\tabcolsep}{2pt}
 \renewcommand{\arraystretch}{1.15}
-\begin{tabularx}{\linewidth}{@{} >{\RaggedRight\arraybackslash}p{0.22\linewidth} Y >{\centering\arraybackslash}p{0.18\linewidth} >{\centering\arraybackslash}p{0.18\linewidth} >{\centering\arraybackslash}p{0.18\linewidth} @{}}
+\begin{tabularx}{\linewidth}{@{} >{\RaggedRight\arraybackslash}p{0.18\linewidth} Y >{\centering\arraybackslash}p{0.17\linewidth} >{\centering\arraybackslash}p{0.17\linewidth} >{\centering\arraybackslash}p{0.17\linewidth} @{}}
 \toprule
 \textbf{Objective} & \textbf{Supervision signal} & \textbf{Valid nRMSE} & \textbf{Holdout nRMSE} & \textbf{Holdout \(\tau\)-nRMSE} \\
 \midrule
 \multicolumn{5}{@{}l}{\textit{Soft-target objectives}} \\
 \addlinespace[0.15em]
-CE & Gaussian soft label & \mbox{0.8763 $\pm$ 0.0044} & \textbf{\mbox{0.8774 $\pm$ 0.0044}} & \mbox{0.8753 $\pm$ 0.0039} \\
+CE & Gaussian soft event-time label & \mbox{0.8763 $\pm$ 0.0044} & \textbf{\mbox{0.8774 $\pm$ 0.0044}} & \mbox{0.8753 $\pm$ 0.0039} \\
 \midrule
 \multicolumn{5}{@{}l}{\textit{Likelihood-based objectives}} \\
 \addlinespace[0.15em]
-EventNLL & Gaussian RT \mbox{likelihood} & \mbox{0.8769 $\pm$ 0.0030} & \mbox{0.8805 $\pm$ 0.0021} & \mbox{0.8772 $\pm$ 0.0018} \\
-Mixture EventNLL & two-scale RT \mbox{likelihood} & \textbf{\mbox{0.8744 $\pm$ 0.0018}} & \mbox{0.8785 $\pm$ 0.0047} & \textbf{\mbox{0.8745 $\pm$ 0.0053}} \\
-Hazard EventNLL & hazard posterior + \mbox{likelihood} & \mbox{0.8755 $\pm$ 0.0027} & \mbox{0.8776 $\pm$ 0.0031} & \mbox{0.8778 $\pm$ 0.0041} \\
+EventNLL & latent event time + Gaussian RT likelihood & \mbox{0.8769 $\pm$ 0.0030} & \mbox{0.8805 $\pm$ 0.0021} & \mbox{0.8772 $\pm$ 0.0018} \\
+Mixture EventNLL & Two-component core-tail RT likelihood & \textbf{\mbox{0.8744 $\pm$ 0.0018}} & \mbox{0.8785 $\pm$ 0.0047} & \textbf{\mbox{0.8745 $\pm$ 0.0053}} \\
+Hazard EventNLL & hazard posterior + Gaussian RT likelihood & \mbox{0.8755 $\pm$ 0.0027} & \mbox{0.8776 $\pm$ 0.0031} & \mbox{0.8778 $\pm$ 0.0041} \\
 \midrule
 \multicolumn{5}{@{}l}{\textit{Scalar-readout and distance controls}} \\
 \addlinespace[0.15em]
-Time-only & posterior-mean RT loss & \mbox{0.8944 $\pm$ 0.0048} & \mbox{0.8943 $\pm$ 0.0025} & \mbox{0.8917 $\pm$ 0.0046} \\
-Wasserstein & CDF match to soft label & \mbox{0.8997 $\pm$ 0.0035} & \mbox{0.8995 $\pm$ 0.0078} & \mbox{0.8896 $\pm$ 0.0033} \\
+Soft-argmax RT loss & posterior-mean RT error only; no distribution target & \mbox{0.8944 $\pm$ 0.0048} & \mbox{0.8943 $\pm$ 0.0025} & \mbox{0.8917 $\pm$ 0.0046} \\
+Wasserstein & CDF match to Gaussian soft event-time label & \mbox{0.8997 $\pm$ 0.0035} & \mbox{0.8995 $\pm$ 0.0078} & \mbox{0.8896 $\pm$ 0.0033} \\
 \bottomrule
 \end{tabularx}
 \end{table}
+\FloatBarrier
+
+\subsection{Formulation Comparison and Robustness}
+
+The comparison in Table~\ref{tab:r11_segmentation_losses} evaluates the paper-facing ETS-U-Net objective variants under the fixed backbone and release-separated protocol. Here, holdout \(\tau\)-nRMSE denotes holdout nRMSE after applying the posterior-readout temperature \(\tau\) selected on R9--R10; holdout labels are used only for evaluation. The CE and likelihood-family objectives form the strongest scalar-readout group after readout-temperature tuning, with holdout \(\tau\)-nRMSE between 0.8745 and 0.8778. This improves over the strongest scalar regression baseline, ETR-CNN large (0.8928 $\pm$ 0.0042; Table~\ref{tab:r11_regression_baselines}), while the soft-argmax RT-loss and Wasserstein controls remain closer to the scalar-regression regime.
 
 \paragraph{Objective ablations.}
-The ablations separate expectation-style temporal readout from distributional supervision. The time-only model directly optimizes soft-argmax error but removes distribution matching; it remains close to the strongest scalar-regression baseline and trails the CE/EventNLL group by roughly 0.014--0.017 holdout \(\tau\)-nRMSE. CE and the likelihood-family variants form a tight top group: mixture EventNLL has the best mean temperature-tuned scalar readout, but CE, Gaussian EventNLL, mixture EventNLL, and hazard EventNLL are close relative to seed variability. The hazard result shows that the likelihood-family conclusion is not tied to a categorical softmax posterior, while the Wasserstein control shows that an alternative distributional distance alone does not match the CE/EventNLL scalar readouts. Thus, the central gain is best attributed to distributional event-time supervision rather than to the U-Net backbone or soft-argmax readout alone.
+The ablations separate expectation-style temporal readout from distributional supervision. The soft-argmax RT-loss control directly optimizes posterior-mean RT error but removes distribution matching; it remains close to the strongest scalar-regression baseline and trails the CE/EventNLL group by roughly 0.014--0.017 holdout \(\tau\)-nRMSE. CE and the likelihood-family variants form a tight top group: mixture EventNLL has the best mean temperature-tuned scalar readout, but CE, Gaussian EventNLL, mixture EventNLL, and hazard EventNLL are close relative to seed variability. The hazard result shows that the likelihood-family conclusion is not tied to a categorical softmax posterior, while the Wasserstein control shows that an alternative distributional distance alone does not match the CE/EventNLL scalar readouts. Thus, the central gain is best attributed to distributional event-time supervision rather than to the U-Net backbone or soft-argmax readout alone.
 
 \paragraph{Practical effect size.}
-To quantify the practical size of the main accuracy gain, we compared the strongest scalar baseline, ETR-CNN large, with the strongest event-time objectives using matched seeds and subject-level bootstrap intervals on R11. Mixture EventNLL reduced \(\tau\)-nRMSE from \(0.8928 \pm 0.0042\) to \(0.8745 \pm 0.0053\), an absolute reduction of \(0.0184\), or about \(2.1\%\) relative improvement. On the RT scale, this corresponds to a \(6.24\)~ms reduction in RMSE and an \(8.94\)~ms reduction in MAE, with subject-bootstrap 95\% confidence intervals of \([4.50, 7.97]\)~ms and \([7.43, 10.49]\)~ms, respectively. The gain was positive for all five matched-seed comparisons. Thus, the scalar accuracy gain is moderate in absolute milliseconds but consistent across seeds and subjects. The event-time formulation also provides posterior diagnostics and shifted-crop analyses that are not available from scalar regression alone.
+To quantify the practical size of the main accuracy gain, we compared the strongest scalar baseline, ETR-CNN large, with the strongest event-time objectives using matched seeds and subject-level bootstrap intervals on the holdout split. Mixture EventNLL reduced \(\tau\)-nRMSE from \(0.8928 \pm 0.0042\) to \(0.8745 \pm 0.0053\), an absolute reduction of \(0.0184\), or about \(2.1\%\) relative improvement. On the RT scale, this corresponds to a \(6.24\)~ms reduction in RMSE and an \(8.94\)~ms reduction in MAE, with subject-bootstrap 95\% confidence intervals of \([4.50, 7.97]\)~ms and \([7.43, 10.49]\)~ms, respectively. The gain was positive for all five matched-seed comparisons. Thus, the scalar accuracy gain is moderate in absolute milliseconds but consistent across seeds and subjects. The event-time formulation also provides posterior diagnostics and shifted-crop analyses that are not available from scalar regression alone.
 
 \begin{figure}[!t]
     \centering
     \includegraphics[width=0.88\linewidth]{img/ch1/trial_sorted_posterior_raster.png}
-    \caption{Trial-sorted event-time posterior maps on R11 for matched segmentation losses. Rows are quantile bins of representable R11 trials sorted by observed RT; the x-axis is time from stimulus onset; color shows log-transformed posterior density averaged within each bin. The black curve marks the mean observed RT in each bin.}
+    \caption{Trial-sorted event-time posterior maps on the holdout split for matched segmentation losses. Rows are quantile bins of representable holdout trials sorted by observed RT; the x-axis is time from stimulus onset; color shows log-transformed posterior density averaged within each bin. The overlaid curve marks the mean observed RT in each bin.}
     \label{fig:posterior_raster_main}
 \end{figure}
 
@@ -490,7 +504,7 @@ Event-time models output a posterior over response-relevant time bins, whereas t
 \end{equation}
 where $g_t=t\,\Delta t$ denotes the discrete time grid. This readout is aligned with squared-error evaluation and keeps event-time models comparable to scalar regression baselines under nRMSE.
 
-Because different objectives can produce posteriors with different sharpness, we select a readout temperature on the R9--R10 development split to minimize nRMSE of the posterior-mean prediction, and apply the selected temperature unchanged to the R11 holdout set:
+Because different objectives can produce posteriors with different sharpness, we select a readout temperature on the R9--R10 development split to minimize nRMSE of the posterior-mean prediction, and apply the selected temperature unchanged to the holdout set:
 \begin{equation}
 \label{eq:rt_tau_tuning}
 \tau_m^\star = \arg\min_{\tau\in\mathcal{T}_{\text{cal}}}
@@ -502,7 +516,7 @@ The resulting scalar value is reported as holdout \(\tau\)-nRMSE in Table~\ref{t
 
 Once the scalar readout has been fixed, the event-time posterior makes temporally resolved evaluation possible rather than limiting assessment to point prediction. Scalar nRMSE asks whether the posterior mean predicts RT accurately, but similar nRMSE values can hide very different temporal evidence. Posterior geometry asks where the model places probability mass, whether that mass is localized near the observed behavioral latency, whether the posterior peak agrees with the posterior mean, and whether nominal posterior intervals have meaningful empirical coverage.
 
-We first inspect the trial-sorted posterior maps in Figure~\ref{fig:posterior_raster_main} before reducing the posterior to summary metrics. These maps show the full distribution over response-relevant event time for R11 trials ordered by observed RT, rather than only the posterior mean. CE and Wasserstein place broad probability mass across the response window, whereas the EventNLL-family objectives produce sharper probability bands that more closely track the observed RT curve. This qualitative pattern motivates the quantitative posterior-geometry summaries in Figure~\ref{fig:posterior_geometry_main} and Table~\ref{tab:posterior_geometry_metrics}.
+We first inspect the trial-sorted posterior maps in Figure~\ref{fig:posterior_raster_main} before reducing the posterior to summary metrics. These maps show the full distribution over response-relevant event time for holdout trials ordered by observed RT, rather than only the posterior mean. CE and Wasserstein place broad probability mass across the response window, whereas the EventNLL-family objectives produce sharper probability bands that more closely track the observed RT curve. This qualitative pattern motivates the quantitative posterior-geometry summaries in Figure~\ref{fig:posterior_geometry_main} and Table~\ref{tab:posterior_geometry_metrics}.
 
 Table~\ref{tab:posterior_geometry_metrics} reduces the posterior maps to four complementary diagnostic families. First, nRMSE asks whether the posterior mean remains a good scalar RT predictor. Second, fixed-kernel EventNLL evaluates the full posterior as a distribution by scoring the observed RT under a common Gaussian observation kernel. Third, Width80 and Mass $\pm$150 ms describe localization: whether probability mass is diffuse or concentrated near the behavioral latency. Finally, Coverage80 and Coverage MAE assess interval reliability, asking whether nominal posterior intervals contain the observed RT at the expected rates. These metrics are not intended to produce a single ranking; they expose trade-offs among scalar accuracy, posterior sharpness, target alignment, and calibration.
 
@@ -511,7 +525,7 @@ Figure~\ref{fig:posterior_geometry_main} visualizes this trade-off space before 
 \begin{figure}[!t]
     \centering
     \includegraphics[width=\linewidth]{img/ch1/posterior_geometry_main.png}
-    \caption{Posterior geometry differs across event-time losses even when scalar nRMSE is similar. Panel A reports R11 scalar readout after selecting the softmax temperature on R9--R10 to minimize nRMSE. Panel B aligns predicted posteriors to the observed RT. Panels C--E summarize posterior width, near-target mass, and mode-mean disagreement. Panel F compares empirical coverage of central posterior intervals; the diagonal is ideal interval coverage.}
+    \caption{Posterior geometry differs across event-time losses even when scalar nRMSE is similar. Panel A reports holdout scalar readout after selecting the softmax temperature on R9--R10 to minimize nRMSE. Panel B aligns predicted posteriors to the observed RT. Panels C--E summarize posterior width, near-target mass, and mode-mean disagreement. Panel F compares empirical coverage of central posterior intervals; the diagonal is ideal interval coverage.}
     \label{fig:posterior_geometry_main}
 \end{figure}
 
@@ -521,7 +535,7 @@ Consequently, the preferred event-time objective depends on the downstream goal 
 
 \begin{table}[!htbp]
 \centering
-\caption{Quantitative posterior geometry on R11 for matched event-time segmentation losses. Values are mean $\pm$ standard deviation across seeds after R9--R10 readout-temperature selection; arrows indicate the preferred direction, Coverage80 is best when close to 0.80, and bold marks the best point estimate per metric.}
+\caption{Quantitative posterior geometry on the holdout split for matched event-time segmentation losses. Values are mean $\pm$ standard deviation across seeds after R9--R10 readout-temperature selection; arrows indicate the preferred direction, Coverage80 is best when close to 0.80, and bold marks the best point estimate per metric.}
 \label{tab:posterior_geometry_metrics}
 \scriptsize
 \setlength{\tabcolsep}{3pt}
@@ -599,7 +613,7 @@ The shifted-crop diagnostic extends this posterior analysis from shape to behavi
 
 \subsection{Scope and Limitations}
 
-The main limitation is that all claims are tied to the HBN-EEG contrast change detection task and the release-separated protocol used here. R11 is a stronger local holdout than reused validation performance, but it is still drawn from the same broader dataset family and preprocessing pipeline. Broader claims about EEG event-time modeling require replication across tasks, acquisition settings, montages, and latency targets.
+The main limitation is that all claims are tied to the HBN-EEG contrast change detection task and the release-separated protocol used here. The final holdout release is stronger than reused validation performance, but it is still drawn from the same broader dataset family and preprocessing pipeline. Broader claims about EEG event-time modeling require replication across tasks, acquisition settings, montages, and latency targets.
 
 The shifted-crop results should also be interpreted as partial response-timing localization evidence rather than solved neural event detection. Even after shift-jitter training, sensitivity remains far from the ideal crop-relative localizer. Stronger localization claims will require training objectives, architectures, or augmentations designed explicitly for temporal equivariance. The five-seed robustness checks support the main scalar-versus-event-time comparison, but they cover selected core recipes rather than every kernel, hazard, calibration, and architecture variant. The foundation-style comparisons also do not use pretrained weights or montage-specialized setup changes; they are controlled architecture baselines rather than a full evaluation of EEG foundation models.
 
@@ -695,7 +709,7 @@ Soft target & Gaussian event-time label & \(\sigma=0.15\)~s. \\
 Posterior readout & Scalar prediction & Posterior mean / soft-argmax. \\
 Base temperature & Training/evaluation default & \(\tau=0.65\) before post-hoc readout-temperature selection. \\
 Temperature selection & Readout tuning & Grid search on R9--R10 minimizing posterior-mean nRMSE; selected \(\tau\) applied unchanged to R11. \\
-Temperature grid & Objective-specific grid & \(0.4\)--\(1.8\) with step 0.05 for CE/EventNLL/time-only objectives; \(0.2\)--\(3.5\) with step 0.05 for Wasserstein. \\
+Temperature grid & Objective-specific grid & \(0.4\)--\(1.8\) with step 0.05 for CE/EventNLL/soft-argmax RT-loss objectives; \(0.2\)--\(3.5\) with step 0.05 for Wasserstein. \\
 \midrule
 \multicolumn{3}{@{}l}{\textit{Core architectures}} \\
 \addlinespace[0.15em]
