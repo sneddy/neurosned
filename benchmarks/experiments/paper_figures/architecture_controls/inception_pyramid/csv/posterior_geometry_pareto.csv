@@ -1,0 +1,4 @@
+name,label,display_label,color,n_runs,nrmse_mean,nrmse_std,near_target_mass_mean,near_target_mass_std,width80_median_ms_mean,width80_median_ms_std,coverage_mae_mean,coverage_mae_std
+ets_inception_pyramid_event_nll_mixture,ets inception pyramid event nll mixture,ets inception pyramid event nll mixture,#4c78a8,5,0.874576860563074,0.002788070013432032,0.4728367195724233,0.008385313414347,540.0,38.07886552931947,0.1845344236349248,0.019104688063573776
+ets_inception_pyramid_time_only,ets inception pyramid time only,ets inception pyramid time only,#f58518,5,0.888627409839773,0.0044297581404156485,0.3178485040882657,0.00730361193556164,986.0,67.67569726275443,0.10286467950408862,0.019505039620200317
+ets_inception_pyramid_ce,ets inception pyramid ce,ets inception pyramid ce,#54a24b,5,0.8717382205335568,0.0036002584696940808,0.339865379704498,0.011772508737276036,748.0,44.38468204234428,0.09672645739910314,0.017401915100303193

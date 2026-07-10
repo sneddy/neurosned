@@ -7,8 +7,8 @@ parameters.
 
 Importable objects use the same structure everywhere:
 
-    module_name: benchmarks.pkg.models.segmentation.sneddy_unet
-    class_name: SneddySegUNet1D
+    module_name: benchmarks.pkg.models.segmentation.ets_unet
+    class_name: EventTimeUNet1D
     params:
       n_chans: 128
       n_times: 200

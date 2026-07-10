@@ -4,47 +4,15 @@ import torch.nn as nn
 import torch.nn.functional as F
 from typing import List, Union
 
-from benchmarks.pkg.models.layers import ChannelSqueeze, DropPath, DropPathResBlock as ResBlock, StdPerSample, TimeDown
+from benchmarks.pkg.models.layers import (
+    ChannelSqueeze,
+    DropPathResBlock as ResBlock,
+    StdPerSample,
+    TemporalMHSABlock as MHSABlock,
+    TimeDown,
+)
 
 # ------------------------- attention blocks -------------------------
-
-class MHSABlock(nn.Module):
-    """
-    Temporal MHSA at the bottleneck level + positional depthwise convolution.
-    Format: (B, C, T) → (B, C, T)
-    """
-    def __init__(
-        self,
-        ch: int,
-        n_heads: int = 4,
-        attn_dropout: float = 0.0,
-        ffn_dropout: float = 0.0,
-        ff_mult: float = 2.0,
-        drop_path: float = 0.0,
-    ):
-        super().__init__()
-        self.pos = nn.Conv1d(ch, ch, kernel_size=3, padding=1, groups=ch, bias=True)
-        self.ln1 = nn.LayerNorm(ch)
-        self.attn = nn.MultiheadAttention(embed_dim=ch, num_heads=n_heads,
-                                          dropout=attn_dropout, batch_first=True)
-        self.ln2 = nn.LayerNorm(ch)
-        hidden = int(ch * ff_mult)
-        self.ff = nn.Sequential(
-            nn.Linear(ch, hidden),
-            nn.GELU(),
-            nn.Dropout(ffn_dropout),
-            nn.Linear(hidden, ch),
-        )
-        self.drop_path = DropPath(drop_path)
-
-    def forward(self, x):  # x: (B,C,T)
-        x = x + self.pos(x)                    # positional bias (local)
-        xt = x.transpose(1, 2)                 # (B,T,C)
-        h, _ = self.attn(self.ln1(xt), self.ln1(xt), self.ln1(xt), need_weights=False)
-        xt = xt + self.drop_path(h)
-        h = self.ff(self.ln2(xt))
-        xt = xt + self.drop_path(h)
-        return xt.transpose(1, 2)              # (B,C,T)
 
 # ------------------------- encoder / decoder -------------------------
 

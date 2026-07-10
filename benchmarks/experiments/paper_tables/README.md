@@ -14,6 +14,7 @@ experiment journal `benchmarks/EXPERIMENTS.md`.
 | `main_04_posterior_geometry.md` | `Posterior Geometry Diagnostics` | Distributional posterior geometry, concentration, and coverage metrics. |
 | `main_05_effect_size.md` | `Event-Time Posterior Formulation` | Practical effect-size summary for the strongest scalar baseline versus the strongest event-time objectives. |
 | `main_06_experiments_map.md` | `Dataset and Evaluation Protocol / Shared Training, Readout Tuning, and Inference Protocol` | Design map linking comparison blocks to backbone capacity, temporal readout, and distributional supervision axes. |
+| `main_07_architecture_controls.md` | `Architecture Controls for Dense Event-Time Prediction` | Working architecture-control extension comparing RT-only, CE, and Mixture EventNLL across ETS-U-Net, ETS-TCN, ETS-InceptionPyramid, and ETS-AttnSeg. |
 
 ## Appendix Tables
 

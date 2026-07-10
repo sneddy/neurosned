@@ -44,15 +44,15 @@ def start_sweep_configs(template: dict[str, Any]) -> list[dict[str, Any]]:
         "seed": 42,
     }
     return [
-        make_variant(template, "SneddySegUNet1D_baseline_fast", **common),
-        make_variant(template, "SneddySegUNet1D_sig012_fast", **common, sigma=0.12),
-        make_variant(template, "SneddySegUNet1D_sig018_fast", **common, sigma=0.18),
-        make_variant(template, "SneddySegUNet1D_lr3e4_fast", **common, initial_lr=3e-4),
-        make_variant(template, "SneddySegUNet1D_lr7e4_fast", **common, initial_lr=7e-4),
-        make_variant(template, "SneddySegUNet1D_tau075_fast", **common, train_temperature=0.75, eval_temperature=0.75),
-        make_variant(template, "SneddySegUNet1D_ce02_lt3_fast", **common, lambda_ce=0.2, lambda_time=3.0),
-        make_variant(template, "SneddySegUNet1D_ce05_lt2_fast", **common, lambda_ce=0.5, lambda_time=2.0),
-        make_variant(template, "SneddySegUNet1D_bs256_fast", **{**common, "batch_size": 256}),
+        make_variant(template, "EventTimeUNet1D_baseline_fast", **common),
+        make_variant(template, "EventTimeUNet1D_sig012_fast", **common, sigma=0.12),
+        make_variant(template, "EventTimeUNet1D_sig018_fast", **common, sigma=0.18),
+        make_variant(template, "EventTimeUNet1D_lr3e4_fast", **common, initial_lr=3e-4),
+        make_variant(template, "EventTimeUNet1D_lr7e4_fast", **common, initial_lr=7e-4),
+        make_variant(template, "EventTimeUNet1D_tau075_fast", **common, train_temperature=0.75, eval_temperature=0.75),
+        make_variant(template, "EventTimeUNet1D_ce02_lt3_fast", **common, lambda_ce=0.2, lambda_time=3.0),
+        make_variant(template, "EventTimeUNet1D_ce05_lt2_fast", **common, lambda_ce=0.5, lambda_time=2.0),
+        make_variant(template, "EventTimeUNet1D_bs256_fast", **{**common, "batch_size": 256}),
     ]
 
 
@@ -74,7 +74,7 @@ def final_candidate_configs(template: dict[str, Any]) -> list[dict[str, Any]]:
     return [
         make_variant(
             template,
-            "SneddySegUNet1D_sig012_full",
+            "EventTimeUNet1D_sig012_full",
             **common,
             sigma=0.12,
             lambda_time=3.0,
@@ -82,7 +82,7 @@ def final_candidate_configs(template: dict[str, Any]) -> list[dict[str, Any]]:
         ),
         make_variant(
             template,
-            "SneddySegUNet1D_ce05_lt2_full",
+            "EventTimeUNet1D_ce05_lt2_full",
             **common,
             sigma=0.15,
             lambda_time=2.0,
@@ -106,9 +106,9 @@ def multiseed_configs(template: dict[str, Any], seeds: tuple[int, ...] = (42, 43
         "eval_temperature": 0.65,
     }
     specs = [
-        ("SneddySegUNet1D_baseline", {"sigma": 0.15, "lambda_time": 3.0, "lambda_ce": 0.0}),
-        ("SneddySegUNet1D_ce05_lt2", {"sigma": 0.15, "lambda_time": 2.0, "lambda_ce": 0.5}),
-        ("SneddySegUNet1D_sig012", {"sigma": 0.12, "lambda_time": 3.0, "lambda_ce": 0.0}),
+        ("EventTimeUNet1D_baseline", {"sigma": 0.15, "lambda_time": 3.0, "lambda_ce": 0.0}),
+        ("EventTimeUNet1D_ce05_lt2", {"sigma": 0.15, "lambda_time": 2.0, "lambda_ce": 0.5}),
+        ("EventTimeUNet1D_sig012", {"sigma": 0.12, "lambda_time": 3.0, "lambda_ce": 0.0}),
     ]
 
     configs = []

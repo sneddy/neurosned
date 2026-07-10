@@ -1,0 +1,4 @@
+name,label,seed,nrmse,run_dir
+ets_tcn_event_nll_mixture,ets tcn event nll mixture,2028,0.8722150627013323,benchmarks/experiments/05_tcn/ets_tcn_event_nll_mixture_repeated__20260710_101752/seed2028
+ets_tcn_time_only,ets tcn time only,2026,0.8864984763199952,benchmarks/experiments/05_tcn/ets_tcn_time_only_repeated__20260710_092935/seed2026
+ets_tcn_ce,ets tcn ce,2029,0.8738008452986497,benchmarks/experiments/05_tcn/ets_tcn_ce_repeated__20260710_084559/seed2029

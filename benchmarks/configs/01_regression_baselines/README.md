@@ -29,11 +29,11 @@ Run with:
 python benchmarks/scripts/run_repeated.py benchmarks/configs/01_regression_baselines/<config>.yaml
 ```
 
-Paper-facing in-house model names:
+In-house model names used in the manuscript:
 
-- `msp_cnn`: MSP-CNN, the compact multiscale segment-pooling scalar baseline.
-- `etr_cnn`: ETR-CNN, the event-time-readout direct-regression baseline.
-- `etr_cnn_large`: ETR-CNN capacity ablation.
+- `msp_cnn`: MSP-CNN, the compact multiscale segment-pooling scalar baseline (`MSPCNN`).
+- `etr_cnn`: ETR-CNN, the event-time-readout direct-regression baseline (`ETRCNN`).
+- `etr_cnn_large`: ETR-CNN capacity ablation (`ETRCNN` with larger width).
 
-Wrapped external baselines use the same per-window standardization protocol as
-the in-house models.
+External baselines use the same per-window standardization protocol as the
+in-house models.

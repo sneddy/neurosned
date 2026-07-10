@@ -1,4 +1,4 @@
-"""Sneddy 1D U-Net segmentation model for benchmark runs."""
+"""Event-time 1D U-Net segmentation model for benchmark runs."""
 
 import torch
 import torch.nn.functional as F
@@ -26,7 +26,7 @@ class UpBlock(nn.Module):
 
 
 class Encoder1D(nn.Module):
-    """Sneddy-style encoder with residual blocks and temporal downsampling."""
+    """Event-time U-Net encoder with residual blocks and temporal downsampling."""
 
     def __init__(self, c0: int = 32, widen: int = 2, depth_per_stage: int = 2, k: int = 7, dropout: float = 0.1):
         super().__init__()
@@ -87,7 +87,7 @@ class Decoder1D(nn.Module):
         return h
 
 
-class SneddySegUNet1D(nn.Module):
+class EventTimeUNet1D(nn.Module):
     """Encoder-decoder 1D segmentation model."""
 
     def __init__(

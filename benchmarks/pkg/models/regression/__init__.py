@@ -6,14 +6,14 @@ from benchmarks.pkg.models.regression.msa_cnn import (
     MultiscaleSegmentAttentionHead,
     MultiscaleSegmentGatedHead,
 )
-from benchmarks.pkg.models.regression.sneddy_net import SneddyNet
-from benchmarks.pkg.models.regression.sneddy_rt_net import SneddyRTNet
+from benchmarks.pkg.models.regression.msp_cnn import MSPCNN
+from benchmarks.pkg.models.regression.etr_cnn import ETRCNN
 
 __all__ = [
     "MSACNN",
     "MSGCNN",
+    "MSPCNN",
+    "ETRCNN",
     "MultiscaleSegmentAttentionHead",
     "MultiscaleSegmentGatedHead",
-    "SneddyNet",
-    "SneddyRTNet",
 ]

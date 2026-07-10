@@ -1,4 +1,4 @@
-"""Sneddy reaction-time regression model for benchmark runs."""
+"""ETR-CNN scalar RT regression baseline for benchmark runs."""
 
 from __future__ import annotations
 
@@ -22,8 +22,8 @@ def _make_schedule(base, depth: int | None):
     return tuple(schedule)
 
 
-class SneddyRTNet(nn.Module):
-    """Reaction-time network returning seconds as a tensor of shape (B, 1)."""
+class ETRCNN(nn.Module):
+    """Event-time-readout CNN returning scalar RT seconds."""
 
     def __init__(
         self,
@@ -47,7 +47,7 @@ class SneddyRTNet(nn.Module):
         widen2: int = 2,
     ):
         super().__init__()
-        assert n_outputs == 1, "This RT version is designed to output (B,1) like SneddyNet."
+        assert n_outputs == 1, "ETRCNN is designed to output (B, 1) scalar RT predictions."
         self.n_chans = n_chans
         self.n_times = n_times
         self.sfreq = float(sfreq)

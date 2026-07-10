@@ -1,0 +1,4 @@
+name,label,color
+ets_inception_pyramid_event_nll_mixture,ets inception pyramid event nll mixture,#4c78a8
+ets_inception_pyramid_time_only,ets inception pyramid time only,#f58518
+ets_inception_pyramid_ce,ets inception pyramid ce,#54a24b

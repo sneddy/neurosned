@@ -1,4 +1,4 @@
-"""Direct scalar SneddyNet regression baseline for benchmark runs."""
+"""MSP-CNN scalar RT regression baseline for benchmark runs."""
 
 import torch
 from torch import nn
@@ -6,8 +6,8 @@ from torch import nn
 from benchmarks.pkg.models.layers import ChannelSqueeze, ResBlock, SegmentStatPool, StdPerSample, TimeDown
 
 
-class SneddyNet(nn.Module):
-    """Direct regression baseline for fixed EEG windows."""
+class MSPCNN(nn.Module):
+    """Multiscale segment-pooling CNN for scalar RT regression."""
 
     def __init__(
         self,
