@@ -9,6 +9,15 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
+from benchmarks.pkg.losses.event_time import (
+    cdf_distance,
+    event_mixture_nll,
+    expected_time,
+    posterior_entropy,
+    posterior_kl,
+    soft_label_cross_entropy,
+)
+from benchmarks.pkg.losses.hazard import hazard_discrete_nll, hazard_logits_to_log_pmf
 from benchmarks.pkg.training.trainers.base import BaseTrainer
 from benchmarks.pkg.training.labels import soft_label_1d
 
@@ -27,6 +36,12 @@ class SegmTrainer(BaseTrainer):
     - `lambda_time`: weight for RMSE of expected time on train crops.
     - `eval_lambda_time`: validation loss time term; metrics still report RMSE.
     - `lambda_ce`: soft-label cross entropy on the Gaussian target `q`.
+    - `eval_lambda_ce`: validation loss CE weight, kept at 1.0 by default.
+    - `lambda_event_nll`: continuous event-time mixture likelihood term.
+    - `event_nll_kernel`: observation model for the event-time likelihood:
+      `"gaussian"`, `"student_t"`, `"laplace"`, or `"gaussian_mixture"`.
+    - `readout_distribution`: logits parameterization, `"softmax"` or `"hazard"`.
+    - `lambda_hazard_discrete_nll`: exact-bin discrete survival likelihood term.
     - `lambda_kl`, `lambda_wass`, `lambda_entropy`, `lambda_focal`: optional
       distribution-shape terms retained from the notebook experiments.
     - `mixup_p`, `mixup_alpha`: time-aware mixup probability and Beta alpha.
@@ -49,8 +64,21 @@ class SegmTrainer(BaseTrainer):
         lambda_time: float = 1.0,
         eval_lambda_time: float | None = None,
         lambda_ce: float = 1.0,
+        eval_lambda_ce: float = 1.0,
+        lambda_event_nll: float = 0.0,
+        eval_lambda_event_nll: float | None = None,
+        lambda_hazard_discrete_nll: float = 0.0,
+        eval_lambda_hazard_discrete_nll: float | None = None,
+        event_nll_kernel: str = "gaussian",
+        event_nll_df: float = 3.0,
+        event_nll_mixture_weight: float = 0.1,
+        event_nll_mixture_sigma_narrow: float | None = None,
+        event_nll_mixture_sigma_wide: float | None = None,
+        readout_distribution: str = "softmax",
+        hazard_condition_inside: bool = True,
         lambda_kl: float = 0.0,
         lambda_wass: float = 0.0,
+        eval_lambda_wass: float = 0.0,
         lambda_entropy: float = 0.0,
         lambda_focal: float = 0.0,
         mixup_p: float = 0.5,
@@ -81,8 +109,25 @@ class SegmTrainer(BaseTrainer):
         self.lambda_time = lambda_time
         self.eval_lambda_time = lambda_time if eval_lambda_time is None else eval_lambda_time
         self.lambda_ce = lambda_ce
+        self.eval_lambda_ce = eval_lambda_ce
+        self.lambda_event_nll = lambda_event_nll
+        self.eval_lambda_event_nll = lambda_event_nll if eval_lambda_event_nll is None else eval_lambda_event_nll
+        self.lambda_hazard_discrete_nll = lambda_hazard_discrete_nll
+        self.eval_lambda_hazard_discrete_nll = (
+            lambda_hazard_discrete_nll
+            if eval_lambda_hazard_discrete_nll is None
+            else eval_lambda_hazard_discrete_nll
+        )
+        self.event_nll_kernel = event_nll_kernel
+        self.event_nll_df = event_nll_df
+        self.event_nll_mixture_weight = event_nll_mixture_weight
+        self.event_nll_mixture_sigma_narrow = event_nll_mixture_sigma_narrow
+        self.event_nll_mixture_sigma_wide = event_nll_mixture_sigma_wide
+        self.readout_distribution = self._normalize_readout_distribution(readout_distribution)
+        self.hazard_condition_inside = bool(hazard_condition_inside)
         self.lambda_kl = lambda_kl
         self.lambda_wass = lambda_wass
+        self.eval_lambda_wass = eval_lambda_wass
         self.lambda_entropy = lambda_entropy
         self.lambda_focal = lambda_focal
         self.mixup_p = mixup_p
@@ -106,13 +151,18 @@ class SegmTrainer(BaseTrainer):
             "default_rmse": self.default_rmse_for(split),
             "total_loss": 0.0,
             "total_ce": 0.0,
+            "total_event_nll": 0.0,
+            "total_hazard_discrete_nll": 0.0,
+            "total_event_sigma": 0.0,
             "total_rmse": 0.0,
+            "total_wass": 0.0,
             "n_batches": 0,
             "sse": 0.0,
             "n_samples": 0,
+            "n_event_sigma": 0,
         }
         if train:
-            state.update({"total_kl": 0.0, "total_wass": 0.0, "sum_y": 0.0, "sum_y2": 0.0})
+            state.update({"total_kl": 0.0, "sum_y": 0.0, "sum_y2": 0.0})
         else:
             state["preds_abs"] = []
             state["logits"] = []
@@ -160,21 +210,29 @@ class SegmTrainer(BaseTrainer):
 
         state["total_loss"] += float(loss_for_backward.detach())
         state["total_ce"] += float(losses["ce"].detach())
+        state["total_event_nll"] += float(losses["event_nll"].detach())
+        state["total_hazard_discrete_nll"] += float(losses["hazard_discrete_nll"].detach())
         state["total_rmse"] += float(losses["rmse"].detach())
         state["total_kl"] += float(losses["kl"].detach())
         state["total_wass"] += float(losses["wass"].detach())
+        self._record_event_sigma(state, losses["event_sigma"], batch_size)
 
         metrics = self._running_train_metrics(state)
         metrics.update(
             {
                 "loss": float(loss_for_backward.detach()),
                 "ce": float(losses["ce"].detach()),
+                "event_nll": float(losses["event_nll"].detach()),
+                "hazard_discrete_nll": float(losses["hazard_discrete_nll"].detach()),
                 "rmse": float(losses["rmse"].detach()),
                 "kl": float(losses["kl"].detach()),
                 "wass": float(losses["wass"].detach()),
                 "entropy": float(losses["entropy"].detach()),
             }
         )
+        event_sigma = self._running_event_sigma(state)
+        if event_sigma is not None:
+            metrics["event_sigma"] = event_sigma
         return metrics
 
     def eval_batch(
@@ -200,45 +258,91 @@ class SegmTrainer(BaseTrainer):
         q = soft_label_1d(y_rel, T=T, dt=dt, sigma=self.sigma, density=True)
 
         z = self.model(X).squeeze(1)
-        log_p = F.log_softmax(z / self.eval_temperature, dim=-1)
-        ce = -(q * log_p).sum(dim=-1).mean()
+        log_p, p = self._event_distribution(z, self.eval_temperature)
+        ce = soft_label_cross_entropy(log_p, q)
+        t_grid = (torch.arange(T, device=self.device, dtype=z.dtype) * dt)[None, :]
+        event_sigma = self._model_event_sigma()
+        event_nll = (
+            event_mixture_nll(
+                log_p,
+                y_rel,
+                t_grid,
+                sigma=self.sigma,
+                event_sigma=event_sigma,
+                kernel=self.event_nll_kernel,
+                df=self.event_nll_df,
+                mixture_weight=self.event_nll_mixture_weight,
+                mixture_sigma_narrow=self.event_nll_mixture_sigma_narrow,
+                mixture_sigma_wide=self.event_nll_mixture_sigma_wide,
+            )
+            if self.eval_lambda_event_nll
+            else torch.tensor(0.0, device=self.device)
+        )
+        hazard_nll = (
+            hazard_discrete_nll(z, y_rel, dt=dt, temperature=self.eval_temperature)
+            if self.eval_lambda_hazard_discrete_nll
+            else torch.tensor(0.0, device=self.device)
+        )
+        if self.eval_lambda_wass > 0:
+            wass = cdf_distance(p, q, dt)
+        else:
+            wass = torch.tensor(0.0, device=self.device)
 
         if self.use_soft_argmax:
-            t_grid = (torch.arange(T, device=self.device, dtype=z.dtype) * dt)[None, :]
-            p = torch.softmax(z / self.eval_temperature, dim=-1)
-            t_hat_abs = (p * t_grid).sum(dim=-1) + self.win_offset
+            t_hat_abs = expected_time(p, t_grid) + self.win_offset
         else:
-            t_hat_abs = z.argmax(dim=-1) * dt + self.win_offset
+            t_hat_abs = p.argmax(dim=-1) * dt + self.win_offset
 
         rmse_time = F.mse_loss(t_hat_abs, y).sqrt()
-        loss = ce + self.eval_lambda_time * rmse_time
+        loss = (
+            self.eval_lambda_ce * ce
+            + self.eval_lambda_event_nll * event_nll
+            + self.eval_lambda_hazard_discrete_nll * hazard_nll
+            + self.eval_lambda_time * rmse_time
+            + self.eval_lambda_wass * wass
+        )
 
         state["total_loss"] += float(loss.detach())
         state["total_ce"] += float(ce.detach())
+        state["total_event_nll"] += float(event_nll.detach())
+        state["total_hazard_discrete_nll"] += float(hazard_nll.detach())
         state["total_rmse"] += float(rmse_time.detach())
+        state["total_wass"] += float(wass.detach())
         state["n_batches"] += 1
+        self._record_event_sigma(state, event_sigma, y.numel())
 
         diff_abs = (t_hat_abs - y).detach()
         state["sse"] += torch.sum(diff_abs * diff_abs).item()
         state["n_samples"] += y.numel()
-        state["preds_abs"].extend(t_hat_abs.cpu().numpy())
+        state["preds_abs"].extend(t_hat_abs.detach().cpu().numpy())
         state["logits"].append(z.detach().cpu().numpy().astype(np.float32, copy=False))
         state["last_batch"] = {
-            "X": X.cpu(),
-            "y": y.cpu(),
-            "z": z.cpu(),
-            "t_hat_abs": t_hat_abs.cpu(),
+            "X": X.detach().cpu(),
+            "y": y.detach().cpu(),
+            "z": z.detach().cpu(),
+            "t_hat_abs": t_hat_abs.detach().cpu(),
             "ce": float(ce.detach()),
             "rmse_time": float(rmse_time.detach()),
             "T": T,
             "dt": dt,
             "win_offset": self.win_offset,
-            "q": q.cpu(),
+            "q": q.detach().cpu(),
             "temperature": self.eval_temperature,
+            "probabilities": p.detach().cpu(),
+            "readout_label": f"Predicted {self.readout_distribution} p(t)",
         }
 
         metrics = self._running_eval_metrics(state)
         metrics.update({"loss": float(loss.detach()), "ce": float(ce.detach()), "rmse": float(rmse_time.detach())})
+        if self.eval_lambda_event_nll:
+            metrics["event_nll"] = float(event_nll.detach())
+        if self.eval_lambda_hazard_discrete_nll:
+            metrics["hazard_discrete_nll"] = float(hazard_nll.detach())
+        if self.eval_lambda_wass:
+            metrics["wass"] = float(wass.detach())
+        event_sigma = self._running_event_sigma(state)
+        if event_sigma is not None:
+            metrics["event_sigma"] = event_sigma
         return metrics
 
     def finalize_epoch(self, state: dict[str, Any], *, train: bool) -> dict[str, Any]:
@@ -255,6 +359,13 @@ class SegmTrainer(BaseTrainer):
                     "wass": state["total_wass"] / n_batches,
                 }
             )
+            if self.lambda_event_nll:
+                metrics["event_nll"] = state["total_event_nll"] / n_batches
+            if self.lambda_hazard_discrete_nll:
+                metrics["hazard_discrete_nll"] = state["total_hazard_discrete_nll"] / n_batches
+            event_sigma = self._running_event_sigma(state)
+            if event_sigma is not None:
+                metrics["event_sigma"] = event_sigma
             return metrics
 
         metrics = self._running_eval_metrics(state)
@@ -267,6 +378,15 @@ class SegmTrainer(BaseTrainer):
                 "logits": np.concatenate(state["logits"], axis=0) if state["logits"] else np.empty((0, 0), dtype=np.float32),
             }
         )
+        if self.eval_lambda_event_nll:
+            metrics["event_nll"] = state["total_event_nll"] / n_batches
+        if self.eval_lambda_hazard_discrete_nll:
+            metrics["hazard_discrete_nll"] = state["total_hazard_discrete_nll"] / n_batches
+        if self.eval_lambda_wass:
+            metrics["wass"] = state["total_wass"] / n_batches
+        event_sigma = self._running_event_sigma(state)
+        if event_sigma is not None:
+            metrics["event_sigma"] = event_sigma
         if self.plot_last_batch and state["last_batch"] is not None:
             from benchmarks.pkg.training.visualization import draw_batch
 
@@ -295,6 +415,10 @@ class SegmTrainer(BaseTrainer):
             parts = [f"Epoch {epoch} [{batch_idx + 1}/{n_batches}]", f"Loss {metrics['loss']:.4f}"]
             if self.lambda_ce:
                 parts.append(f"CE {metrics['ce']:.4f}")
+            if self.lambda_event_nll:
+                parts.append(f"EventNLL {metrics['event_nll']:.4f}")
+            if self.lambda_hazard_discrete_nll:
+                parts.append(f"HazardNLL {metrics['hazard_discrete_nll']:.4f}")
             if self.lambda_time:
                 parts.append(f"RMSE {metrics['rmse']:.4f}")
             if self.lambda_kl:
@@ -304,10 +428,17 @@ class SegmTrainer(BaseTrainer):
             parts.append(f"NRMSE {metrics['nrmse']:.4f}")
             if self.lambda_entropy:
                 parts.append(f"Entropy {metrics['entropy']:.3f}")
+            if "event_sigma" in metrics:
+                parts.append(f"Sigma {metrics['event_sigma']:.3f}")
             return " ".join(parts)
         return (
             f"Val [{batch_idx + 1}/{n_batches}] Loss {metrics['loss']:.4f} "
-            f"CE {metrics['ce']:.4f} RMSE {metrics['rmse']:.4f} NRMSE {metrics['nrmse']:.4f}"
+            f"CE {metrics['ce']:.4f} "
+            f"{'EventNLL ' + format(metrics['event_nll'], '.4f') + ' ' if self.eval_lambda_event_nll else ''}"
+            f"{'HazardNLL ' + format(metrics['hazard_discrete_nll'], '.4f') + ' ' if self.eval_lambda_hazard_discrete_nll else ''}"
+            f"{'WASS ' + format(metrics['wass'], '.4f') + ' ' if self.eval_lambda_wass else ''}"
+            f"{'Sigma ' + format(metrics['event_sigma'], '.3f') + ' ' if 'event_sigma' in metrics else ''}"
+            f"RMSE {metrics['rmse']:.4f} NRMSE {metrics['nrmse']:.4f}"
         )
 
     def _mixup(self, X, q, y_rel, T: int, dt: float, batch_size: int):
@@ -330,30 +461,116 @@ class SegmTrainer(BaseTrainer):
         return X, q, y_rel
 
     def _train_losses(self, z, q, y_rel, T: int, dt: float) -> dict[str, torch.Tensor]:
-        log_p = F.log_softmax(z / self.temperature, dim=-1)
-        p = torch.softmax(z / self.temperature, dim=-1)
-        entropy = -(p * log_p).sum(dim=-1).mean()
+        log_p, p = self._event_distribution(z, self.temperature)
+        entropy = posterior_entropy(p, log_p)
 
         if self.lambda_ce:
-            if self.lambda_focal > 0:
-                focal_weight = (1.0 - p.detach()).pow(self.lambda_focal)
-                ce = -((focal_weight * q) * log_p).sum(dim=-1).mean()
-            else:
-                ce = -(q * log_p).sum(dim=-1).mean()
+            ce = soft_label_cross_entropy(log_p, q, probabilities=p, focal_gamma=self.lambda_focal)
         else:
             ce = torch.tensor(0.0, device=self.device)
 
         t_grid = (torch.arange(T, device=self.device, dtype=z.dtype) * dt)[None, :]
-        t_hat = (p * t_grid).sum(dim=-1)
+        t_hat = expected_time(p, t_grid)
         rmse = F.mse_loss(t_hat, y_rel).sqrt()
-        kl = (q * (torch.log(q + 1e-8) - log_p)).sum(dim=-1).mean() if self.lambda_kl else torch.tensor(0.0, device=self.device)
+        event_sigma = self._model_event_sigma()
+        event_nll = (
+            event_mixture_nll(
+                log_p,
+                y_rel,
+                t_grid,
+                sigma=self.sigma,
+                event_sigma=event_sigma,
+                kernel=self.event_nll_kernel,
+                df=self.event_nll_df,
+                mixture_weight=self.event_nll_mixture_weight,
+                mixture_sigma_narrow=self.event_nll_mixture_sigma_narrow,
+                mixture_sigma_wide=self.event_nll_mixture_sigma_wide,
+            )
+            if self.lambda_event_nll
+            else torch.tensor(0.0, device=self.device)
+        )
+        hazard_nll = (
+            hazard_discrete_nll(z, y_rel, dt=dt, temperature=self.temperature)
+            if self.lambda_hazard_discrete_nll
+            else torch.tensor(0.0, device=self.device)
+        )
+        kl = posterior_kl(q, log_p) if self.lambda_kl else torch.tensor(0.0, device=self.device)
         if self.lambda_wass > 0:
-            wass = (torch.abs(torch.cumsum(p, -1) - torch.cumsum(q, -1)).sum(-1).mean()) * dt
+            wass = cdf_distance(p, q, dt)
         else:
             wass = torch.tensor(0.0, device=self.device)
 
-        total = self.lambda_ce * ce + self.lambda_time * rmse + self.lambda_kl * kl + self.lambda_wass * wass + self.lambda_entropy * entropy
-        return {"total": total, "ce": ce, "rmse": rmse, "kl": kl, "wass": wass, "entropy": entropy, "t_hat": t_hat}
+        total = (
+            self.lambda_ce * ce
+            + self.lambda_event_nll * event_nll
+            + self.lambda_hazard_discrete_nll * hazard_nll
+            + self.lambda_time * rmse
+            + self.lambda_kl * kl
+            + self.lambda_wass * wass
+            + self.lambda_entropy * entropy
+        )
+        return {
+            "total": total,
+            "ce": ce,
+            "event_nll": event_nll,
+            "hazard_discrete_nll": hazard_nll,
+            "rmse": rmse,
+            "kl": kl,
+            "wass": wass,
+            "entropy": entropy,
+            "t_hat": t_hat,
+            "event_sigma": event_sigma,
+        }
+
+    def _event_distribution(self, logits: torch.Tensor, temperature: float) -> tuple[torch.Tensor, torch.Tensor]:
+        """Return temporal event log-probabilities and probabilities."""
+        if self.readout_distribution == "softmax":
+            log_p = F.log_softmax(logits / float(temperature), dim=-1)
+        elif self.readout_distribution == "hazard":
+            log_p = hazard_logits_to_log_pmf(
+                logits,
+                temperature=float(temperature),
+                condition_inside=self.hazard_condition_inside,
+            )
+        else:
+            raise RuntimeError(f"Unsupported readout distribution: {self.readout_distribution!r}")
+        return log_p, log_p.exp()
+
+    @staticmethod
+    def _normalize_readout_distribution(readout_distribution: str) -> str:
+        """Normalize configured temporal readout names."""
+        name = str(readout_distribution).lower().replace("-", "_")
+        if name in {"softmax", "soft_argmax", "event_softmax"}:
+            return "softmax"
+        if name in {"hazard", "survival", "event_hazard"}:
+            return "hazard"
+        raise ValueError(f"Unknown readout_distribution: {readout_distribution!r}")
+
+    def _model_event_sigma(self) -> torch.Tensor | None:
+        """Return model-provided EventNLL observation scales when available."""
+        getter = getattr(self.model, "event_observation_sigma", None)
+        if getter is None:
+            return None
+        return getter()
+
+    def _record_event_sigma(self, state: dict[str, Any], sigma: torch.Tensor | None, batch_size: int) -> None:
+        """Accumulate model-provided EventNLL sigma for epoch-level logging."""
+        if sigma is None:
+            return
+        values = sigma.detach().view(-1)
+        if values.numel() == 1:
+            state["total_event_sigma"] += float(values.item()) * int(batch_size)
+            state["n_event_sigma"] += int(batch_size)
+            return
+        state["total_event_sigma"] += float(values.sum().item())
+        state["n_event_sigma"] += int(values.numel())
+
+    def _running_event_sigma(self, state: dict[str, Any]) -> float | None:
+        """Return the running mean EventNLL sigma if a model provides it."""
+        count = int(state.get("n_event_sigma", 0))
+        if count <= 0:
+            return None
+        return float(state["total_event_sigma"] / count)
 
     def _running_train_metrics(self, state: dict[str, Any]) -> dict[str, float]:
         rmse_ds = (state["sse"] / max(state["n_samples"], 1)) ** 0.5

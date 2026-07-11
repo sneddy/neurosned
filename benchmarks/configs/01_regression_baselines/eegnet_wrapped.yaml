@@ -9,18 +9,26 @@ evaluation:
   save_predictions: true
   save_logits: false
   repeated_runs:
-    enabled: false
+    enabled: true
     seeds: [2025, 2026, 2027, 2028, 2029]
   confidence_interval:
     enabled: true
     method: subject_bootstrap
     n_samples: 1000
     resampling_seed: 2025
+  shifted_crop:
+    enabled: true
+    dataset: data/new_validation/r11_test_5sec.pkl
+    starts: [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
+    reference_start: 0.5
+    save_predictions: false
 
 data:
   train: data/new_validation/r1_r8_train.pkl
   valid: data/new_validation/r9_r10_val.pkl
   test: data/new_validation/r11_test.pkl
+  target_min: 0.5
+  target_max: 2.5
   train_dataset:
     module_name: benchmarks.data.regression
     class_name: FixedWindowDataset

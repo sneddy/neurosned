@@ -10,6 +10,7 @@ environment already activated.
 python benchmarks/preparation/scripts/download_releases.py
 python benchmarks/preparation/scripts/check_releases.py
 python benchmarks/preparation/scripts/prepare_splitted_datasets.py
+python benchmarks/preparation/scripts/summarize_protocol_counts.py
 ```
 
 Small smoke runs:
@@ -29,6 +30,9 @@ High level:
    `check_manifest.json` with readable/failed counts.
 3. `prepare_splitted_datasets.py` builds release-based `BaseConcatDataset`
    pickle files in `data/new_validation/` and writes `prepare_manifest.json`.
+4. `summarize_protocol_counts.py` reads the prepared split pickle files,
+   applies the manuscript target-support filter, checks subject overlap, and
+   writes a paper-facing Markdown summary under `benchmarks/experiments/00_data_protocol/`.
 
 Low-level preprocessing:
 
@@ -48,6 +52,11 @@ Outputs:
 - `data/new_validation/r9_r10_val.pkl`
 - `data/new_validation/r9_r10_val_5sec.pkl`
 - `data/new_validation/r11_test.pkl`
+- `data/new_validation/r11_test_5sec.pkl`
+
+Paper-facing protocol summaries:
+
+- `benchmarks/experiments/00_data_protocol/protocol_summary.md`
 
 ## Config defaults
 

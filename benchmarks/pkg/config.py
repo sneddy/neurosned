@@ -7,8 +7,8 @@ parameters.
 
 Importable objects use the same structure everywhere:
 
-    module_name: benchmarks.pkg.models.segmentation.sneddy_unet
-    class_name: SneddySegUNet1D
+    module_name: benchmarks.pkg.models.segmentation.ets_unet
+    class_name: EventTimeUNet1D
     params:
       n_chans: 128
       n_times: 200
@@ -26,6 +26,8 @@ from typing import Any, Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field
+
+from benchmarks.data.filtering import apply_target_range_filter
 
 
 class StrictConfig(BaseModel):
@@ -67,12 +69,15 @@ class DataConfig(StrictConfig):
     `train` and `valid` point to prepared benchmark pickle files. A wrapper can
     be attached when the raw pickle dataset is not what the trainer consumes.
     Segmentation training, for example, wraps the train dataset with
-    `TrainCroppingDataset`, while validation stays unwrapped.
+    `TrainCroppingDataset`, while validation stays unwrapped. Optional target
+    bounds are applied immediately after pickle loading and before any wrappers.
     """
 
     train: Path
     valid: Path
     test: Path | None = None
+    target_min: float | None = None
+    target_max: float | None = None
     train_dataset: DatasetConfig | None = None
     valid_dataset: DatasetConfig | None = None
 
@@ -185,6 +190,41 @@ class ConfidenceIntervalConfig(StrictConfig):
     resampling_seed: int = 2025
 
 
+class ShiftedCropEvaluationConfig(StrictConfig):
+    """Optional post-training shifted-crop diagnostic."""
+
+    enabled: bool = False
+    dataset: Path = Path("data/new_validation/r11_test_5sec.pkl")
+    target_min: float | None = None
+    target_max: float | None = None
+    starts: list[float] = Field(default_factory=lambda: [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8])
+    reference_start: float = 0.5
+    crop_sec: float | None = None
+    sfreq: float | None = None
+    batch_size: int | None = None
+    num_workers: int | None = None
+    output_dir: Path | None = None
+    segmentation_temperature: float | None = None
+    bootstrap_samples: int = 1000
+    bootstrap_seed: int = 2025
+    save_predictions: bool = False
+
+
+class TemperatureCalibrationConfig(StrictConfig):
+    """Post-hoc temperature calibration for segmentation logits."""
+
+    enabled: bool = False
+    min: float = 0.2
+    max: float = 3.5
+    step: float = 0.05
+
+
+class CalibrationConfig(StrictConfig):
+    """Post-training calibration settings."""
+
+    temperature: TemperatureCalibrationConfig = Field(default_factory=TemperatureCalibrationConfig)
+
+
 class EvaluationConfig(StrictConfig):
     """Explicit holdout-evaluation settings.
 
@@ -199,6 +239,7 @@ class EvaluationConfig(StrictConfig):
     save_logits: bool = False
     repeated_runs: RepeatedRunsConfig = Field(default_factory=RepeatedRunsConfig)
     confidence_interval: ConfidenceIntervalConfig = Field(default_factory=ConfidenceIntervalConfig)
+    shifted_crop: ShiftedCropEvaluationConfig = Field(default_factory=ShiftedCropEvaluationConfig)
 
 
 class ExperimentConfig(StrictConfig):
@@ -221,6 +262,7 @@ class ExperimentConfig(StrictConfig):
     optimizer: OptimizerConfig
     trainer: TrainerConfig
     evaluation: EvaluationConfig = Field(default_factory=EvaluationConfig)
+    calibration: CalibrationConfig = Field(default_factory=CalibrationConfig)
 
     def build_datasets(self, project_root: str | Path):
         """Load train and validation pickle datasets."""
@@ -235,7 +277,12 @@ class ExperimentConfig(StrictConfig):
             raise ValueError(f"Dataset split has no configured path: {split}")
 
         with path.open("rb") as f:
-            return pickle.load(f)
+            dataset = pickle.load(f)
+        return apply_target_range_filter(
+            dataset,
+            target_min=self.data.target_min,
+            target_max=self.data.target_max,
+        )
 
     def data_paths(self, project_root: str | Path) -> dict[str, Path | None]:
         """Return resolved dataset paths."""

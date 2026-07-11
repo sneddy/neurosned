@@ -1,32 +1,138 @@
-# Human map for paper-facing benchmark groups. This file is not loaded by code.
+# Human map for the current paper-facing benchmark groups.
+# This file is documentation only; training/evaluation code does not load it.
+
+protocol:
+  journal: benchmarks/EXPERIMENTS.md
+  train_split: R1-R8
+  development_split: R9-R10
+  final_holdout: R11
+  target_support: "0.5 <= RT <= 2.5"
+  seeds: [2025, 2026, 2027, 2028, 2029]
 
 experiments:
-  - name: 00_protocol_calibration
-    configs: benchmarks/configs/00_protocol_calibration
-    artifacts: benchmarks/experiments/00_protocol_calibration
-    comment: Archive exploratory recipe-search configs before frozen paper-facing reruns.
+  - name: 00_data_protocol
+    kind: artifact_only
+    configs: null
+    artifacts: benchmarks/experiments/00_data_protocol
+    paper_outputs:
+      - benchmarks/experiments/00_data_protocol/protocol_summary.md
+    status: complete
+    comment: Canonical split, support-filter, subject-disjointness, and package-version record.
 
   - name: 01_regression_baselines
+    kind: training
     configs: benchmarks/configs/01_regression_baselines
+    runner: benchmarks/runners/run_regression_baselines.sh
     artifacts: benchmarks/experiments/01_regression_baselines
-    comment: Clean frozen-protocol regression configs will be created here for final reruns.
+    paper_outputs:
+      - benchmarks/experiments/paper_tables/main_01_regression_baselines.md
+      - benchmarks/experiments/paper_tables/appendix_01_regression_shifted_crop.md
+    status: complete
+    comment: Scalar RT and wrapped external EEG baselines; 12 configs, 5 seeds each.
+    paper_configs:
+      - msp_cnn.yaml
+      - etr_cnn.yaml
+      - etr_cnn_large.yaml
+      - tidnet_wrapped.yaml
+      - eegconformer_wrapped.yaml
+      - eegnet_wrapped.yaml
+      - deep4net_wrapped.yaml
+      - shallowfbcspnet_wrapped.yaml
+      - atcnet_wrapped.yaml
+      - labram_wrapped.yaml
+      - eegpt_wrapped.yaml
+      - medformer_wrapped.yaml
 
-  - name: 02_regression_vs_segmentation
-    configs: benchmarks/configs
-    artifacts: benchmarks/experiments/02_regression_vs_segmentation
-    comment: Compare direct scalar regression with temporal segmentation under the same split.
+  - name: 02_segmentation_ablations
+    kind: training
+    configs: benchmarks/configs/02_segmentation_ablations
+    runner: benchmarks/runners/run_segmentation_ablations.sh
+    artifacts: benchmarks/experiments/02_segmentation_ablations
+    paper_outputs:
+      - benchmarks/experiments/paper_tables/main_02_event_time_objectives.md
+      - benchmarks/experiments/paper_tables/appendix_02_fixed_shifted_details.md
+    status: complete
+    comment: ETS-U-Net objective ablations under one backbone and filtered fixed-window protocol.
+    paper_configs:
+      - ets_unet_ce.yaml
+      - ets_unet_event_nll.yaml
+      - ets_unet_event_nll_mixture.yaml
+      - ets_unet_hazard_event_nll.yaml
+      - ets_unet_time_only.yaml
+      - ets_unet_wasserstein.yaml
+    non_paper_configs:
+      - config: ets_unet_ce_time.yaml
+        reason: Engineering/control combo retained in configs but excluded from current paper-facing tables.
 
-  - name: 03_component_ablations
-    configs: benchmarks/configs/03_component_ablations
-    artifacts: benchmarks/experiments/03_component_ablations
-    comment: Clean one-factor SneddyUNet ablations under the frozen protocol.
+  - name: 03_posterior_geometry
+    kind: derived_analysis
+    configs: null
+    generated_from: benchmarks/experiments/02_segmentation_ablations
+    artifacts:
+      - benchmarks/experiments/paper_tables/main_04_posterior_geometry.md
+      - benchmarks/experiments/paper_tables/appendix_04_observation_noise_calibration.md
+      - benchmarks/experiments/paper_figures
+    status: active
+    comment: Output-geometry evidence showing that similar scalar nRMSE can hide different posterior semantics; includes post-hoc RT observation-noise calibration.
 
-  - name: 04_advanced_training_protocol
-    configs: benchmarks/configs/04_advanced_training_protocol
-    artifacts: benchmarks/experiments/04_advanced_training_protocol
-    comment: Optional full engineering recipe after the controlled ablations are fixed.
+  - name: 04_shifted_crop_diagnostic
+    kind: posthoc_evaluation
+    configs: evaluation.shifted_crop blocks inside model configs
+    runners:
+      - benchmarks/runners/eval_shifted_regression.sh
+      - benchmarks/runners/eval_shifted_seg.sh
+    artifacts:
+      - per-run shifted_eval folders
+      - benchmarks/experiments/paper_tables/appendix_01_regression_shifted_crop.md
+      - benchmarks/experiments/paper_tables/appendix_02_fixed_shifted_details.md
+    status: complete
+    comment: Fixed-window shortcut-vs-localization diagnostic on shifted 2 s crops.
 
-  - name: 05_stacked_calibration
-    configs: benchmarks/configs/stacking
-    artifacts: benchmarks/experiments/05_stacked_calibration
-    comment: Post-hoc ensemble calibration over fixed base models and saved checkpoints.
+  - name: 05_crop_shift_jitter
+    kind: training
+    configs: benchmarks/configs/03_crop_shift_jitter
+    runner: benchmarks/runners/run_crop_shift_jitter.sh
+    artifacts:
+      - benchmarks/experiments/03_crop_shift_jitter
+      - benchmarks/experiments/03_crop_shift_jitter_canonical_eval
+    posthoc_runners:
+      - benchmarks/runners/reeval_crop_shift_jitter_canonical.sh
+      - benchmarks/runners/eval_shifted_seg.sh
+    paper_outputs:
+      - benchmarks/experiments/paper_tables/main_03_shift_jitter_summary.md
+      - benchmarks/experiments/paper_tables/appendix_03_jitter_shifted_details.md
+    status: complete
+    comment: Shift-jitter training intervention; 6 configs, 5 seeds each, with canonical holdout re-eval.
+    paper_configs:
+      - ets_unet_ce_shift_jitter.yaml
+      - ets_unet_event_nll_shift_jitter.yaml
+      - ets_unet_event_nll_mixture_shift_jitter.yaml
+      - ets_unet_hazard_event_nll_shift_jitter.yaml
+      - ets_unet_time_only_shift_jitter.yaml
+      - ets_unet_wasserstein_shift_jitter.yaml
+
+  - name: 06_final_training_recipe
+    kind: optional
+    configs: null
+    artifacts: null
+    status: not_active
+    comment: Placeholder for a final engineering recipe only if it gives a clean improvement after main ablations are frozen.
+
+paper_tables:
+  directory: benchmarks/experiments/paper_tables
+  main:
+    - main_01_regression_baselines.md
+    - main_02_event_time_objectives.md
+    - main_03_shift_jitter_summary.md
+    - main_04_posterior_geometry.md
+    - main_05_effect_size.md
+    - main_06_experiments_map.md
+  appendix:
+    - appendix_01_regression_shifted_crop.md
+    - appendix_02_fixed_shifted_details.md
+    - appendix_03_jitter_shifted_details.md
+    - appendix_04_observation_noise_calibration.md
+
+paper_figures:
+  directory: benchmarks/experiments/paper_figures
+  runner: benchmarks/runners/plot_paper_figures.sh

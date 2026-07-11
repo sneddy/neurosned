@@ -1,0 +1,6 @@
+seed,run_name,run_dir,status,best_epoch,best_metric,test_nrmse,test_nrmse_ci_low,test_nrmse_ci_high,test_posterior_crps,test_posterior_fixed_kernel_event_nll,test_tau_nrmse,test_tau_nrmse_ci_low,test_tau_nrmse_ci_high,test_tau_posterior_crps,test_tau_posterior_fixed_kernel_event_nll
+2025,seed2025,benchmarks/experiments/01_regression_baselines/deep4net_wrapped_repeated__20260707_032916/seed2025,training_finished,48,0.9289701377062203,0.929464518093414,0.9168182279902705,0.9429988669361042,,,,,,,
+2026,seed2026,benchmarks/experiments/01_regression_baselines/deep4net_wrapped_repeated__20260707_032916/seed2026,training_finished,45,0.9319210018846192,0.9263672558843496,0.9152164853844061,0.9385080429195243,,,,,,,
+2027,seed2027,benchmarks/experiments/01_regression_baselines/deep4net_wrapped_repeated__20260707_032916/seed2027,training_finished,87,0.9244189720757905,0.9221746194606438,0.9094391504810488,0.9354133689239089,,,,,,,
+2028,seed2028,benchmarks/experiments/01_regression_baselines/deep4net_wrapped_repeated__20260707_032916/seed2028,training_finished,56,0.9287422693787423,0.9308791586559017,0.9174437459202713,0.9448579997090959,,,,,,,
+2029,seed2029,benchmarks/experiments/01_regression_baselines/deep4net_wrapped_repeated__20260707_032916/seed2029,training_finished,100,0.920363847276012,0.9209737908802019,0.9090727842403772,0.934310775207891,,,,,,,

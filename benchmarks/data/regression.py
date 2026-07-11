@@ -79,3 +79,62 @@ class FixedWindowDataset(Dataset):
             X = X + torch.randn_like(X) * noise_std
 
         return X
+
+
+class ShiftedFixedWindowDataset(FixedWindowDataset):
+    """Create fixed-length regression crops from longer EEG windows.
+
+    This wrapper is intended for temporal-shift diagnostics: the base dataset
+    should yield a longer window, for example the prepared 5 s windows, and this
+    wrapper extracts a deterministic crop starting at `crop_start` seconds. It
+    keeps the regression `(X, y)` contract used by `RegrTrainer`.
+    """
+
+    def __init__(
+        self,
+        base: Dataset,
+        sfreq: float = 100.0,
+        crop_sec: float = 2.0,
+        crop_start: float = 0.5,
+        target_mode: str = "absolute",
+        **fixed_window_kwargs,
+    ):
+        super().__init__(base, **fixed_window_kwargs)
+        self.sfreq = float(sfreq)
+        self.crop_sec = float(crop_sec)
+        self.crop_start = float(crop_start)
+        self.target_mode = target_mode
+        self.crop_samples = int(round(self.crop_sec * self.sfreq))
+        self.start_sample = int(round(self.crop_start * self.sfreq))
+        if self.crop_samples <= 0:
+            raise ValueError("crop_sec must produce at least one sample.")
+        if self.start_sample < 0:
+            raise ValueError("crop_start must be non-negative.")
+        if self.target_mode not in {"absolute", "relative"}:
+            raise ValueError("target_mode must be 'absolute' or 'relative'.")
+
+    def __getitem__(self, idx: int):
+        batch = self.base[idx]
+        X_full = torch.as_tensor(batch[0]).float()
+        y_abs = torch.as_tensor(batch[1]).float()
+
+        if self.use_channels is not None:
+            X_full = X_full[self.use_channels, :]
+
+        end_sample = self.start_sample + self.crop_samples
+        if end_sample > X_full.shape[-1]:
+            raise ValueError(
+                f"Requested crop [{self.start_sample}:{end_sample}] exceeds "
+                f"window length {X_full.shape[-1]} for index {idx}."
+            )
+
+        X = X_full[:, self.start_sample:end_sample]
+        if self.use_augmentation:
+            X = self._augment_window(X)
+
+        if self.target_mode == "relative":
+            y = y_abs - self.crop_start
+        else:
+            y = y_abs
+
+        return X.contiguous(), y

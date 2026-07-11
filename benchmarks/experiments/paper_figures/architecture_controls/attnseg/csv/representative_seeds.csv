@@ -1,0 +1,4 @@
+name,label,seed,nrmse,run_dir
+ets_attnseg_event_nll_mixture,ets attnseg event nll mixture,2028,0.8746765865061882,benchmarks/experiments/04_attnseg/ets_attnseg_event_nll_mixture_repeated__20260710_183738/seed2028
+ets_attnseg_time_only,ets attnseg time only,2025,0.8945026930850866,benchmarks/experiments/04_attnseg/ets_attnseg_time_only_repeated__20260710_162430/seed2025
+ets_attnseg_ce,ets attnseg ce,2025,0.878213994396014,benchmarks/experiments/04_attnseg/ets_attnseg_ce_repeated__20260710_140844/seed2025

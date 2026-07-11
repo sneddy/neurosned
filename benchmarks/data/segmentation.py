@@ -10,27 +10,8 @@ from torch.utils.data import Dataset
 from benchmarks.pkg.training.labels import soft_label_1d
 
 
-class TrainCroppingDataset(Dataset):
-    """Turn full EEG windows into cropped segmentation training samples.
-
-    The wrapped pickle dataset is expected to yield `(X_full, y_abs, ...)`,
-    where `X_full` has shape `(channels, time)` and `y_abs` is the reaction time
-    in seconds from stimulus onset. Each item returns:
-
-    - `X_crop`: a fixed-length EEG crop with shape `(channels, T_crop)`.
-    - `q`: a 1D Gaussian soft label centered at the reaction time inside crop.
-    - `y_rel_sec`: the scalar reaction time relative to crop start.
-
-    `crop_sec` controls the crop duration. `end_time` optionally trims late
-    signal tails before cropping. With `crop_proba > 0`, the crop start is
-    jittered around the default 0.5 s post-stimulus offset by
-    `cropping_offset`, while preserving the target inside the crop.
-
-    When `use_augmentation=True`, the dataset can apply time scaling, channel
-    dropout, short temporal cutout, and Gaussian noise. These augmentations are
-    training-only and are intentionally kept in this wrapper rather than in the
-    validation loader.
-    """
+class _BaseSegmentationDataset(Dataset):
+    """Shared segmentation label and augmentation logic."""
 
     def __init__(
         self,
@@ -38,8 +19,6 @@ class TrainCroppingDataset(Dataset):
         sfreq: float,
         crop_sec: float = 2.0,
         sigma: float = 0.12,
-        cropping_offset: float = 0.2,
-        crop_proba: float = 1.0,
         dropout_range: float = 0.2,
         dropout_proba: float = 0.5,
         scale_proba: float = 0.2,
@@ -52,7 +31,6 @@ class TrainCroppingDataset(Dataset):
         noise_base_std: float = 0.01,
         noise_random_std: float = 0.03,
         use_channels: list | None = None,
-        end_time: float | None = None,
         use_augmentation: bool = False,
     ):
         self.base = base
@@ -60,8 +38,6 @@ class TrainCroppingDataset(Dataset):
         self.crop_sec = float(crop_sec)
         self.T_crop = int(round(self.crop_sec * self.sfreq))
         self.sigma = float(sigma)
-        self.cropping_offset = cropping_offset
-        self.crop_proba = crop_proba
         self.dropout_proba = dropout_proba
         self.dropout_range = dropout_range
         self.scale_proba = scale_proba
@@ -74,32 +50,16 @@ class TrainCroppingDataset(Dataset):
         self.noise_base_std = noise_base_std
         self.noise_random_std = noise_random_std
         self.use_channels = use_channels
-        self.end_time = end_time
         self.use_augmentation = use_augmentation
         self.dt = 1.0 / self.sfreq
 
     def __len__(self):
         return len(self.base)
 
-    def _crop_segment(self, X_full, y_abs):
-        """
-        Crops a 2-second window that starts around the default 0.5 s offset
-        with a random shift in [-cropping_offset, +cropping_offset] seconds.
-        """
-        if torch.rand((), device=X_full.device) < self.crop_proba:
-            start_second = 0.5 + random.uniform(-self.cropping_offset, self.cropping_offset)
-            start_second = max(start_second, y_abs - 2.0)
-            start_second = min(start_second, y_abs - self.cropping_offset)
-            start_second = np.clip(start_second, 0.5 - self.cropping_offset, 0.5 + self.cropping_offset)
-            start_second = np.clip(start_second, 0, self.end_time - self.crop_sec)
-        else:
-            start_second = 0.5
-        start_point = int(round(start_second * self.sfreq))
-        end_point = start_point + self.T_crop
-
-        X_crop = X_full[:, start_point:end_point].contiguous().to(torch.float32)
-        y_rel_sec = y_abs - start_second
-        return X_crop, y_rel_sec
+    def _select_channels(self, X: torch.Tensor) -> torch.Tensor:
+        if self.use_channels is None:
+            return X
+        return X[self.use_channels, :]
 
     def _augment_segment(self, X: torch.Tensor, y_rel_sec: float):
         C, T = X.shape
@@ -139,6 +99,129 @@ class TrainCroppingDataset(Dataset):
 
         return X.contiguous(), y_rel_sec
 
+    def _make_soft_label(self, y_rel_sec: float) -> torch.Tensor:
+        return soft_label_1d(
+            torch.tensor([y_rel_sec], dtype=torch.float32),
+            T=self.T_crop,
+            dt=self.dt,
+            sigma=self.sigma,
+            density=True,
+        ).squeeze(0)
+
+
+class TrainCroppingDataset(_BaseSegmentationDataset):
+    """Turn full EEG windows into cropped segmentation training samples.
+
+    The wrapped pickle dataset is expected to yield `(X_full, y_abs, ...)`,
+    where `X_full` has shape `(channels, time)` and `y_abs` is the reaction time
+    in seconds from stimulus onset. Each item returns:
+
+    - `X_crop`: a fixed-length EEG crop with shape `(channels, T_crop)`.
+    - `q`: a 1D Gaussian soft label centered at the reaction time inside crop.
+    - `y_rel_sec`: the scalar reaction time relative to crop start.
+
+    `crop_sec` controls the crop duration. `end_time` trims late signal tails
+    before cropping and defaults to the 5 s prepared-window length. With
+    `crop_proba > 0`, the crop start is sampled from `crop_start_min` to
+    `crop_start_max`, while preserving the target inside the crop. The legacy
+    `cropping_offset` argument is a shorthand for `0.5 +/- cropping_offset`.
+
+    When `use_augmentation=True`, the dataset can apply time scaling, channel
+    dropout, short temporal cutout, and Gaussian noise. These augmentations are
+    training-only and are intentionally kept in this wrapper rather than in the
+    validation loader.
+    """
+
+    def __init__(
+        self,
+        base: Dataset,
+        sfreq: float,
+        crop_sec: float = 2.0,
+        sigma: float = 0.12,
+        cropping_offset: float | None = None,
+        crop_start_min: float | None = None,
+        crop_start_max: float | None = None,
+        target_margin: float | None = None,
+        crop_proba: float = 1.0,
+        dropout_range: float = 0.2,
+        dropout_proba: float = 0.5,
+        scale_proba: float = 0.2,
+        scale_min: float = 0.8,
+        scale_max: float = 1.2,
+        cutout_proba: float = 0.25,
+        cutout_min_len: int = 10,
+        cutout_max_len: int = 60,
+        noise_proba: float = 0.2,
+        noise_base_std: float = 0.01,
+        noise_random_std: float = 0.03,
+        use_channels: list | None = None,
+        end_time: float | None = 5.0,
+        use_augmentation: bool = False,
+    ):
+        super().__init__(
+            base=base,
+            sfreq=sfreq,
+            crop_sec=crop_sec,
+            sigma=sigma,
+            dropout_range=dropout_range,
+            dropout_proba=dropout_proba,
+            scale_proba=scale_proba,
+            scale_min=scale_min,
+            scale_max=scale_max,
+            cutout_proba=cutout_proba,
+            cutout_min_len=cutout_min_len,
+            cutout_max_len=cutout_max_len,
+            noise_proba=noise_proba,
+            noise_base_std=noise_base_std,
+            noise_random_std=noise_random_std,
+            use_channels=use_channels,
+            use_augmentation=use_augmentation,
+        )
+        if cropping_offset is not None and (crop_start_min is not None or crop_start_max is not None):
+            raise ValueError("Use either cropping_offset or crop_start_min/crop_start_max, not both.")
+        if cropping_offset is not None:
+            cropping_offset = float(cropping_offset)
+            crop_start_min = 0.5 - cropping_offset
+            crop_start_max = 0.5 + cropping_offset
+        elif crop_start_min is None and crop_start_max is None:
+            crop_start_min = crop_start_max = 0.5
+        elif crop_start_min is None or crop_start_max is None:
+            raise ValueError("crop_start_min and crop_start_max must be set together.")
+        if float(crop_start_min) > float(crop_start_max):
+            raise ValueError("crop_start_min must be <= crop_start_max.")
+        if target_margin is not None and float(target_margin) < 0:
+            raise ValueError("target_margin must be non-negative.")
+
+        self.cropping_offset = cropping_offset
+        self.crop_start_min = float(crop_start_min)
+        self.crop_start_max = float(crop_start_max)
+        self.target_margin = None if target_margin is None else float(target_margin)
+        self.crop_proba = crop_proba
+        self.end_time = end_time
+
+    def _crop_segment(self, X_full, y_abs):
+        """
+        Crops a fixed-length window from the configured start range.
+        """
+        if torch.rand((), device=X_full.device) < self.crop_proba:
+            start_second = random.uniform(self.crop_start_min, self.crop_start_max)
+            target_margin = 0.0 if self.target_margin is None else self.target_margin
+            available_end = self.end_time if self.end_time is not None else X_full.shape[-1] / self.sfreq
+            min_start = max(0.0, y_abs - self.crop_sec + target_margin)
+            max_start = min(available_end - self.crop_sec, y_abs - target_margin)
+            if min_start <= max_start:
+                start_second = np.clip(start_second, min_start, max_start)
+            else:
+                start_second = np.clip(start_second, 0.0, available_end - self.crop_sec)
+        else:
+            start_second = 0.5
+        start_point = int(round(start_second * self.sfreq))
+        end_point = start_point + self.T_crop
+
+        X_crop = X_full[:, start_point:end_point].contiguous().to(torch.float32)
+        y_rel_sec = y_abs - start_second
+        return X_crop, y_rel_sec
+
     def __getitem__(self, idx: int):
         batch = self.base[idx]
         X_full, y_abs = batch[0], batch[1]
@@ -146,8 +229,7 @@ class TrainCroppingDataset(Dataset):
         X_full = torch.as_tensor(X_full)
         y_abs = float(y_abs.item())
 
-        if self.use_channels is not None:
-            X_full = X_full[self.use_channels, :]
+        X_full = self._select_channels(X_full)
 
         if self.end_time is not None:
             t_end = min(X_full.shape[1], int(round(self.end_time * self.sfreq)))
@@ -157,12 +239,79 @@ class TrainCroppingDataset(Dataset):
         if self.use_augmentation:
             X_crop, y_rel_sec = self._augment_segment(X_crop, y_rel_sec)
 
-        q = soft_label_1d(
-            torch.tensor([y_rel_sec], dtype=torch.float32),
-            T=self.T_crop,
-            dt=self.dt,
-            sigma=self.sigma,
-            density=True,
-        ).squeeze(0)
+        q = self._make_soft_label(y_rel_sec)
 
         return X_crop, q, torch.tensor(y_rel_sec, dtype=torch.float32)
+
+
+class FixedWindowSegmentationDataset(_BaseSegmentationDataset):
+    """Turn already prepared fixed EEG windows into segmentation samples.
+
+    The wrapped pickle dataset is expected to yield `(X, y_abs, ...)`, where
+    `X` is already the model input window and `y_abs` is the reaction time in
+    seconds from stimulus onset. The label is shifted into window-relative time
+    by subtracting `window_start`, but the EEG window itself is not cropped.
+    """
+
+    def __init__(
+        self,
+        base: Dataset,
+        sfreq: float,
+        crop_sec: float = 2.0,
+        sigma: float = 0.12,
+        window_start: float = 0.5,
+        dropout_range: float = 0.2,
+        dropout_proba: float = 0.5,
+        scale_proba: float = 0.2,
+        scale_min: float = 0.8,
+        scale_max: float = 1.2,
+        cutout_proba: float = 0.25,
+        cutout_min_len: int = 10,
+        cutout_max_len: int = 60,
+        noise_proba: float = 0.2,
+        noise_base_std: float = 0.01,
+        noise_random_std: float = 0.03,
+        use_channels: list | None = None,
+        use_augmentation: bool = False,
+    ):
+        super().__init__(
+            base=base,
+            sfreq=sfreq,
+            crop_sec=crop_sec,
+            sigma=sigma,
+            dropout_range=dropout_range,
+            dropout_proba=dropout_proba,
+            scale_proba=scale_proba,
+            scale_min=scale_min,
+            scale_max=scale_max,
+            cutout_proba=cutout_proba,
+            cutout_min_len=cutout_min_len,
+            cutout_max_len=cutout_max_len,
+            noise_proba=noise_proba,
+            noise_base_std=noise_base_std,
+            noise_random_std=noise_random_std,
+            use_channels=use_channels,
+            use_augmentation=use_augmentation,
+        )
+        self.window_start = float(window_start)
+
+    def __getitem__(self, idx: int):
+        batch = self.base[idx]
+        X, y_abs = batch[0], batch[1]
+
+        X = torch.as_tensor(X).to(torch.float32)
+        y_abs = float(y_abs.item())
+        X = self._select_channels(X)
+
+        if X.shape[-1] != self.T_crop:
+            raise ValueError(
+                f"Expected fixed window with {self.T_crop} samples, "
+                f"got {X.shape[-1]} for index {idx}."
+            )
+
+        y_rel_sec = y_abs - self.window_start
+        if self.use_augmentation:
+            X, y_rel_sec = self._augment_segment(X, y_rel_sec)
+
+        q = self._make_soft_label(y_rel_sec)
+        return X.contiguous(), q, torch.tensor(y_rel_sec, dtype=torch.float32)

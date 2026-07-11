@@ -1,0 +1,6 @@
+seed,run_name,run_dir,status,best_epoch,best_metric,test_nrmse,test_nrmse_ci_low,test_nrmse_ci_high,test_posterior_crps,test_posterior_fixed_kernel_event_nll,test_tau_nrmse,test_tau_nrmse_ci_low,test_tau_nrmse_ci_high,test_tau_posterior_crps,test_tau_posterior_fixed_kernel_event_nll
+2025,seed2025,benchmarks/experiments/01_regression_baselines/labram_wrapped_repeated__20260707_065438/seed2025,training_finished,7,0.9220645970108605,0.9262310454562199,0.9133798441072821,0.9392286050914165,,,,,,,
+2026,seed2026,benchmarks/experiments/01_regression_baselines/labram_wrapped_repeated__20260707_065438/seed2026,training_finished,5,0.9334751991651771,0.9347258923620347,0.922848950328845,0.9470093830634823,,,,,,,
+2027,seed2027,benchmarks/experiments/01_regression_baselines/labram_wrapped_repeated__20260707_065438/seed2027,training_finished,2,0.9382637822881492,0.9462292451995123,0.935813808200021,0.9575182676208621,,,,,,,
+2028,seed2028,benchmarks/experiments/01_regression_baselines/labram_wrapped_repeated__20260707_065438/seed2028,training_finished,5,0.9302502266087755,0.9247228468571185,0.9129183291361389,0.9368784137741204,,,,,,,
+2029,seed2029,benchmarks/experiments/01_regression_baselines/labram_wrapped_repeated__20260707_065438/seed2029,training_finished,7,0.9278842588729947,0.931701907298446,0.9201888203006174,0.9436480808502042,,,,,,,

@@ -1,0 +1,4 @@
+name,label,color
+ets_tcn_event_nll_mixture,ets tcn event nll mixture,#4c78a8
+ets_tcn_time_only,ets tcn time only,#f58518
+ets_tcn_ce,ets tcn ce,#54a24b

@@ -1,0 +1,262 @@
+7.3    Temporal Perturbation and Shortcut Behavior
+The shifted-crop diagnostic asks whether posterior predictions behave as temporal
+localizers when the crop frame changes. If models rely on fixed-window, stimulus-
+locked shortcuts, crop shifts should expose this by separating scalar accuracy from
+crop-relative movement. Shift-jitter training addresses this behavior by varying the crop
+start during training and expressing the target relative to the sampled crop. Across every
+evaluated objective, shift-jitter improves shifted-crop accuracy and expected-direction
+movement while preserving canonical-window accuracy for the primary event-time
+models. Mean sensitivity and direction increase across all objectives, demonstrating that
+crop-relative behavior can be strengthened through target-aligned temporal augmentation.
+Sensitivity below 1 shows that localization remains partial and provides a quantitative
+target for fully equivariant models.
+
+7.4    Scope, Architecture, and Generality
+The external architecture baselines place the formulation result in context: under the
+same preprocessing and normalization protocol, compact task-specific temporal models
+outperform the evaluated standardized EEG backbones and foundation-style architec-
+tures trained from scratch. Across matched dense temporal backbones, distributionally
+supervised objectives also outperform RT-only posterior-mean training. Thus, within
+this benchmark, these complementary controls identify formulation and objective design
+as a consistent source of predictive improvement beyond architecture capacity alone.
+    The empirical scope is the HBN-EEG contrast change detection task under a release-
+separated protocol. Broader generality remains to be tested across tasks, acquisition
+settings, montages, and latency targets. The shifted-crop analysis provides response-
+timing localization evidence and also shows that full crop-relative localization remains
+an open target for objectives, architectures, or augmentations designed for temporal
+equivariance.
+    Taken together, these results establish event-time posterior modeling as an effective
+output formulation for latency-labeled EEG. It improves scalar RT decoding, exposes
+posterior properties that nRMSE cannot capture, and makes shortcut-versus-localization
+behavior directly testable. Shift-jitter further demonstrates that crop-relative behavior
+can be strengthened through target-aligned temporal augmentation, while the resid-
+ual sensitivity gap defines a concrete target for future temporally equivariant models.
+This combination of predictive gains and falsifiable temporal diagnostics is the central
+advantage of the event-time formulation.
+
+
+8     Conclusion
+We reformulated EEG-based reaction-time prediction as event-time posterior modeling
+and evaluated it under a release-separated HBN-EEG protocol. Distributional event-
+time supervision consistently improves RT prediction beyond scalar regression and
+RT-only temporal-readout controls. Controlled loss ablations, five-seed comparisons,
+
+                                           23
+and replication across four dense temporal backbones locate this predictive advantage
+in supervision of the event-time distribution rather than in differentiable expectation
+readout or a particular architecture. EventNLL provides a principled latent-variable
+likelihood alternative, and posterior-geometry plus shifted-crop analyses reveal output
+behavior that scalar nRMSE alone cannot capture.
+
+
+A       Additional Readout, Calibration, and Shifted-Crop
+        Details
+This appendix records three protocol details that are secondary to the main results but
+important for reproducing the posterior diagnostics. First, post-hoc observation-noise
+calibration separates latent event-time posterior coverage from behavioral-RT predictive
+coverage. Second, the posterior readout temperature is selected only on the R9–R10
+development split and then applied unchanged to the holdout split. Third, the shifted-
+crop table in the main text reports seed means for readability; the full seed-variability
+summary is given here.
+
+Observation-noise calibration. Table 8 evaluates a post-hoc RT observation-noise
+calibration for EventNLL-family models. The trained EEG model, event-time posterior,
+and posterior-mean scalar readout are fixed. The latent posterior rows evaluate central
+intervals of p(tevent | X) directly, whereas the predictive RT rows convolve the same
+posterior with either the original observation kernel or a calibrated kernel scale selected
+on R9–R10 by Coverage MAE across central intervals 50–90%. This calibration changes
+only the RT observation-noise layer used for probabilistic prediction; it does not change
+trained weights, posterior-mean RT predictions, or τ-nRMSE.
+
+Table 8: Post-hoc RT observation-noise calibration for EventNLL-family posteriors.
+Coverage MAE is averaged over central interval levels 50%, 60%, 70%, 80%, and 90%.
+Distribution evaluated           Scale c     Coverage MAE ↓   Coverage80      Width80 ms Predictive NLL ↓
+
+EventNLL
+Latent event-time posterior          –        0.273 ± 0.021   0.500 ± 0.025    502 ± 15           –
+Predictive RT, original K          1.00       0.059 ± 0.004   0.850 ± 0.004    699 ± 13    -0.044 ± 0.010
+Predictive RT, calibrated Kc   0.70 ± 0.00    0.006 ± 0.003   0.793 ± 0.004    632 ± 14    -0.054 ± 0.016
+
+Mixture EventNLL
+Latent event-time posterior          –        0.207 ± 0.017   0.573 ± 0.020    528 ± 22           –
+Predictive RT, original K          1.00       0.040 ± 0.010   0.835 ± 0.009    671 ± 17    -0.098 ± 0.012
+Predictive RT, calibrated Kc   0.73 ± 0.04    0.005 ± 0.004   0.795 ± 0.003    622 ± 12    -0.111 ± 0.013
+
+Hazard EventNLL
+Latent event-time posterior          –        0.303 ± 0.006   0.467 ± 0.007    440 ± 17           –
+Predictive RT, original K          1.00       0.044 ± 0.006   0.834 ± 0.006    639 ± 15    -0.044 ± 0.006
+Predictive RT, calibrated Kc   0.78 ± 0.04    0.008 ± 0.002   0.790 ± 0.005    587 ± 17    -0.059 ± 0.005
+
+
+
+
+                                                      24
+Figure 7: Readout-temperature sensitivity on the R9–R10 development split. Curves
+show posterior-mean nRMSE as a function of softmax temperature, and vertical lines
+mark selected temperatures. The selected temperature is then applied unchanged to
+holdout predictions and posterior diagnostics.
+
+Readout-temperature selection. Figure 7 shows the development-split nRMSE curves
+used to select the posterior-readout temperature for each event-time objective. The min-
+ima differ across losses, confirming that objectives induce different posterior confidence
+scales. We therefore treat temperature selection as part of the scalar readout protocol
+before comparing posterior-mean predictions and posterior geometry on the holdout
+split.
+
+Shifted-crop seed variability. Table 9 expands the main shifted-crop diagnostic table
+by reporting mean ± standard deviation across seeds. The seed-level results reproduce
+the main-text pattern: shift-jitter lowers mean shifted-crop relative nRMSE and increases
+both mean sensitivity and direction for every evaluated objective. These consistent
+changes show that shift-jitter moves predictions toward crop-relative temporal local-
+ization across loss families. Absolute sensitivity remains below ideal equivariance,
+quantifying the localization gap that remains to be addressed.
+
+
+
+
+                                           25
+Table 9: Full shifted-crop diagnostic and shift-jitter intervention summary with seed
+variability. Values are mean ± standard deviation across seeds; the corresponding main-
+text table reports means only for readability.
+Objective                Holdout τ-nRMSE ↓              Shifted rel. nRMSE ↓                 Sensitivity ↑                   Direction ↑
+
+                        Fixed           Jitter          Fixed           Jitter          Fixed            Jitter         Fixed              Jitter
+
+CE                  0.8753 ± 0.0039 0.8749 ± 0.0060 0.8679 ± 0.0024 0.8569 ± 0.0060 0.5810 ± 0.0351 0.5831 ± 0.0406 0.7780 ± 0.0041 0.7924 ± 0.0056
+Mixture EventNLL 0.8745 ± 0.0053 0.8734 ± 0.0033 0.8663 ± 0.0037 0.8576 ± 0.0041 0.6021 ± 0.0484 0.6249 ± 0.0313 0.7730 ± 0.0062 0.7925 ± 0.0076
+EventNLL            0.8772 ± 0.0018 0.8771 ± 0.0040 0.8685 ± 0.0023 0.8593 ± 0.0028 0.5842 ± 0.0287 0.6174 ± 0.0222 0.7739 ± 0.0059 0.7937 ± 0.0068
+Hazard EventNLL 0.8778 ± 0.0041 0.8806 ± 0.0034 0.8692 ± 0.0028 0.8609 ± 0.0045 0.5618 ± 0.0376 0.5891 ± 0.0259 0.7694 ± 0.0090 0.7925 ± 0.0074
+Soft-argmax RT loss 0.8917 ± 0.0046 0.8836 ± 0.0035 0.8857 ± 0.0069 0.8613 ± 0.0032 0.5381 ± 0.0586 0.5775 ± 0.0362 0.7592 ± 0.0183 0.7951 ± 0.0052
+Wasserstein         0.8896 ± 0.0033 0.8922 ± 0.0066 0.8932 ± 0.0033 0.8774 ± 0.0099 0.6684 ± 0.0711 0.6852 ± 0.0416 0.7830 ± 0.0197 0.8026 ± 0.0118
+
+
+
+
+B           Architecture-Control Details
+Architecture specifications. The architecture-control hyperparameters and parameter
+counts are summarized in Table 11.
+
+Diagnostic robustness. Table 10 complements the fixed-window accuracy comparison
+in Table 5 by testing whether shifted-crop behavior and objective-dependent poste-
+rior geometry also persist across backbones. The posterior columns retain a common
+distributional score, target-aligned mass, and interval coverage error.
+
+Table 10: Shifted-crop and posterior-geometry diagnostics across dense temporal back-
+bones. Shifted-crop metrics follow the evaluation convention in Section 6.3; poste-
+rior metrics are evaluated on the fixed holdout window after development-set readout-
+temperature selection. Values are mean ± standard deviation across five seeds.
+Objective                            Shifted-crop diagnostics                                        Posterior geometry
+
+                        Rel. nRMSE ↓ Sensitivity ↑              Direction ↑      Fixed-kernel NLL ↓ Mass ±150 ms ↑ Coverage MAE ↓
+
+ETS-U-Net
+RT-only soft-argmax 0.886 ± 0.007 0.538 ± 0.059 0.759 ± 0.018                      0.1070 ± 0.0303           0.357 ± 0.015      0.040 ± 0.024
+CE                  0.868 ± 0.002 0.581 ± 0.035 0.778 ± 0.004                      0.0770 ± 0.0144           0.334 ± 0.008      0.101 ± 0.014
+Mixture EventNLL 0.866 ± 0.004 0.602 ± 0.048 0.773 ± 0.006                        -0.0820 ± 0.0122           0.471 ± 0.008      0.207 ± 0.017
+
+ETS-TCN
+RT-only soft-argmax 0.881 ± 0.006 0.519 ± 0.042 0.758 ± 0.012                      0.0268 ± 0.0114           0.410 ± 0.012      0.080 ± 0.031
+CE                  0.870 ± 0.008 0.551 ± 0.025 0.774 ± 0.006                      0.0710 ± 0.0243           0.336 ± 0.013      0.099 ± 0.016
+Mixture EventNLL 0.867 ± 0.005 0.544 ± 0.036 0.761 ± 0.010                        -0.0835 ± 0.0039           0.471 ± 0.007      0.187 ± 0.017
+
+ETS-InceptionPyramid
+RT-only soft-argmax 0.882 ± 0.005 0.506 ± 0.035 0.758 ± 0.007                      0.1634 ± 0.0195           0.318 ± 0.007      0.103 ± 0.020
+CE                  0.863 ± 0.004 0.533 ± 0.032 0.781 ± 0.012                      0.0605 ± 0.0173           0.340 ± 0.012      0.097 ± 0.017
+Mixture EventNLL 0.866 ± 0.002 0.589 ± 0.037 0.774 ± 0.005                        -0.0925 ± 0.0049           0.473 ± 0.008      0.185 ± 0.019
+
+ETS-AttnSeg
+RT-only soft-argmax 0.899 ± 0.033 0.479 ± 0.156 0.749 ± 0.028                      0.2977 ± 0.1669           0.268 ± 0.048      0.156 ± 0.046
+CE                  0.868 ± 0.009 0.566 ± 0.057 0.771 ± 0.005                      0.0771 ± 0.0276           0.334 ± 0.016      0.103 ± 0.019
+Mixture EventNLL 0.867 ± 0.008 0.639 ± 0.034 0.767 ± 0.004                        -0.0937 ± 0.0083           0.477 ± 0.007      0.173 ± 0.023
+
+
+
+    Across every backbone, CE and mixture EventNLL consistently achieve lower
+mean shifted-crop error than RT-only posterior-mean training and produce more crop-
+responsive predictions, as reflected in higher sensitivity and direction scores. These
+
+
+                                                                       26
+improvements replicate across all four temporal architectures. Absolute sensitivity re-
+mains below 1 and therefore quantifies partial rather than fully crop-relative localization.
+Mixture EventNLL shows an equally consistent posterior-geometry pattern: within every
+backbone, it yields the lowest fixed-kernel EventNLL and the greatest target-aligned
+mass, together with higher coverage error. The replication of both patterns across four
+distinct dense temporal backbones establishes the architecture robustness of the super-
+vision effect. These experiments serve as controlled robustness checks rather than a
+ranking of general EEG architectures.
+
+
+C     Reproducibility Details
+YAML configuration files in benchmarks/configs/ specify all reported experi-
+ments. Training summaries, prediction files, selected temperatures, and model summaries
+are written to benchmarks/experiments/. Table 11 summarizes the shared set-
+tings needed to reproduce the controlled comparisons: data splits, input representation,
+optimization, augmentation, model selection, readout-temperature tuning, and the main
+architecture hyperparameters. Settings not listed in the table are objective-specific loss
+choices described in the main text.
+
+
+
+
+                                            27
+Table 11: Reproducibility summary for the main controlled comparisons.
+Group                   Setting                            Value
+
+Data and splits
+Input window            EEG segment                        0.5–2.5 s after stimulus onset; 2 s, 200 samples, 100 Hz, 128 channels.
+Target support          Main analyzed set                  0.5 ≤ RT ≤ 2.5 s.
+Splits                  Release-separated protocol         R1–R8 train, R9–R10 development, R11 final holdout.
+Seeds                   Repeated runs                      2025–2029.
+
+Optimization and selection
+Optimizer               Neural models                      Adam, learning rate 10−3 , weight decay 0.
+Training loop           Epochs and batch size              Maximum 100 epochs; train batch size 128.
+Evaluation loader       Batch size                         Development and holdout batch size 256.
+Checkpoint selection Model selection                       Best development nRMSE; early stopping patience 20.
+Holdout use             Final evaluation                   R11 is evaluated after checkpoint and readout choices are fixed.
+Confidence intervals    Holdout summaries                  Subject bootstrap over R11 subjects; 1000 samples for per-run intervals
+                                                           and 5000 samples for the scalar effect-size analysis.
+
+Training augmentations
+Channel dropout        Shared training augmentation        Applied with probability 0.25; dropped-channel ratio sampled uniformly
+                                                           from 0 to 0.3.
+Temporal cutout         Shared training augmentation       Applied with probability 0.25; contiguous zeroed segment length 10–50
+                                                           samples.
+Gaussian noise          Shared training augmentation       Applied with probability 0.30; noise standard deviation 0.01 +
+                                                           0.01|N (0, 1)|.
+Shift-jitter            Intervention experiments only      Training crop start sampled from 0.2–0.8 s, crop length 2 s, target
+                                                           expressed relative to crop start.
+
+Event-time readout
+Event grid              Temporal support                   200 bins over 2 s; 10 ms per bin.
+Soft target             Gaussian event-time label          σ = 0.15 s.
+Posterior readout       Scalar prediction                  Posterior mean / soft-argmax.
+Base temperature        Training/evaluation default        τ = 0.65 before post-hoc readout-temperature selection.
+Temperature selection   Readout tuning                     Grid search on R9–R10 minimizing posterior-mean nRMSE; selected τ
+                                                           applied unchanged to R11.
+Temperature grid        Objective-specific grid            0.2–3.5 with step 0.05.
+
+Model architectures
+ETS-U-Net               Primary event-time backbone        c0 = 96, widen 2, depth per stage 5, kernel size 15, dropout 0.2, one
+                                                           output channel; 3.10M parameters.
+ETS-TCN                 Dilated-convolution control        c0 = 384, depth 10, dilation cycle 1, 2, 4, 8, 16 repeated twice, kernel
+                                                           size 15, dropout 0.2, one output channel; 3.13M parameters.
+ETS-                    Multi-scale temporal control       c0 = 288, branch width 96, depth 6, temporal scales
+InceptionPyramid                                           0.05/0.10/0.25/0.50 s, stem kernel 7, refinement kernel 11, dropout 0.2,
+                                                           one output channel; 3.25M parameters.
+ETS-AttnSeg             Attention-convolution control      c0 = 128, depth 10, eight attention heads, convolution kernel 15, feed-
+                                                           forward and convolution expansion 2, dropout 0.2, attention dropout
+                                                           0.1, one output channel; 3.05M parameters.
+ETR-CNN large           Strongest scalar baseline          c0 = 96, widen 3, kernel size 15, dropout 0.2, high-resolution depth 12,
+                                                           low-resolution depth 10, three low-resolution stacks, two downsampling
+                                                           stages; 12.87M parameters.
+ETR-CNN                 Scalar temporal-readout baseline   Same family as ETR-CNN large with c0 = 64; 5.91M parameters.
+MSP-CNN                 Segment-pooling scalar baseline    c0 = 48, widen 2, depth per stage 3, kernel size 15, dropout 0.05; 3.01M
+                                                           parameters.
+
+
+
+
+                                                              28
+

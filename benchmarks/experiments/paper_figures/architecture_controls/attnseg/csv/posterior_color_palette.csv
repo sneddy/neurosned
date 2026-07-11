@@ -1,0 +1,4 @@
+name,label,color
+ets_attnseg_event_nll_mixture,ets attnseg event nll mixture,#4c78a8
+ets_attnseg_time_only,ets attnseg time only,#f58518
+ets_attnseg_ce,ets attnseg ce,#54a24b
