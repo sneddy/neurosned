@@ -14,6 +14,12 @@ Aristimunha, B., Truong, D., Guetschel, P., Shirazi, S.~Y., Guyon, I., Franco,
 \newblock Eeg foundation challenge: From cross-task to cross-subject eeg
   decoding.
 
+\bibitem[Bai et~al., 2018]{bai2018tcn}
+Bai, S., Kolter, J.~Z., and Koltun, V. (2018).
+\newblock An empirical evaluation of generic convolutional and recurrent
+  networks for sequence modeling.
+\newblock {\em arXiv preprint arXiv:1803.01271}.
+
 \bibitem[Barachant et~al., 2012]{Barachant2012RiemannianBCI}
 Barachant, A., Bonnet, S., Congedo, M., and Jutten, C. (2012).
 \newblock Multiclass brain--computer interface classification by {R}iemannian
@@ -94,6 +100,12 @@ Geng, X. (2016).
 \newblock Label distribution learning.
 \newblock {\em IEEE Transactions on Knowledge and Data Engineering},
   28(7):1734--1748.
+
+\bibitem[Gulati et~al., 2020]{gulati2020conformer}
+Gulati, A., Qin, J., Chiu, C.-C., Parmar, N., Zhang, Y., Yu, J., Han, W., Wang,
+  S., Zhang, Z., Wu, Y., and Pang, R. (2020).
+\newblock Conformer: Convolution-augmented transformer for speech recognition.
+\newblock In {\em Proceedings of Interspeech}, pages 5036--5040.
 
 \bibitem[Haider et~al., 2020]{Haider2020SurvivalDistributions}
 Haider, H., Hoehn, B., Davis, S., and Greiner, R. (2020).
@@ -222,6 +234,14 @@ Ronneberger, O., Fischer, P., and Brox, T. (2015).
   (MICCAI)}, volume 9351 of {\em Lecture Notes in Computer Science}, pages
   234--241. Springer.
 
+\bibitem[Santamar{\'i}a-V{\'a}zquez et~al., 2020]{santamaria2020eeginception}
+Santamar{\'i}a-V{\'a}zquez, E., Mart{\'i}nez-Cagigal, V., Vaquerizo-Villar, F.,
+  and Hornero, R. (2020).
+\newblock Eeg-inception: A novel deep convolutional neural network for
+  assistive erp-based brain-computer interfaces.
+\newblock {\em IEEE Transactions on Neural Systems and Rehabilitation
+  Engineering}, 28(12):2773--2782.
+
 \bibitem[Schirrmeister et~al., 2017]{braindecode}
 Schirrmeister, R.~T., Springenberg, J.~T., Fiederer, L. D.~J., Glasstetter, M.,
   Eggensperger, K., Tangermann, M., Hutter, F., Burgard, W., and Ball, T.
@@ -255,11 +275,24 @@ Sun, B. and Saenko, K. (2016).
 \newblock In {\em Proceedings of the European Conference on Computer Vision
   (ECCV)}.
 
+\bibitem[Szegedy et~al., 2015]{szegedy2015going}
+Szegedy, C., Liu, W., Jia, Y., Sermanet, P., Reed, S., Anguelov, D., Erhan, D.,
+  Vanhoucke, V., and Rabinovich, A. (2015).
+\newblock Going deeper with convolutions.
+\newblock In {\em Proceedings of the IEEE Conference on Computer Vision and
+  Pattern Recognition (CVPR)}.
+
 \bibitem[Tapia-Rivas et~al., 2024]{TapiaRivas2024SEED}
 Tapia-Rivas, N.~I., Estevez, P.~A., and Cortes-Briones, J.~A. (2024).
 \newblock A robust deep learning detector for sleep spindles and {K}-complexes:
   Towards population norms.
 \newblock {\em Scientific Reports}, 14:263.
+
+\bibitem[Vaswani et~al., 2017]{vaswani2017attention}
+Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A.~N.,
+  Kaiser, {\L}., and Polosukhin, I. (2017).
+\newblock Attention is all you need.
+\newblock In {\em Advances in Neural Information Processing Systems (NeurIPS)}.
 
 \bibitem[Wang et~al., 2024a]{wang2024eegpt}
 Wang, G., Liu, W., He, Y., Xu, C., Ma, L., and Li, H. (2024a).

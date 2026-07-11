@@ -614,7 +614,9 @@ Temperature tuning serves a specific role in this protocol: it standardizes post
 
 \subsection{Temporal Perturbation and Shortcut Behavior}
 
-The shifted-crop diagnostic asks whether posterior predictions behave as temporal localizers when the crop frame changes. If models rely on fixed-window, stimulus-locked shortcuts, crop shifts should expose this by separating scalar accuracy from crop-relative movement. Shift-jitter training addresses this behavior by varying the crop start during training and expressing the target relative to the sampled crop. Its main effect is improved shifted-crop robustness and more frequent movement in the expected localizer direction, rather than a broad improvement in standard fixed-window holdout nRMSE. Sensitivity remains well below the ideal value of 1, so shift-jitter reduces fixed-window shortcut behavior without achieving fully shift-equivariant response-timing localization.
+The shifted-crop diagnostic asks whether posterior predictions respond systematically when the temporal frame of reference changes. Models trained on a fixed stimulus-locked window may rely on information that predicts RT without representing response timing in crop-relative coordinates. Consistent movement opposite to the crop shift therefore provides evidence of crop-relative prediction behavior, whereas limited movement indicates continued dependence on the canonical temporal frame.
+
+Shift-jitter training improves shifted-crop robustness and increases the frequency of movement in the expected direction, while sensitivity remains below full shift equivariance. The diagnostic should therefore be interpreted as a controlled stress test of temporal behavior rather than as direct validation against an independently observed neural-event time. In addition, candidate training crop starts are clipped when necessary to keep the observed RT inside the window. The realized crop-start distribution is consequently RT-dependent near the temporal boundaries, and the intervention combines temporal-frame variation with target-aware crop construction.
 
 \subsection{Scope, Architecture, and Generality}
 
