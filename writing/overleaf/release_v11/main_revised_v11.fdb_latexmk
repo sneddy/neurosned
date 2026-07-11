@@ -1,20 +1,20 @@
 # Fdb version 4
-["bibtex main_revised_v11"] 1783808433.50242 "main_revised_v11.aux" "main_revised_v11.bbl" "main_revised_v11" 1783808435.41302 0
-  "../references.bib" 1783795210.12033 50839 c7502f058c80f71790191f4b82a6761e ""
+["bibtex main_revised_v11"] 1783813470.30034 "main_revised_v11.aux" "main_revised_v11.bbl" "main_revised_v11" 1783813533.78221 0
+  "../references.bib" 1783812316.06352 50839 c7502f058c80f71790191f4b82a6761e ""
   "/usr/share/texlive/texmf-dist/bibtex/bst/base/apalike.bst" 1292289607 24635 604dafcc79f521a11ea73e506e1fbd98 ""
-  "main_revised_v11.aux" 1783808435.32399 25347 370e3090695519ae14d85b216e615993 "pdflatex"
+  "main_revised_v11.aux" 1783813533.69214 25347 d8fd3c1796c8bea3318793a44991e9fb "pdflatex"
   (generated)
   "main_revised_v11.bbl"
   "main_revised_v11.blg"
   (rewritten before read)
-["pdflatex"] 1783808433.53024 "main_revised_v11.tex" "main_revised_v11.pdf" "main_revised_v11" 1783808435.41316 0
-  "../img/ch1/Ch1_ets_unet_1.png" 1783807990.21108 291927 c69746b496dc40d24c9f0e137358af12 ""
-  "../img/ch1/Ch1_regression.png" 1783806491.35281 53535 410c04fd7ea79120acf5bce7662713c7 ""
-  "../img/ch1/event_time_scheme.png" 1783807584.93254 177633 f844c6e549e72605eb58de1d3fc5d58d ""
-  "../img/ch1/posterior_geometry_main.png" 1783581148.09621 726879 e3c2f8d3210696ab9201e3485ef4aedd ""
-  "../img/ch1/temperature_sensitivity.png" 1783581148.09701 268344 c2a51dd452f5a6ea6366fa1d7a9f1f85 ""
-  "../img/ch1/trial_sorted_posterior_raster.png" 1783581148.09506 895431 9c95c50255bcdf061b0918cd4f39e552 ""
-  "../img/challenge_task.png" 1783163606.24886 811019 511844fac4ba9a765cf181407b827d73 ""
+["pdflatex"] 1783813531.8833 "main_revised_v11.tex" "main_revised_v11.pdf" "main_revised_v11" 1783813533.78236 0
+  "../img/ch1/Ch1_ets_unet_1.png" 1783812316.03103 291927 c69746b496dc40d24c9f0e137358af12 ""
+  "../img/ch1/Ch1_regression.png" 1783812316.03178 53535 410c04fd7ea79120acf5bce7662713c7 ""
+  "../img/ch1/event_time_scheme.png" 1783812316.03196 177633 f844c6e549e72605eb58de1d3fc5d58d ""
+  "../img/ch1/posterior_geometry_main.png" 1783812316.03296 726879 e3c2f8d3210696ab9201e3485ef4aedd ""
+  "../img/ch1/temperature_sensitivity.png" 1783812316.03396 268344 c2a51dd452f5a6ea6366fa1d7a9f1f85 ""
+  "../img/ch1/trial_sorted_posterior_raster.png" 1783812316.03596 895431 9c95c50255bcdf061b0918cd4f39e552 ""
+  "../img/challenge_task.png" 1783812316.04096 811019 511844fac4ba9a765cf181407b827d73 ""
   "/etc/texmf/web2c/texmf.cnf" 1783400914.73738 475 c0e671620eb5563b2130f56340a5fde8 ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc" 1165713224 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
@@ -150,10 +150,10 @@
   "/usr/share/texmf/web2c/texmf.cnf" 1707919699 40399 f2c302f7d2af602abb742093540a5834 ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1783400922.9385 5312232 f3296911be9cc021788f3f879cf0a47d ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1783400945 6800797 5ed2d920b69036cc5634ce37499ea8a3 ""
-  "main_revised_v11.aux" 1783808435.32399 25347 370e3090695519ae14d85b216e615993 "pdflatex"
-  "main_revised_v11.bbl" 1783808433.52822 17000 55e3164c7fc56f32a4a6a949d04477a6 "bibtex main_revised_v11"
-  "main_revised_v11.out" 1783808435.32411 7135 a75e8b254abd9133613ffd8382544fcf "pdflatex"
-  "main_revised_v11.tex" 1783808420.06182 88069 4ab94f2927e02df9326398ece669e9db ""
+  "main_revised_v11.aux" 1783813533.69214 25347 d8fd3c1796c8bea3318793a44991e9fb "pdflatex"
+  "main_revised_v11.bbl" 1783813470.32566 17000 55e3164c7fc56f32a4a6a949d04477a6 "bibtex main_revised_v11"
+  "main_revised_v11.out" 1783813533.69214 7135 a75e8b254abd9133613ffd8382544fcf "pdflatex"
+  "main_revised_v11.tex" 1783813528.15235 88109 5a317c218ed4e0e72ec9c22e3d690cc6 ""
   (generated)
   "main_revised_v11.aux"
   "main_revised_v11.log"
