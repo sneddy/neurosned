@@ -1,0 +1,107 @@
+Figure 5: Trial-sorted event-time posterior maps on the holdout split for matched
+segmentation losses. Rows are quantile bins of representable holdout trials sorted
+by observed RT; the x-axis is time from stimulus onset; color shows log-transformed
+posterior density averaged within each bin. The overlaid curve marks the mean observed
+RT in each bin.
+
+The resulting scalar value is reported as holdout τ-nRMSE in Table 4. This temperature
+step is a scalar-readout protocol, not a full probabilistic calibration; likelihood, coverage,
+and posterior concentration are evaluated separately below.
+
+
+6.2    Posterior Geometry Diagnostics
+Once the scalar readout has been fixed, the event-time posterior makes temporally re-
+solved evaluation possible rather than limiting assessment to point prediction. Scalar
+nRMSE asks whether the posterior mean predicts RT accurately, but similar nRMSE val-
+ues can hide very different temporal evidence. Posterior-geometry diagnostics quantify
+where probability mass is placed, whether it is localized near the observed behavioral
+latency, whether the posterior peak agrees with the posterior mean, and whether nominal
+posterior intervals have meaningful empirical coverage.
+    We first inspect the trial-sorted posterior maps in Figure 5 before reducing the
+posterior to summary metrics. These maps show the full distribution over response-
+relevant event time for holdout trials ordered by observed RT, rather than only the
+posterior mean. CE and Wasserstein place broad probability mass across the response
+window, whereas the EventNLL-family objectives produce sharper probability bands
+
+                                             18
+Figure 6: Posterior geometry differs across event-time losses even when scalar nRMSE
+is similar. Panel A reports holdout scalar readout after selecting the softmax temperature
+on R9–R10 to minimize nRMSE. Panel B aligns predicted posteriors to the observed RT.
+Panels C–E summarize posterior width, near-target mass, and mode-mean disagreement.
+Panel F compares empirical coverage of central posterior intervals; the diagonal is ideal
+interval coverage.
+
+that more closely track the observed RT curve. This qualitative pattern motivates the
+quantitative posterior-geometry summaries in Figure 6 and Table 6.
+    Figure 6 visualizes these posterior summaries, and Table 6 reports the correspond-
+ing quantitative values. The six diagnostics separate complementary properties of the
+posterior: posterior-mean scalar accuracy (nRMSE), distributional scoring under a com-
+mon observation kernel (fixed-kernel EventNLL), concentration and target alignment
+(Width80 and Mass ±150 ms), and empirical interval behavior (Coverage80 and Cov-
+erage MAE). Together, they define a trade-off space in which similar scalar errors can
+correspond to different temporal posterior behavior.
+
+Table 6: Quantitative posterior geometry on the holdout split for matched event-time
+segmentation losses. Values are mean ± standard deviation across seeds after R9–R10
+readout-temperature selection; arrows indicate the preferred direction, Coverage80 is
+best when close to 0.80, and bold marks the best point estimate per metric.
+Objective              nRMSE ↓        Fixed-kernel EventNLL ↓ Width80 ms ↓ Mass ±150 ms ↑   Coverage80      Coverage MAE ↓
+
+CE                    0.875 ± 0.004         0.08 ± 0.01        766 ± 36     0.334 ± 0.008   0.883 ± 0.013    0.101 ± 0.014
+EventNLL              0.877 ± 0.002        -0.06 ± 0.01        502 ± 15     0.490 ± 0.008   0.500 ± 0.025    0.273 ± 0.021
+Mixture EventNLL      0.874 ± 0.005        -0.08 ± 0.01        528 ± 22     0.471 ± 0.008   0.573 ± 0.020    0.207 ± 0.017
+Hazard EventNLL       0.878 ± 0.004        -0.06 ± 0.01        445 ± 14     0.502 ± 0.005   0.468 ± 0.007    0.302 ± 0.006
+Soft-argmax RT loss   0.892 ± 0.005         0.11 ± 0.03        844 ± 96     0.357 ± 0.015   0.843 ± 0.029    0.040 ± 0.024
+Wasserstein           0.890 ± 0.003         0.20 ± 0.04        632 ± 101    0.334 ± 0.028   0.774 ± 0.061    0.059 ± 0.021
+
+
+
+
+                                                            19
+     These diagnostics show that losses with similar scalar error can induce different
+posterior semantics. CE and mixture EventNLL provide the strongest scalar readouts.
+EventNLL-family objectives are sharper and more target-concentrated, but their nominal
+intervals have low empirical coverage. The soft-argmax RT-loss control has the lowest
+Coverage MAE because its posterior is broad, but it is weaker as a scalar predictor
+and lacks distributional event-time supervision. Wasserstein is closest to nominal 80%
+coverage, but it has weaker scalar accuracy and lower near-target mass. Thus, posterior
+geometry reveals trade-offs among scalar accuracy, target concentration, distributional
+scoring, and interval behavior that scalar nRMSE alone would hide.
+     Consequently, the preferred event-time objective depends on the downstream goal.
+If the goal is scalar RT prediction, CE and mixture EventNLL are the strongest choices
+in this study. If the goal is a sharper posterior concentrated near the observed behav-
+ioral latency, the EventNLL-family objectives are more appropriate, although their
+nominal intervals have low empirical coverage. If interval reliability is the priority,
+broader objectives such as Wasserstein or the soft-argmax RT-loss control give better
+coverage behavior, but with weaker scalar accuracy or weaker distributional event-time
+supervision.
+
+From latent posterior to calibrated RT intervals. The coverage columns in Table 6
+evaluate central intervals of the latent event-time posterior, p(tevent | X). For EventNLL-
+family models, the probabilistic formulation also defines a predictive distribution over
+observed RT by combining this latent posterior with an observation kernel,
+
+                       p(yRT | X) = ∑ p(tevent = t | X) K(yRT | t).
+                                      t
+
+This separates two uncertainty objects: uncertainty over the latent response-relevant
+event time and predictive uncertainty over the observed behavioral RT. Appendix Table 8
+evaluates this separation by keeping the trained EEG model, readout temperature, event-
+time posterior, and posterior-mean scalar prediction fixed and selecting only a single
+multiplicative scale for the RT observation kernel on R9–R10 by Coverage MAE across
+central intervals from 50% to 90%. Applied unchanged to the holdout split, this post-hoc
+observation-kernel calibration reduces predictive RT Coverage MAE from 0.040–0.059
+to 0.005–0.008, with calibrated Coverage80 near nominal coverage (0.790–0.795). Thus,
+EventNLL-family objectives produce concentrated latent event-time posteriors that are
+not themselves calibrated behavioral-RT uncertainty estimates; calibrated predictive
+RT intervals use the separate observation-noise layer without changing trained weights,
+posterior-mean predictions, or the scalar comparisons above. These diagnostics charac-
+terize posterior geometry and predictive uncertainty within the standard stimulus-locked
+window. The next analysis asks a different question: whether posterior predictions move
+in a crop-relative way when the temporal frame of reference is shifted.
+
+
+
+
+                                           20
+

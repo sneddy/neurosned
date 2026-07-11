@@ -1,0 +1,115 @@
+7.3    Temporal Perturbation and Shortcut Behavior
+The shifted-crop diagnostic asks whether posterior predictions behave as temporal
+localizers when the crop frame changes. If models rely on fixed-window, stimulus-
+locked shortcuts, crop shifts should expose this by separating scalar accuracy from
+crop-relative movement. Shift-jitter training addresses this behavior by varying the crop
+start during training and expressing the target relative to the sampled crop. Across every
+evaluated objective, shift-jitter improves shifted-crop accuracy and expected-direction
+movement while preserving canonical-window accuracy for the primary event-time
+models. Mean sensitivity and direction increase across all objectives, demonstrating that
+crop-relative behavior can be strengthened through target-aligned temporal augmentation.
+Sensitivity below 1 shows that localization remains partial and provides a quantitative
+target for fully equivariant models.
+
+7.4    Scope, Limitations, and Generality
+The external architecture baselines place the formulation result in context: under the
+same preprocessing and normalization protocol, compact task-specific temporal models
+outperform the evaluated standardized EEG backbones and foundation-style architec-
+tures trained from scratch. Across matched dense temporal backbones, distributionally
+supervised objectives also outperform RT-only posterior-mean training. Thus, within
+this benchmark, these complementary controls identify formulation and objective design
+as a consistent source of predictive improvement beyond architecture capacity alone.
+    The empirical scope is the HBN-EEG contrast change detection task under a release-
+separated protocol. Broader generality remains to be tested across tasks, acquisition
+settings, montages, and latency targets. The shifted-crop analysis provides response-
+timing localization evidence and also shows that full crop-relative localization remains
+an open target for objectives, architectures, or augmentations designed for temporal
+equivariance.
+
+
+8     Conclusion
+Reaction time is usually evaluated as a scalar, but it also specifies when a behavioral
+response occurs. We therefore treated RT as weak event-time supervision and learned
+a posterior over response-relevant timing from single-trial EEG. Under the subject-
+disjoint, release-separated HBN-EEG protocol, distributional event-time supervision
+consistently improved held-out RT prediction over direct scalar regression and an RT-
+only posterior-mean control. Five-seed comparisons and replication across four dense
+temporal backbones show that this advantage is attributable to the supervised output
+formulation rather than to model scale, expectation readout, or a particular architecture.
+    The posterior representation also changed what could be evaluated. CE and the
+EventNLL-family objectives achieved the strongest scalar readouts but induced dif-
+ferent posterior geometries; observation-noise calibration separated latent event-time
+concentration from predictive uncertainty over observed RT; and shifted-crop analyses
+
+                                           23
+revealed partial crop-relative localization that scalar nRMSE alone cannot diagnose.
+Shift-jitter strengthened shifted-crop robustness and expected-direction movement, while
+the remaining sensitivity gap defines a clear target for temporally equivariant modeling.
+    The broader implication is that latency labels need not be reduced to scalar endpoints.
+They can serve as structured supervision that preserves temporal meaning while remain-
+ing compatible with standard behavioral metrics. Extending this view to other tasks and
+latency-defined EEG phenomena could support models that predict behavior accurately,
+expose the temporal organization of their outputs, and make their reliance on temporal
+evidence directly testable.
+
+
+A     Additional Readout, Calibration, and Shifted-Crop
+      Details
+This appendix records three protocol details that are secondary to the main results but
+important for reproducing the posterior diagnostics. First, post-hoc observation-noise
+calibration separates latent event-time posterior coverage from behavioral-RT predictive
+coverage. Second, the posterior readout temperature is selected only on the R9–R10
+development split and then applied unchanged to the holdout split. Third, the shifted-
+crop table in the main text reports seed means for readability; the full seed-variability
+summary is given here.
+
+Observation-noise calibration. Table 8 evaluates a post-hoc RT observation-noise
+calibration for EventNLL-family models. The trained EEG model, event-time posterior,
+and posterior-mean scalar readout are fixed. The latent posterior rows evaluate central
+intervals of p(tevent | X) directly, whereas the predictive RT rows convolve the same
+posterior with either the original observation kernel or a calibrated kernel scale selected
+on R9–R10 by Coverage MAE across central intervals 50–90%. This calibration changes
+only the RT observation-noise layer used for probabilistic prediction; it does not change
+trained weights, posterior-mean RT predictions, or τ-nRMSE.
+
+
+
+
+                                            24
+Figure 7: Readout-temperature sensitivity on the R9–R10 development split. Curves
+show posterior-mean nRMSE as a function of softmax temperature, and vertical lines
+mark selected temperatures. The selected temperature is then applied unchanged to
+holdout predictions and posterior diagnostics.
+
+
+Table 8: Post-hoc RT observation-noise calibration for EventNLL-family posteriors.
+Coverage MAE is averaged over central interval levels 50%, 60%, 70%, 80%, and 90%.
+Distribution evaluated           Scale c     Coverage MAE ↓   Coverage80      Width80 ms Predictive NLL ↓
+
+EventNLL
+Latent event-time posterior          –        0.273 ± 0.021   0.500 ± 0.025    502 ± 15           –
+Predictive RT, original K          1.00       0.059 ± 0.004   0.850 ± 0.004    699 ± 13    -0.044 ± 0.010
+Predictive RT, calibrated Kc   0.70 ± 0.00    0.006 ± 0.003   0.793 ± 0.004    632 ± 14    -0.054 ± 0.016
+
+Mixture EventNLL
+Latent event-time posterior          –        0.207 ± 0.017   0.573 ± 0.020    528 ± 22           –
+Predictive RT, original K          1.00       0.040 ± 0.010   0.835 ± 0.009    671 ± 17    -0.098 ± 0.012
+Predictive RT, calibrated Kc   0.73 ± 0.04    0.005 ± 0.004   0.795 ± 0.003    622 ± 12    -0.111 ± 0.013
+
+Hazard EventNLL
+Latent event-time posterior          –        0.303 ± 0.006   0.467 ± 0.007    440 ± 17           –
+Predictive RT, original K          1.00       0.044 ± 0.006   0.834 ± 0.006    639 ± 15    -0.044 ± 0.006
+Predictive RT, calibrated Kc   0.78 ± 0.04    0.008 ± 0.002   0.790 ± 0.005    587 ± 17    -0.059 ± 0.005
+
+
+
+Readout-temperature selection. Figure 7 shows the development-split nRMSE curves
+used to select the posterior-readout temperature for each event-time objective. The min-
+ima differ across losses, confirming that objectives induce different posterior confidence
+scales. We therefore treat temperature selection as part of the scalar readout protocol
+before comparing posterior-mean predictions and posterior geometry on the holdout
+split.
+
+
+                                                      25
+

@@ -63,7 +63,7 @@ def fixed_kernel_event_nll(
     reduction: str = "mean",
     eps: float = 1e-12,
 ):
-    """Return Gaussian fixed-kernel EventNLL for event-time posteriors.
+    """Return Gaussian shared-kernel RT NLL for event-time posteriors.
 
     This evaluates the likelihood p(y|x)=sum_t p(t|x) N(y;t,sigma^2) using the
     same observation kernel for every model. Lower values are better.

@@ -4,9 +4,9 @@ Intended placement: `Posterior Geometry Diagnostics`.
 
 Source artifact: `benchmarks/experiments/paper_figures/csv/posterior_geometry_group_summary.csv`.
 
-Caption draft: Quantitative posterior geometry on R11 for matched event-time segmentation losses. Values are mean +/- sample standard deviation across seeds after R9-R10 readout-temperature selection. nRMSE measures posterior-mean scalar prediction; fixed-kernel EventNLL scores the full posterior distribution under a common Gaussian observation kernel for all models (`sigma = 0.12 s`); Width80, near-target mass, and interval coverage summarize posterior concentration and empirical reliability. For Coverage80, values closer to 0.80 indicate better nominal 80% interval coverage; for Coverage MAE, lower is better.
+Caption draft: Quantitative posterior geometry on R11 for matched event-time segmentation losses. Values are mean +/- sample standard deviation across seeds after R9-R10 readout-temperature selection. nRMSE measures posterior-mean scalar prediction; shared-kernel RT NLL scores the full posterior distribution under a common Gaussian observation kernel for all models (`sigma = 0.12 s`); Width80, near-target mass, and interval coverage summarize posterior concentration and empirical reliability. For Coverage80, values closer to 0.80 indicate better nominal 80% interval coverage; for Coverage MAE, lower is better.
 
-| Objective | nRMSE | Fixed-kernel EventNLL | Width80 ms | Mass +/-150 ms | Coverage80 | Coverage MAE |
+| Objective | nRMSE | Shared-kernel RT NLL | Width80 ms | Mass +/-150 ms | Coverage80 | Coverage MAE |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | CE | 0.875 +/- 0.004 | 0.08 +/- 0.01 | 766 +/- 36 | 0.334 +/- 0.008 | 0.883 +/- 0.013 | 0.101 +/- 0.014 |
 | EventNLL | 0.877 +/- 0.002 | -0.06 +/- 0.01 | 502 +/- 15 | 0.490 +/- 0.008 | 0.500 +/- 0.025 | 0.273 +/- 0.021 |

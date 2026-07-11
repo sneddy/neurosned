@@ -144,11 +144,11 @@ the architecture-control rows.
 The architecture-control runs should not only be compared by scalar tau-nRMSE.
 The same posterior-geometry diagnostics used in the main U-Net analysis can be
 applied to completed architecture-control runs. The table below uses calibrated
-posterior readout and the same representable-target filter, fixed-kernel
-EventNLL score, 80% central interval width, +/-150 ms target-aligned mass, and
+posterior readout and the same representable-target filter, shared-kernel
+RT NLL score, 80% central interval width, +/-150 ms target-aligned mass, and
 coverage metrics as the main posterior-geometry table.
 
-| Architecture | Objective | nRMSE | Fixed-kernel EventNLL | Width80 ms | Mass +/-150 ms | Coverage80 | Coverage MAE |
+| Architecture | Objective | nRMSE | Shared-kernel RT NLL | Width80 ms | Mass +/-150 ms | Coverage80 | Coverage MAE |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | ETS-U-Net | RT-only softargmax | 0.8917 +/- 0.0046 | 0.1070 +/- 0.0303 | 844.0 +/- 95.6 | 0.357 +/- 0.015 | 0.843 +/- 0.029 | 0.040 +/- 0.024 |
 | ETS-U-Net | CE | 0.8753 +/- 0.0039 | 0.0770 +/- 0.0144 | 766.0 +/- 35.8 | 0.334 +/- 0.008 | 0.883 +/- 0.013 | 0.101 +/- 0.014 |
@@ -166,7 +166,7 @@ coverage metrics as the main posterior-geometry table.
 Candidate interpretation: posterior diagnostics preserve the distinction
 between scalar accuracy and posterior structure across architecture controls.
 CE gives strong posterior-mean accuracy and empirical latent-event coverage,
-whereas Mixture EventNLL gives the strongest fixed-kernel distributional score
+whereas Mixture EventNLL gives the strongest shared-kernel RT NLL
 and more concentrated target-aligned posterior mass. This supports the
 posterior-geometry contribution as a property of event-time supervision rather
 than a U-Net-specific artifact.
@@ -191,7 +191,7 @@ while CE and Mixture EventNLL recover performance in the same range as the
 convolutional dense segmenters.
 
 4. Posterior-geometry trade-offs reproduce across backbones. Mixture EventNLL
-gives the strongest fixed-kernel EventNLL and more concentrated target-aligned
+gives the strongest shared-kernel RT NLL and more concentrated target-aligned
 posterior mass, while CE tends to give strong scalar accuracy and empirical
 latent-event coverage. This keeps the posterior-diagnostics story from being a
 U-Net-only artifact.
@@ -356,7 +356,7 @@ Careful limitation:
 > controls to ask whether distributional supervision changes posterior geometry
 > in the same way across backbones. In the repeated-run summaries, CE provides
 > strong posterior-mean accuracy and low CRPS, whereas Mixture EventNLL improves
-> fixed-kernel distributional scoring. Full geometry diagnostics should further
+> shared-kernel RT NLL. Full geometry diagnostics should further
 > separate posterior concentration, target-aligned mass, and empirical interval
 > coverage.
 

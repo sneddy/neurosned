@@ -199,7 +199,7 @@ def print_distributional_metric_line(label: str, metrics: dict) -> None:
     event_nll = metrics.get("posterior_fixed_kernel_event_nll")
     if crps is None or event_nll is None:
         return
-    print(f"{label}: CRPS={float(crps) * 1000.0:.1f} ms, fixed-kernel EventNLL={float(event_nll):.4f}")
+    print(f"{label}: CRPS={float(crps) * 1000.0:.1f} ms, shared-kernel RT NLL={float(event_nll):.4f}")
 
 
 def add_posterior_distributional_metrics(
@@ -214,7 +214,7 @@ def add_posterior_distributional_metrics(
     win_offset: float | None = None,
     readout=None,
 ) -> None:
-    """Attach CRPS and fixed-kernel EventNLL when temporal logits are available."""
+    """Attach CRPS and shared-kernel RT NLL when temporal logits are available."""
     if config.task != "segmentation":
         return
     logits = metrics.get("logits") if logits is None else logits

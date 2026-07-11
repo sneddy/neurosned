@@ -101,6 +101,11 @@ Geng, X. (2016).
 \newblock {\em IEEE Transactions on Knowledge and Data Engineering},
   28(7):1734--1748.
 
+\bibitem[Gensheimer and Narasimhan, 2019]{Gensheimer2019NnetSurvival}
+Gensheimer, M.~F. and Narasimhan, B. (2019).
+\newblock A scalable discrete-time survival model for neural networks.
+\newblock {\em PeerJ}, 7:e6257.
+
 \bibitem[Gulati et~al., 2020]{gulati2020conformer}
 Gulati, A., Qin, J., Chiu, C.-C., Parmar, N., Zhang, Y., Yu, J., Han, W., Wang,
   S., Zhang, Z., Wu, Y., and Pang, R. (2020).
@@ -163,6 +168,11 @@ Kelly, S.~P. and O'Connell, R.~G. (2013).
 \newblock Internal and external influences on the rate of sensory evidence
   accumulation in the human brain.
 \newblock {\em Journal of Neuroscience}, 33(50):19434--19441.
+
+\bibitem[Kingma and Ba, 2015]{kingma2015adam}
+Kingma, D.~P. and Ba, J. (2015).
+\newblock Adam: A method for stochastic optimization.
+\newblock In {\em International Conference on Learning Representations (ICLR)}.
 
 \bibitem[Kornhuber and Deecke, 1965]{KornhuberDeecke1965BP}
 Kornhuber, H.~H. and Deecke, L. (1965).

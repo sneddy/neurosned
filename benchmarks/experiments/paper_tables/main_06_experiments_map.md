@@ -1,32 +1,32 @@
-# Main Table 6: Controlled Comparison and Diagnostic Map
+# Main Table 2: Controlled Comparison and Diagnostic Map
 
-Intended placement: `Dataset and Evaluation Protocol / Shared Training,
-Readout Tuning, and Inference Protocol`.
+Intended placement: `Dataset and Evaluation Protocol / Shared Evaluation
+Protocol`.
 
-Caption draft: Controlled comparison and diagnostic blocks under the shared
-protocol. The first two blocks define the main scalar-performance comparisons;
-the final block evaluates posterior readout, posterior geometry, and
-shortcut-vs-localization behavior after event-time models have been trained.
+Caption: Controlled comparison and diagnostic blocks under the shared protocol.
 
-| Comparison block / model family | Model capacity | Temporal readout | Supervision | Role |
-| --- | --- | --- | --- | --- |
-| **Scalar regression controls** |  |  |  |  |
-| External EEG backbones | Standard EEG architectures trained from scratch | Scalar RT head | Scalar RT | Assesses whether generic EEG backbone capacity explains performance |
-| MSP-CNN family | Compact scalar CNN | Segment-pooling scalar readout | Scalar RT | Scalar baseline with coarse temporal pooling |
-| ETR-CNN family | Compact scalar CNN | Temporal expectation readout | Scalar RT | Isolates temporal expectation readout under scalar RT supervision |
-| **Event-time objective comparison** |  |  |  |  |
-| Soft-argmax RT-loss control | Shared segmentation backbone | Posterior-mean readout | Scalar RT only | Isolates posterior-mean readout without distributional supervision |
-| CE soft-target objective | Shared segmentation backbone | Posterior-mean readout | Soft event-time target | Direct soft-label event-time supervision |
-| Likelihood-based objectives | Shared segmentation backbone | Posterior-mean readout | Latent event-time likelihood | Probabilistic latent-event supervision |
-| Wasserstein control | Shared segmentation backbone | Posterior-mean readout | Distributional geometry loss | Alternative geometry-based distributional supervision |
-| **Posterior and localization diagnostics** |  |  |  |  |
-| Readout-temperature tuning | Trained event-time models | Temperature-adjusted posterior mean | Learned posterior | Standardizes scalar posterior-mean readout |
-| Posterior geometry diagnostics | Trained event-time models | Posterior summaries | Learned posterior | Exposes posterior structure beyond scalar nRMSE |
-| Shifted-crop diagnostic | Trained fixed-window models | Crop-relative posterior mean | No new training | Probes shortcut-vs-localization behavior |
-| Shift-jitter intervention | Matched event-time models | Crop-relative posterior mean | Shifted crop-relative targets | Intervenes on crop-start variation to improve robustness and localizer-like movement |
+| Control or analysis | Readout | Supervision | Question addressed |
+| --- | --- | --- | --- |
+| **Scalar regression controls** |  |  |  |
+| External EEG backbones | Scalar RT head | Scalar RT | Does generic EEG backbone capacity explain performance? |
+| MSP-CNN family | Segment-pooling scalar readout | Scalar RT | How far does coarse temporal pooling support scalar regression? |
+| ETR-CNN family | Temporal expectation readout | Scalar RT | Does a learned temporal readout improve scalar regression? |
+| **Event-time objective comparison with fixed ETS-U-Net** |  |  |  |
+| Soft-argmax RT-loss control | Posterior mean | Scalar RT only | Is posterior-mean readout sufficient without distributional supervision? |
+| CE soft-target objective | Posterior mean | Soft event-time target | Does direct distributional supervision improve RT prediction? |
+| Likelihood-based objectives | Posterior mean | Latent event-time likelihood | Does probabilistic latent-event supervision provide the same benefit? |
+| Wasserstein control | Posterior mean | Distributional geometry loss | Is an alternative geometry-based distributional objective sufficient? |
+| **Architecture robustness controls** |  |  |  |
+| ETS-TCN | Posterior mean | RT-only, CE, mixture EventNLL | Does the supervision effect persist with dilated temporal convolution? |
+| ETS-InceptionPyramid | Posterior mean | RT-only, CE, mixture EventNLL | Does the supervision effect persist with multi-scale temporal filtering? |
+| ETS-AttnSeg | Posterior mean | RT-only, CE, mixture EventNLL | Does the supervision effect persist with attention and local convolution? |
+| **Posterior and localization diagnostics** |  |  |  |
+| Readout-temperature tuning | Temperature-adjusted posterior mean | Learned posterior | How should the scalar posterior readout be standardized across objectives? |
+| Posterior geometry diagnostics | Posterior summaries | Learned posterior | What posterior behavior is hidden by scalar nRMSE? |
+| Shifted-crop diagnostic | Crop-relative posterior mean | No new training | Do predictions behave as crop-relative temporal localizers? |
+| Shift-jitter intervention | Crop-relative posterior mean | Shifted crop-relative targets | Does crop-start augmentation reduce shortcut behavior? |
 
-Paper note: This table is a design map rather than a result table. It links
-the shared protocol to the paper's three main experimental axes: EEG backbone
-capacity, temporal readout parameterization, and distributional event-time
-supervision. Posterior geometry and shifted-crop analyses are diagnostic
-extensions, not an additional scalar benchmark family.
+Paper note: This table is a design map rather than a result table. Detailed
+architecture capacity and hyperparameters are reported in the reproducibility
+table. Posterior geometry and shifted-crop analyses are diagnostic extensions,
+not an additional scalar benchmark family.
