@@ -12,8 +12,8 @@ Aristimunha, B., Truong, D., Guetschel, P., Shirazi, S.~Y., Guyon, I., Franco,
   A.~R., Milham, M.~P., Dotan, A., Makeig, S., Gramfort, A., King, J.-R.,
   Corsi, M.-C., Valdés-Sosa, P.~A., Majumdar, A., Evans, A., Sejnowski, T.~J.,
   Shriki, O., Chevallier, S., and Delorme, A. (2025).
-\newblock \href {https://arxiv.org/abs/2506.19141} {Eeg foundation challenge:
-  From cross-task to cross-subject eeg decoding}.
+\newblock \href {https://arxiv.org/abs/2506.19141} {{EEG Foundation Challenge}:
+  From cross-task to cross-subject {EEG} decoding}.
 
 \bibitem[Bai et~al., 2018]{bai2018tcn}
 Bai, S., Kolter, J.~Z., and Koltun, V. (2018).
@@ -52,8 +52,8 @@ Chapfuwa, P., Tao, C., Li, C., Khan, I., Chandross, K.~J., Pencina, M.~J.,
 
 \bibitem[Chen et~al., 2024]{Chen2024EEGFormer}
 Chen, Y., Ren, K., Song, K., Wang, Y., Wang, Y., Li, D., and Qiu, L. (2024).
-\newblock \href {https://arxiv.org/abs/2401.10278} {Eegformer: Towards
-  transferable and interpretable large-scale eeg foundation model}.
+\newblock \href {https://arxiv.org/abs/2401.10278} {{EEGFormer}: Towards
+  transferable and interpretable large-scale {EEG} foundation model}.
 
 \bibitem[Chollet, 2017]{chollet2017xception}
 Chollet, F. (2017).
@@ -86,7 +86,7 @@ Cox, D.~R. (1972).
 
 \bibitem[EEG Challenge, 2025]{EEGChallengeWebsite2025}
 EEG Challenge (2025).
-\newblock Eeg challenge (2025): Neurips eeg foundation challenge.
+\newblock {EEG Challenge} (2025): {NeurIPS} {EEG Foundation Challenge}.
 \newblock \url{https://eeg2025.github.io/}.
 \newblock Accessed 2026-02-04.
 
@@ -155,7 +155,7 @@ Holroyd, C.~B. and Coles, M. G.~H. (2002).
 \bibitem[Howard et~al., 2017]{howard2017mobilenets}
 Howard, A.~G., Zhu, M., Chen, B., Kalenichenko, D., Wang, W., Weyand, T.,
   Andreetto, M., and Adam, H. (2017).
-\newblock \href {https://arxiv.org/abs/1704.04861} {Mobilenets: Efficient
+\newblock \href {https://arxiv.org/abs/1704.04861} {{MobileNets}: Efficient
   convolutional neural networks for mobile vision applications}.
 \newblock {\em CoRR}, abs/1704.04861.
 
@@ -218,8 +218,8 @@ Kostas, D. and Rudzicz, F. (2020).
 
 \bibitem[Lawhern et~al., 2018]{lawhern2018eegnet}
 Lawhern, V.~J., Solon, A.~J., Waytowich, N.~R., et~al. (2018).
-\newblock \href {https://doi.org/10.1088/1741-2552/aace8c} {Eegnet: a compact
-  convolutional neural network for eeg-based brain--computer interfaces}.
+\newblock \href {https://doi.org/10.1088/1741-2552/aace8c} {{EEGNet}: a compact
+  convolutional neural network for {EEG}-based brain--computer interfaces}.
 \newblock {\em Journal of Neural Engineering}.
 
 \bibitem[Lee et~al., 2018]{Lee2018DeepHit}
@@ -238,8 +238,8 @@ O'Connell, R.~G., Dockree, P.~M., and Kelly, S.~P. (2012).
 \bibitem[Ouahidi et~al., 2025]{ElOuahidi2025REVE}
 Ouahidi, Y.~E., Lys, J., Thölke, P., Farrugia, N., Pasdeloup, B., Gripon, V.,
   Jerbi, K., and Lioi, G. (2025).
-\newblock \href {https://arxiv.org/abs/2510.21585} {Reve: A foundation model
-  for eeg -- adapting to any setup with large-scale pretraining on 25,000
+\newblock \href {https://arxiv.org/abs/2510.21585} {{REVE}: A foundation model
+  for {EEG} -- adapting to any setup with large-scale pretraining on 25,000
   subjects}.
 
 \bibitem[Ouyang et~al., 2011]{Ouyang2011RIDE}
@@ -274,8 +274,8 @@ Ronneberger, O., Fischer, P., and Brox, T. (2015).
 \bibitem[Santamar{\'i}a-V{\'a}zquez et~al., 2020]{santamaria2020eeginception}
 Santamar{\'i}a-V{\'a}zquez, E., Mart{\'i}nez-Cagigal, V., Vaquerizo-Villar, F.,
   and Hornero, R. (2020).
-\newblock \href {https://doi.org/10.1109/TNSRE.2020.3048106} {Eeg-inception: A
-  novel deep convolutional neural network for assistive erp-based
+\newblock \href {https://doi.org/10.1109/TNSRE.2020.3048106} {{EEG-Inception}:
+  A novel deep convolutional neural network for assistive {ERP}-based
   brain-computer interfaces}.
 \newblock {\em IEEE Transactions on Neural Systems and Rehabilitation
   Engineering}, 28(12):2773--2782.
@@ -285,7 +285,7 @@ Schirrmeister, R.~T., Springenberg, J.~T., Fiederer, L. D.~J., Glasstetter, M.,
   Eggensperger, K., Tangermann, M., Hutter, F., Burgard, W., and Ball, T.
   (2017).
 \newblock \href {https://doi.org/10.1002/hbm.23730} {Deep learning with
-  convolutional neural networks for eeg decoding and visualization}.
+  convolutional neural networks for {EEG} decoding and visualization}.
 \newblock {\em Human Brain Mapping}.
 
 \bibitem[Shibasaki and Hallett, 2006]{ShibasakiHallett2006BP}
@@ -297,15 +297,15 @@ Shibasaki, H. and Hallett, M. (2006).
 \bibitem[Shirazi et~al., 2024]{Shirazi2024HBNEEG}
 Shirazi, S.~Y., Franco, A., Hoffmann, M.~S., Esper, N., Truong, D., Delorme,
   A., Milham, M., and Makeig, S. (2024).
-\newblock \href {https://doi.org/10.1101/2024.10.03.615261} {Hbn-eeg: The fair
-  implementation of the healthy brain network (hbn) electroencephalography
-  dataset}.
+\newblock \href {https://doi.org/10.1101/2024.10.03.615261} {{HBN-EEG}: The
+  {FAIR} implementation of the healthy brain network ({HBN})
+  electroencephalography dataset}.
 \newblock {\em bioRxiv}.
 
 \bibitem[Song et~al., 2023]{song2023eegconformer}
 Song, Y., Zheng, Q., Liu, B., and Gao, X. (2023).
-\newblock \href {https://doi.org/10.1109/TNSRE.2022.3230250} {Eeg conformer:
-  Convolutional transformer for eeg decoding and visualization}.
+\newblock \href {https://doi.org/10.1109/TNSRE.2022.3230250} {{EEG Conformer}:
+  Convolutional transformer for {EEG} decoding and visualization}.
 \newblock {\em IEEE Transactions on Neural Systems and Rehabilitation
   Engineering}, 31:710--719.
 
@@ -342,16 +342,16 @@ Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A.~N.,
 
 \bibitem[Wang et~al., 2024a]{wang2024eegpt}
 Wang, G., Liu, W., He, Y., Xu, C., Ma, L., and Li, H. (2024a).
-\newblock \href {https://doi.org/10.52202/079017-1239} {Eegpt: Pretrained
-  transformer for universal and reliable representation of eeg signals}.
+\newblock \href {https://doi.org/10.52202/079017-1239} {{EEGPT}: Pretrained
+  transformer for universal and reliable representation of {EEG} signals}.
 \newblock In Globerson, A., Mackey, L., Belgrave, D., Fan, A., Paquet, U.,
   Tomczak, J., and Zhang, C., editors, {\em Advances in Neural Information
   Processing Systems}, volume~37, pages 39249--39280. Curran Associates, Inc.
 
 \bibitem[Wang et~al., 2025]{Wang2025EEGMamba}
 Wang, J., Zhao, S., Luo, Z., Zhou, Y., Li, S., and Pan, G. (2025).
-\newblock \href {https://doi.org/10.1016/j.neunet.2025.107816} {Eegmamba: An
-  eeg foundation model with mamba}.
+\newblock \href {https://doi.org/10.1016/j.neunet.2025.107816} {{EEGMamba}: An
+  {EEG} foundation model with {Mamba}}.
 \newblock {\em Neural Networks}, 192:107816.
 
 \bibitem[Wang et~al., 2024b]{wang2024medformer}
@@ -395,8 +395,9 @@ Yu, F. and Koltun, V. (2016).
 
 \bibitem[Yue et~al., 2025]{Yue2024BrainGPT}
 Yue, T., Gao, X., Xue, S., Tang, Y., Guo, L., Jiang, J., and Liu, J. (2025).
-\newblock \href {https://arxiv.org/abs/2410.19779} {Braingpt: Unleashing the
-  potential of eeg generalist foundation model by autoregressive pre-training}.
+\newblock \href {https://arxiv.org/abs/2410.19779} {{BrainGPT}: Unleashing the
+  potential of {EEG} generalist foundation model by autoregressive
+  pre-training}.
 
 \bibitem[Zanini et~al., 2018]{Zanini2018RiemannianTL}
 Zanini, P., Congedo, M., Jutten, C., Said, S., and Berthoumieu, Y. (2018).
