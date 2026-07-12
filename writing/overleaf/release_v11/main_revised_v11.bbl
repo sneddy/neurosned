@@ -1,11 +1,11 @@
 \begin{thebibliography}{}
 
-\bibitem[Altaheri et~al., 2022]{altaheri2022atcnet}
-Altaheri, H., Muhammad, G., and Alsulaiman, M. (2022).
+\bibitem[Altaheri et~al., 2023]{altaheri2022atcnet}
+Altaheri, H., Muhammad, G., and Alsulaiman, M. (2023).
 \newblock \href {https://doi.org/10.1109/TII.2022.3197419} {Physics-informed
   attention temporal convolutional network for {EEG}-based motor imagery
   classification}.
-\newblock {\em IEEE Transactions on Industrial Informatics}.
+\newblock {\em IEEE Transactions on Industrial Informatics}, 19(2):2249--2258.
 
 \bibitem[Aristimunha et~al., 2025]{EEGFoundationChallengeArxiv2025}
 Aristimunha, B., Truong, D., Guetschel, P., Shirazi, S.~Y., Guyon, I., Franco,
@@ -61,10 +61,10 @@ Chollet, F. (2017).
   {https://openaccess.thecvf.com/content_cvpr_2017/html/Chollet_Xception_Deep_Learning_CVPR_2017_paper.html}
   {Xception: Deep learning with depthwise separable convolutions}.
 \newblock In {\em Proceedings of the IEEE Conference on Computer Vision and
-  Pattern Recognition (CVPR)}.
+  Pattern Recognition (CVPR)}, pages 1251--1258.
 
 \bibitem[Chowdhury et~al., 2020]{Chowdhury2020RTSensors}
-Chowdhury, M. S.~N., Dutta, A., Robison, M.~K., Blais, C., Brewer, G., and
+Chowdhury, M. S.~N., Dutta, A., Robison, M.~K., Blais, C., Brewer, G.~A., and
   Bliss, D.~W. (2020).
 \newblock \href {https://doi.org/10.3390/s20216090} {Deep neural network for
   visual stimulus-based reaction time estimation using the periodogram of
@@ -86,7 +86,7 @@ Cox, D.~R. (1972).
 
 \bibitem[EEG Challenge, 2025]{EEGChallengeWebsite2025}
 EEG Challenge (2025).
-\newblock {EEG Challenge} (2025): {NeurIPS} {EEG Foundation Challenge}.
+\newblock {NeurIPS} {EEG Foundation Challenge}.
 \newblock \url{https://eeg2025.github.io/}.
 \newblock Accessed 2026-02-04.
 
@@ -139,11 +139,10 @@ He, H. and Wu, D. (2020).
 
 \bibitem[He et~al., 2016]{he2016resnet}
 He, K., Zhang, X., Ren, S., and Sun, J. (2016).
-\newblock \href
-  {https://openaccess.thecvf.com/content_cvpr_2016/html/He_Deep_Residual_Learning_CVPR_2016_paper.html}
-  {Deep residual learning for image recognition}.
+\newblock \href {https://doi.org/10.1109/CVPR.2016.90} {Deep residual learning
+  for image recognition}.
 \newblock In {\em Proceedings of the IEEE Conference on Computer Vision and
-  Pattern Recognition (CVPR)}.
+  Pattern Recognition (CVPR)}, pages 770--778.
 
 \bibitem[Holroyd and Coles, 2002]{HolroydColes2002ERN}
 Holroyd, C.~B. and Coles, M. G.~H. (2002).
@@ -167,7 +166,7 @@ Jayaram, V., Alamgir, M., Altun, Y., Sch{\"o}lkopf, B., and Grosse-Wentrup, M.
 \newblock {\em IEEE Computational Intelligence Magazine}, 11(1):20--31.
 
 \bibitem[Jiang et~al., 2024]{Jiang2024LaBraM}
-Jiang, W., Zhao, L., and liang Lu, B. (2024).
+Jiang, W., Zhao, L., and Lu, B.-L. (2024).
 \newblock \href {https://openreview.net/forum?id=QzTpTRVtrP} {Large brain model
   for learning generic representations with tremendous {EEG} data in {BCI}}.
 \newblock In {\em The Twelfth International Conference on Learning
@@ -217,10 +216,11 @@ Kostas, D. and Rudzicz, F. (2020).
 \newblock {\em Journal of Neural Engineering}, 17:056008.
 
 \bibitem[Lawhern et~al., 2018]{lawhern2018eegnet}
-Lawhern, V.~J., Solon, A.~J., Waytowich, N.~R., et~al. (2018).
+Lawhern, V.~J., Solon, A.~J., Waytowich, N.~R., Gordon, S.~M., Hung, C.~P., and
+  Lance, B.~J. (2018).
 \newblock \href {https://doi.org/10.1088/1741-2552/aace8c} {{EEGNet}: a compact
   convolutional neural network for {EEG}-based brain--computer interfaces}.
-\newblock {\em Journal of Neural Engineering}.
+\newblock {\em Journal of Neural Engineering}, 15(5):056013.
 
 \bibitem[Lee et~al., 2018]{Lee2018DeepHit}
 Lee, C., Zame, W.~R., Yoon, J., and van~der Schaar, M. (2018).
@@ -286,7 +286,7 @@ Schirrmeister, R.~T., Springenberg, J.~T., Fiederer, L. D.~J., Glasstetter, M.,
   (2017).
 \newblock \href {https://doi.org/10.1002/hbm.23730} {Deep learning with
   convolutional neural networks for {EEG} decoding and visualization}.
-\newblock {\em Human Brain Mapping}.
+\newblock {\em Human Brain Mapping}, 38(11):5391--5420.
 
 \bibitem[Shibasaki and Hallett, 2006]{ShibasakiHallett2006BP}
 Shibasaki, H. and Hallett, M. (2006).
@@ -313,17 +313,16 @@ Song, Y., Zheng, Q., Liu, B., and Gao, X. (2023).
 Sun, B. and Saenko, K. (2016).
 \newblock \href {https://doi.org/10.1007/978-3-319-49409-8_35} {Deep {CORAL}:
   Correlation alignment for deep domain adaptation}.
-\newblock In {\em Proceedings of the European Conference on Computer Vision
-  (ECCV)}.
+\newblock In {\em Computer Vision -- ECCV 2016 Workshops}, volume 9915 of {\em
+  Lecture Notes in Computer Science}, pages 443--450. Springer.
 
 \bibitem[Szegedy et~al., 2015]{szegedy2015going}
 Szegedy, C., Liu, W., Jia, Y., Sermanet, P., Reed, S., Anguelov, D., Erhan, D.,
   Vanhoucke, V., and Rabinovich, A. (2015).
-\newblock \href
-  {https://openaccess.thecvf.com/content_cvpr_2015/html/Szegedy_Going_Deeper_With_2015_CVPR_paper.html}
-  {Going deeper with convolutions}.
+\newblock \href {https://doi.org/10.1109/CVPR.2015.7298594} {Going deeper with
+  convolutions}.
 \newblock In {\em Proceedings of the IEEE Conference on Computer Vision and
-  Pattern Recognition (CVPR)}.
+  Pattern Recognition (CVPR)}, pages 1--9.
 
 \bibitem[Tapia-Rivas et~al., 2024]{TapiaRivas2024SEED}
 Tapia-Rivas, N.~I., Estevez, P.~A., and Cortes-Briones, J.~A. (2024).
@@ -338,7 +337,8 @@ Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A.~N.,
 \newblock \href
   {https://proceedings.neurips.cc/paper_files/paper/2017/hash/3f5ee243547dee91fbd053c1c4a845aa-Abstract.html}
   {Attention is all you need}.
-\newblock In {\em Advances in Neural Information Processing Systems (NeurIPS)}.
+\newblock In {\em Advances in Neural Information Processing Systems (NeurIPS)},
+  volume~30, pages 5998--6008.
 
 \bibitem[Wang et~al., 2024a]{wang2024eegpt}
 Wang, G., Liu, W., He, Y., Xu, C., Ma, L., and Li, H. (2024a).
