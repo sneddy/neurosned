@@ -1,13 +1,13 @@
 # Fdb version 4
-["bibtex main_revised_v11"] 1783815176.5589 "main_revised_v11.aux" "main_revised_v11.bbl" "main_revised_v11" 1783815344.83546 0
-  "../references.bib" 1783815171.3221 51540 c4c8654dabbd07059b573353b1eac62f ""
+["bibtex main_revised_v11"] 1783815783.44839 "main_revised_v11.aux" "main_revised_v11.bbl" "main_revised_v11" 1783815785.39427 0
+  "../references.bib" 1783815780.25585 51555 ac2781bf46174a53e5eb71ba6b8440ef ""
   "./apalike_url.bst" 1783814344.94966 37613 746d98855845e464a026319f3cad8078 ""
-  "main_revised_v11.aux" 1783815344.74845 25351 4f42b4bdb3b1d323c630150eb938235b "pdflatex"
+  "main_revised_v11.aux" 1783815785.30904 25351 4f42b4bdb3b1d323c630150eb938235b "pdflatex"
   (generated)
   "main_revised_v11.bbl"
   "main_revised_v11.blg"
   (rewritten before read)
-["pdflatex"] 1783815342.93989 "main_revised_v11.tex" "main_revised_v11.pdf" "main_revised_v11" 1783815344.83561 0
+["pdflatex"] 1783815783.4912 "main_revised_v11.tex" "main_revised_v11.pdf" "main_revised_v11" 1783815785.39442 0
   "../img/ch1/Ch1_ets_unet_1.png" 1783814142.99928 291927 c69746b496dc40d24c9f0e137358af12 ""
   "../img/ch1/Ch1_regression.png" 1783814143.00002 53535 410c04fd7ea79120acf5bce7662713c7 ""
   "../img/ch1/event_time_scheme.png" 1783814143.00022 177633 f844c6e549e72605eb58de1d3fc5d58d ""
@@ -150,10 +150,10 @@
   "/usr/share/texmf/web2c/texmf.cnf" 1707919699 40399 f2c302f7d2af602abb742093540a5834 ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1783400922.9385 5312232 f3296911be9cc021788f3f879cf0a47d ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1783400945 6800797 5ed2d920b69036cc5634ce37499ea8a3 ""
-  "main_revised_v11.aux" 1783815344.74845 25351 4f42b4bdb3b1d323c630150eb938235b "pdflatex"
-  "main_revised_v11.bbl" 1783815176.59016 20425 402e2c6dd03b9433f8014eac272d3a68 "bibtex main_revised_v11"
-  "main_revised_v11.out" 1783815344.74945 7135 a75e8b254abd9133613ffd8382544fcf "pdflatex"
-  "main_revised_v11.tex" 1783815338.80033 88170 98e0f8813d006780c98cd9f252e0d2f9 ""
+  "main_revised_v11.aux" 1783815785.30904 25351 4f42b4bdb3b1d323c630150eb938235b "pdflatex"
+  "main_revised_v11.bbl" 1783815783.47843 20078 9754e82d62d3b78247d6d3d5662bd844 "bibtex main_revised_v11"
+  "main_revised_v11.out" 1783815785.30904 7135 a75e8b254abd9133613ffd8382544fcf "pdflatex"
+  "main_revised_v11.tex" 1783815620.00276 88244 e74ca068ea362387c5fb30a0a1823e76 ""
   (generated)
   "main_revised_v11.aux"
   "main_revised_v11.log"

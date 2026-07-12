@@ -344,9 +344,8 @@ Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A.~N.,
 Wang, G., Liu, W., He, Y., Xu, C., Ma, L., and Li, H. (2024a).
 \newblock \href {https://doi.org/10.52202/079017-1239} {{EEGPT}: Pretrained
   transformer for universal and reliable representation of {EEG} signals}.
-\newblock In Globerson, A., Mackey, L., Belgrave, D., Fan, A., Paquet, U.,
-  Tomczak, J., and Zhang, C., editors, {\em Advances in Neural Information
-  Processing Systems}, volume~37, pages 39249--39280. Curran Associates, Inc.
+\newblock In {\em Advances in Neural Information Processing Systems},
+  volume~37, pages 39249--39280. Curran Associates, Inc.
 
 \bibitem[Wang et~al., 2025]{Wang2025EEGMamba}
 Wang, J., Zhao, S., Luo, Z., Zhou, Y., Li, S., and Pan, G. (2025).
@@ -359,9 +358,8 @@ Wang, Y., Huang, N., Li, T., Yan, Y., and Zhang, X. (2024b).
 \newblock \href {https://doi.org/10.52202/079017-1145} {Medformer: A
   multi-granularity patching transformer for medical time-series
   classification}.
-\newblock In Globerson, A., Mackey, L., Belgrave, D., Fan, A., Paquet, U.,
-  Tomczak, J., and Zhang, C., editors, {\em Advances in Neural Information
-  Processing Systems}, volume~37, pages 36314--36341.
+\newblock In {\em Advances in Neural Information Processing Systems},
+  volume~37, pages 36314--36341.
 
 \bibitem[Weindel et~al., 2025]{Weindel2025DecisionComponents}
 Weindel, G., Borst, J.~P., and van Maanen, L. (2025).
@@ -383,9 +381,8 @@ Yao, D., Huang, S., Cadei, R., Zhang, K., and Locatello, F. (2025).
   {https://proceedings.neurips.cc/paper_files/paper/2025/hash/3dda5b6fa9e7c98928844e776f2a657a-Abstract-Conference.html}
   {The third pillar of causal analysis? a measurement perspective on causal
   representations}.
-\newblock In Belgrave, D., Zhang, C., Lin, H., Pascanu, R., Koniusz, P.,
-  Ghassemi, M., and Chen, N., editors, {\em Advances in Neural Information
-  Processing Systems}, volume~38, pages 43423--43454. Curran Associates, Inc.
+\newblock In {\em Advances in Neural Information Processing Systems},
+  volume~38, pages 43423--43454. Curran Associates, Inc.
 
 \bibitem[Yu and Koltun, 2016]{yu2016dilated}
 Yu, F. and Koltun, V. (2016).
@@ -410,8 +407,8 @@ Zanini, P., Congedo, M., Jutten, C., Said, S., and Berthoumieu, Y. (2018).
 Zhang, R. (2019).
 \newblock \href {https://proceedings.mlr.press/v97/zhang19a.html} {Making
   convolutional networks shift-invariant again}.
-\newblock In Chaudhuri, K. and Salakhutdinov, R., editors, {\em Proceedings of
-  the 36th International Conference on Machine Learning}, volume~97 of {\em
-  Proceedings of Machine Learning Research}, pages 7324--7334. PMLR.
+\newblock In {\em Proceedings of the 36th International Conference on Machine
+  Learning}, volume~97 of {\em Proceedings of Machine Learning Research}, pages
+  7324--7334. PMLR.
 
 \end{thebibliography}

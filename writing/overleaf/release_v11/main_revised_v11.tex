@@ -997,7 +997,7 @@ MSP-CNN & Segment-pooling scalar baseline & \(c_0=48\), widen 2, depth per stage
 \end{tabularx}
 \end{table}
 
-External EEG architectures are instantiated from the Braindecode constructors \citep{braindecode} named in the YAML configuration files and trained from scratch under the same data split, target support, optimizer, augmentation, checkpoint-selection, and holdout-evaluation protocol. Seed-level summaries, selected readout temperatures, prediction files, and reported aggregate tables are stored under \nolinkurl{benchmarks/experiments/}.
+External EEG architectures are instantiated from the Braindecode constructors \citep{braindecode} named in the YAML configuration files and trained from scratch under the same data split, target support, optimizer, augmentation, checkpoint-selection, and holdout-evaluation protocol. Seed-level summaries, selected readout temperatures, prediction files, and reported aggregate tables are stored under \href{https://github.com/sneddy/neurosned/tree/main/benchmarks/experiments}{\texttt{benchmarks/experiments/}}.
 
 Upon publication, we will release the benchmark materials supporting this study, including YAML configurations, data-preparation scripts, training and evaluation runners, model and loss code, selected readout temperatures, seed-level summaries, prediction files, shifted-crop diagnostics, aggregate tables, and figure-generation scripts. When raw HBN-EEG redistribution is restricted by source dataset terms, the release will provide the preparation code and expected split structure needed to reconstruct the CCD benchmark from the released data.
 
