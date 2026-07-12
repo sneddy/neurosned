@@ -1,42 +1,47 @@
 This is BibTeX, Version 0.99d (TeX Live 2023/Debian)
 Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: main_revised_v11.aux
-The style file: apalike.bst
+The style file: apalike_url.bst
+Reallocated glb_str_ptr (elt_size=4) to 20 items from 10.
+Reallocated global_strs (elt_size=200001) to 20 items from 10.
+Reallocated glb_str_end (elt_size=4) to 20 items from 10.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
 Database file #1: ../references.bib
 You've used 58 entries,
-            1935 wiz_defined-function locations,
-            831 strings with 17578 characters,
-and the built_in function-call counts, 27614 in all, are:
-= -- 2600
-> -- 1563
+            2774 wiz_defined-function locations,
+            1044 strings with 21362 characters,
+and the built_in function-call counts, 33200 in all, are:
+= -- 3259
+> -- 1658
 < -- 31
 + -- 568
 - -- 551
-* -- 2496
-:= -- 4793
+* -- 2769
+:= -- 5441
 add.period$ -- 176
 call.type$ -- 58
 change.case$ -- 554
 chr.to.int$ -- 57
 cite$ -- 58
 duplicate$ -- 942
-empty$ -- 1707
+empty$ -- 2363
 format.name$ -- 630
-if$ -- 5329
+if$ -- 7331
 int.to.chr$ -- 2
 int.to.str$ -- 0
 missing$ -- 53
 newline$ -- 291
 num.names$ -- 179
-pop$ -- 525
+pop$ -- 611
 preamble$ -- 1
 purify$ -- 554
 quote$ -- 0
-skip$ -- 693
+skip$ -- 1666
 stack$ -- 0
-substring$ -- 1747
-swap$ -- 152
-text.length$ -- 15
+substring$ -- 1787
+swap$ -- 266
+text.length$ -- 55
 text.prefix$ -- 0
 top$ -- 0
 type$ -- 348
