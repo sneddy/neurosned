@@ -1,0 +1,6 @@
+seed,run_name,run_dir,status,best_epoch,best_metric,test_nrmse,test_nrmse_ci_low,test_nrmse_ci_high,test_posterior_crps,test_posterior_fixed_kernel_event_nll,test_tau_nrmse,test_tau_nrmse_ci_low,test_tau_nrmse_ci_high,test_tau_posterior_crps,test_tau_posterior_fixed_kernel_event_nll
+2025,seed2025,benchmarks/experiments/08_dual_view_lagged_dynamics/raw_view_only_repeated__20260721_180414/seed2025,training_finished,13,0.9098556644650537,0.9119668265400604,0.8952380770303315,0.9291607726660399,,,,,,,
+2026,seed2026,benchmarks/experiments/08_dual_view_lagged_dynamics/raw_view_only_repeated__20260721_180414/seed2026,training_finished,7,0.9099996390471562,0.9045538936454601,0.8902291977724844,0.918939425709509,,,,,,,
+2027,seed2027,benchmarks/experiments/08_dual_view_lagged_dynamics/raw_view_only_repeated__20260721_180414/seed2027,training_finished,13,0.9047209869921716,0.9043313828681204,0.8882798324621897,0.9202748405445199,,,,,,,
+2028,seed2028,benchmarks/experiments/08_dual_view_lagged_dynamics/raw_view_only_repeated__20260721_180414/seed2028,training_finished,12,0.9047802603575399,0.9120965233234167,0.8974702893374026,0.9273798668330779,,,,,,,
+2029,seed2029,benchmarks/experiments/08_dual_view_lagged_dynamics/raw_view_only_repeated__20260721_180414/seed2029,training_finished,12,0.9077633769350992,0.9128805703558508,0.8991306942285588,0.9277560293561496,,,,,,,

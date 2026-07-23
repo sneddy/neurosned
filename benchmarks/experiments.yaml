@@ -118,6 +118,31 @@ experiments:
     status: not_active
     comment: Placeholder for a final engineering recipe only if it gives a clean improvement after main ablations are frozen.
 
+  - name: 07_lagged_dynamics
+    kind: training
+    configs: benchmarks/configs/07_lagged_dynamics
+    runner: benchmarks/runners/run_lagged_dynamics.sh
+    artifacts: benchmarks/experiments/07_lagged_dynamics
+    status: ready
+    comment: Exploratory scalar-regression architecture using local covariance and lagged transition trajectories; protocol-matched to completed regression baselines.
+    primary_config: lagged_dynamics_full.yaml
+    ablation_configs:
+      - lagged_dynamics_covariance_only.yaml
+      - lagged_dynamics_lagged_only.yaml
+    comparison_output: benchmarks/experiments/07_lagged_dynamics/comparison.md
+
+  - name: 08_dual_view_lagged_dynamics
+    kind: training
+    configs: benchmarks/configs/08_dual_view_lagged_dynamics
+    runner: benchmarks/runners/run_dual_view_lagged_dynamics.sh
+    artifacts: benchmarks/experiments/08_dual_view_lagged_dynamics
+    status: ready
+    comment: Independent raw-waveform and matrix-dynamics fusion experiment; group 07 remains the matrix-only comparison.
+    primary_config: dual_view_full.yaml
+    control_configs:
+      - raw_view_only.yaml
+      - dual_view_covariance_only.yaml
+
 paper_tables:
   directory: benchmarks/experiments/paper_tables
   main:

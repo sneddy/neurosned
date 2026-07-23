@@ -1,0 +1,190 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="1120" viewBox="0 0 2400 1120" role="img" aria-labelledby="title description">
+  <title id="title">Dual-View Lagged-Dynamics Regressor</title>
+  <desc id="description">Architecture diagram showing parallel raw temporal and matrix dynamics views, token fusion, a segment TCN, and scalar reaction-time regression.</desc>
+  <defs>
+    <marker id="arrow-neutral" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#354052"/>
+    </marker>
+    <marker id="arrow-raw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2474B5"/>
+    </marker>
+    <marker id="arrow-matrix" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#7652A8"/>
+    </marker>
+    <filter id="shadow" x="-15%" y="-15%" width="130%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#172033" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .title { font: 700 46px Arial, Helvetica, sans-serif; fill: #172033; }
+      .subtitle { font: 400 23px Arial, Helvetica, sans-serif; fill: #566174; }
+      .panel-title { font: 700 27px Arial, Helvetica, sans-serif; }
+      .box-title { font: 700 23px Arial, Helvetica, sans-serif; fill: #172033; }
+      .box-text { font: 400 20px Arial, Helvetica, sans-serif; fill: #354052; }
+      .small { font: 400 17px Arial, Helvetica, sans-serif; fill: #566174; }
+      .tiny { font: 400 15px Arial, Helvetica, sans-serif; fill: #667085; }
+      .shape { stroke-width: 2.5; filter: url(#shadow); }
+      .arrow { fill: none; stroke: #354052; stroke-width: 4; marker-end: url(#arrow-neutral); }
+      .arrow-raw { fill: none; stroke: #2474B5; stroke-width: 4; marker-end: url(#arrow-raw); }
+      .arrow-matrix { fill: none; stroke: #7652A8; stroke-width: 4; marker-end: url(#arrow-matrix); }
+      .diagnostic { fill: none; stroke: #8B95A5; stroke-width: 2; stroke-dasharray: 8 7; }
+    </style>
+  </defs>
+
+  <rect width="2400" height="1120" fill="#FFFFFF"/>
+  <text x="60" y="68" class="title">Dual-View Lagged-Dynamics Regressor</text>
+  <text x="60" y="108" class="subtitle">Raw waveform evidence and local second-order dynamics are preserved as aligned temporal views.</text>
+
+  <!-- Shared input -->
+  <rect x="55" y="420" width="225" height="180" rx="24" fill="#F6F8FB" stroke="#8792A5" class="shape"/>
+  <text x="168" y="462" text-anchor="middle" class="box-title">Single-trial EEG</text>
+  <text x="168" y="492" text-anchor="middle" class="box-text">X ∈ ℝ<tspan baseline-shift="super" font-size="14">128×200</tspan></text>
+  <path d="M80 545 C92 515,104 575,116 535 S140 525,152 557 S176 582,188 530 S212 505,224 548 S248 568,260 530" fill="none" stroke="#2474B5" stroke-width="4"/>
+  <text x="168" y="582" text-anchor="middle" class="small">2 s at 100 Hz</text>
+
+  <path d="M280 510 L335 510" class="arrow"/>
+  <rect x="340" y="440" width="220" height="140" rx="22" fill="#F6F8FB" stroke="#8792A5" class="shape"/>
+  <text x="450" y="486" text-anchor="middle" class="box-title">Shared input</text>
+  <text x="450" y="519" text-anchor="middle" class="box-text">per-channel</text>
+  <text x="450" y="548" text-anchor="middle" class="box-text">standardization</text>
+
+  <path d="M560 510 L607 510" class="arrow"/>
+  <circle cx="625" cy="510" r="18" fill="#FFFFFF" stroke="#354052" stroke-width="4"/>
+  <circle cx="625" cy="510" r="6" fill="#354052"/>
+
+  <!-- Raw panel -->
+  <rect x="670" y="145" width="1080" height="300" rx="30" fill="#F1F8FD" stroke="#8EC4E8" stroke-width="2.5"/>
+  <text x="710" y="188" class="panel-title" fill="#1D6497">RAW TEMPORAL VIEW</text>
+  <text x="1705" y="187" text-anchor="end" class="small" fill="#1D6497">bypasses covariance and 128→24 projection</text>
+
+  <path d="M625 492 C650 492,645 290,700 290" class="arrow-raw"/>
+  <rect x="710" y="225" width="245" height="145" rx="20" fill="#FFFFFF" stroke="#2474B5" class="shape"/>
+  <text x="832" y="263" text-anchor="middle" class="box-title">Raw temporal CNN</text>
+  <text x="832" y="297" text-anchor="middle" class="box-text">1×1 channel mixing</text>
+  <text x="832" y="327" text-anchor="middle" class="box-text">4 residual blocks</text>
+  <text x="832" y="354" text-anchor="middle" class="small">dilations 1, 2, 4, 8</text>
+
+  <path d="M955 298 L1000 298" class="arrow-raw"/>
+  <rect x="1005" y="225" width="235" height="145" rx="20" fill="#FFFFFF" stroke="#2474B5" class="shape"/>
+  <text x="1122" y="263" text-anchor="middle" class="box-title">Aligned windows</text>
+  <text x="1122" y="299" text-anchor="middle" class="box-text">7 × 0.5 s segments</text>
+  <text x="1122" y="329" text-anchor="middle" class="box-text">0.25 s stride</text>
+  <g stroke="#7AB5DD" stroke-width="5">
+    <line x1="1035" y1="350" x2="1090" y2="350"/>
+    <line x1="1070" y1="350" x2="1125" y2="350"/>
+    <line x1="1105" y1="350" x2="1160" y2="350"/>
+    <line x1="1140" y1="350" x2="1195" y2="350"/>
+  </g>
+
+  <path d="M1240 298 L1285 298" class="arrow-raw"/>
+  <rect x="1290" y="225" width="245" height="145" rx="20" fill="#FFFFFF" stroke="#2474B5" class="shape"/>
+  <text x="1412" y="263" text-anchor="middle" class="box-title">Segment pooling</text>
+  <text x="1412" y="299" text-anchor="middle" class="box-text">sample attention</text>
+  <text x="1412" y="329" text-anchor="middle" class="box-text">+ mean pooling</text>
+  <text x="1412" y="355" text-anchor="middle" class="small">waveform-aware features</text>
+
+  <path d="M1535 298 L1572 298" class="arrow-raw"/>
+  <rect x="1577" y="238" width="135" height="120" rx="20" fill="#DDEFFA" stroke="#2474B5" class="shape"/>
+  <text x="1644" y="278" text-anchor="middle" class="box-title">Raw</text>
+  <text x="1644" y="307" text-anchor="middle" class="box-title">tokens</text>
+  <text x="1644" y="337" text-anchor="middle" class="small">B×7×384</text>
+
+  <!-- Matrix panel -->
+  <rect x="670" y="555" width="1080" height="415" rx="30" fill="#F7F3FB" stroke="#B9A1D5" stroke-width="2.5"/>
+  <text x="710" y="598" class="panel-title" fill="#62428C">MATRIX DYNAMICS VIEW</text>
+  <text x="1705" y="597" text-anchor="end" class="small" fill="#62428C">structured, lossy second-order summary</text>
+
+  <path d="M625 528 C650 528,645 755,700 755" class="arrow-matrix"/>
+  <rect x="710" y="670" width="210" height="170" rx="20" fill="#FFFFFF" stroke="#7652A8" class="shape"/>
+  <text x="815" y="710" text-anchor="middle" class="box-title">Spatial projection</text>
+  <text x="815" y="747" text-anchor="middle" class="box-text">128 → 24</text>
+  <text x="815" y="781" text-anchor="middle" class="box-text">learned components</text>
+  <text x="815" y="813" text-anchor="middle" class="small">row-normalized weights</text>
+
+  <path d="M920 755 L958 755" class="arrow-matrix"/>
+  <rect x="963" y="670" width="200" height="170" rx="20" fill="#FFFFFF" stroke="#7652A8" class="shape"/>
+  <text x="1063" y="710" text-anchor="middle" class="box-title">Local windows</text>
+  <text x="1063" y="747" text-anchor="middle" class="box-text">7 × 24 × 50</text>
+  <text x="1063" y="781" text-anchor="middle" class="box-text">same intervals</text>
+  <text x="1063" y="813" text-anchor="middle" class="small">as the raw view</text>
+
+  <path d="M1163 755 L1193 755" class="arrow-matrix"/>
+  <rect x="1198" y="630" width="300" height="270" rx="22" fill="#FFFFFF" stroke="#7652A8" class="shape"/>
+  <text x="1348" y="670" text-anchor="middle" class="box-title">Local matrix operators</text>
+  <rect x="1225" y="692" width="246" height="54" rx="12" fill="#FFF3D7" stroke="#DAA12B" stroke-width="2"/>
+  <text x="1348" y="725" text-anchor="middle" class="box-text">Σ<tspan baseline-shift="sub" font-size="14">s</tspan> → log-Cholesky</text>
+  <rect x="1225" y="759" width="246" height="54" rx="12" fill="#EEE6F7" stroke="#7652A8" stroke-width="2"/>
+  <text x="1348" y="791" text-anchor="middle" class="box-text">C<tspan baseline-shift="sub" font-size="14">s</tspan>(τ): lagged correlation</text>
+  <rect x="1225" y="826" width="246" height="54" rx="12" fill="#FBE8EA" stroke="#B85D69" stroke-width="2"/>
+  <text x="1348" y="858" text-anchor="middle" class="box-text">A<tspan baseline-shift="sub" font-size="14">s</tspan>(τ): ridge transition</text>
+  <text x="1348" y="924" text-anchor="middle" class="small">τ = 50, 100, 200 ms</text>
+
+  <path d="M1498 755 L1525 755" class="arrow-matrix"/>
+  <rect x="1530" y="650" width="185" height="135" rx="20" fill="#FFFFFF" stroke="#7652A8" class="shape"/>
+  <text x="1622" y="691" text-anchor="middle" class="box-title">Matrix</text>
+  <text x="1622" y="722" text-anchor="middle" class="box-title">encoders</text>
+  <text x="1622" y="756" text-anchor="middle" class="small">operator gate</text>
+  <path d="M1622 785 L1622 813" class="arrow-matrix"/>
+  <rect x="1530" y="818" width="185" height="105" rx="20" fill="#EDE4F6" stroke="#7652A8" class="shape"/>
+  <text x="1622" y="856" text-anchor="middle" class="box-title">Matrix tokens</text>
+  <text x="1622" y="891" text-anchor="middle" class="small">B×7×384</text>
+
+  <!-- Alignment annotation -->
+  <line x1="1090" y1="455" x2="1090" y2="545" class="diagnostic"/>
+  <rect x="885" y="472" width="410" height="58" rx="18" fill="#FFFFFF" stroke="#8B95A5" stroke-width="2" stroke-dasharray="8 7"/>
+  <text x="1090" y="508" text-anchor="middle" class="small">same 7 positions in both views</text>
+
+  <!-- Fusion -->
+  <path d="M1712 298 C1770 298,1760 425,1810 425" class="arrow-raw"/>
+  <path d="M1715 870 C1770 870,1760 650,1810 650" class="arrow-matrix"/>
+  <rect x="1815" y="335" width="250" height="405" rx="28" fill="#EEF8F1" stroke="#4E9B68" class="shape"/>
+  <text x="1940" y="380" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" fill="#34764A">DUAL-VIEW FUSION</text>
+  <rect x="1842" y="405" width="196" height="62" rx="14" fill="#FFFFFF" stroke="#4E9B68" stroke-width="2"/>
+  <text x="1940" y="443" text-anchor="middle" class="box-text">LayerNorm per view</text>
+  <path d="M1940 467 L1940 492" class="arrow"/>
+  <rect x="1842" y="497" width="196" height="76" rx="14" fill="#DDF1E3" stroke="#4E9B68" stroke-width="2"/>
+  <text x="1940" y="528" text-anchor="middle" class="box-text">modality gate</text>
+  <text x="1940" y="555" text-anchor="middle" class="small">initialized 0.5 / 0.5</text>
+  <path d="M1940 573 L1940 598" class="arrow"/>
+  <rect x="1842" y="603" width="196" height="72" rx="14" fill="#FFFFFF" stroke="#4E9B68" stroke-width="2"/>
+  <text x="1940" y="633" text-anchor="middle" class="box-text">residual interaction</text>
+  <text x="1940" y="659" text-anchor="middle" class="small">[m, r, m ⊙ r]</text>
+  <path d="M1940 675 L1940 696" class="arrow"/>
+  <text x="1940" y="722" text-anchor="middle" class="box-title">Fused B×7×384</text>
+
+  <!-- Shared sequence readout -->
+  <path d="M2065 538 L2110 538" class="arrow"/>
+  <rect x="2115" y="395" width="235" height="175" rx="24" fill="#F6F8FB" stroke="#566174" class="shape"/>
+  <text x="2232" y="436" text-anchor="middle" class="box-title">Segment sequence</text>
+  <text x="2232" y="469" text-anchor="middle" class="box-text">position embedding</text>
+  <text x="2232" y="499" text-anchor="middle" class="box-text">+ dilated TCN</text>
+  <text x="2232" y="529" text-anchor="middle" class="small">6 residual blocks</text>
+  <text x="2232" y="552" text-anchor="middle" class="tiny">models evolution across segments</text>
+
+  <path d="M2232 570 L2232 615" class="arrow"/>
+  <rect x="2115" y="620" width="235" height="135" rx="24" fill="#F6F8FB" stroke="#566174" class="shape"/>
+  <text x="2232" y="661" text-anchor="middle" class="box-title">Sequence pooling</text>
+  <text x="2232" y="696" text-anchor="middle" class="box-text">segment attention</text>
+  <text x="2232" y="727" text-anchor="middle" class="box-text">+ temporal mean</text>
+
+  <path d="M2232 755 L2232 795" class="arrow"/>
+  <rect x="2145" y="800" width="175" height="100" rx="22" fill="#FFF3D7" stroke="#DAA12B" class="shape"/>
+  <text x="2232" y="841" text-anchor="middle" class="box-title">Regression MLP</text>
+  <text x="2232" y="872" text-anchor="middle" class="small">2D → D → 1</text>
+
+  <path d="M2232 900 L2232 939" class="arrow"/>
+  <rect x="2150" y="944" width="165" height="92" rx="25" fill="#FDEBC2" stroke="#C58B13" class="shape"/>
+  <text x="2232" y="982" text-anchor="middle" class="box-title">Predicted RT</text>
+  <text x="2232" y="1012" text-anchor="middle" class="box-text">B × 1</text>
+
+  <!-- Diagnostics -->
+  <text x="70" y="1068" class="small">Inspectable diagnostics:</text>
+  <circle cx="282" cy="1061" r="7" fill="#2474B5"/>
+  <text x="299" y="1068" class="small">raw sample attention</text>
+  <circle cx="535" cy="1061" r="7" fill="#7652A8"/>
+  <text x="552" y="1068" class="small">operator attention</text>
+  <circle cx="773" cy="1061" r="7" fill="#4E9B68"/>
+  <text x="790" y="1068" class="small">modality weights</text>
+  <circle cx="1020" cy="1061" r="7" fill="#566174"/>
+  <text x="1037" y="1068" class="small">segment attention</text>
+  <text x="2330" y="1068" text-anchor="end" class="small">Raw view retains waveform evidence that matrix statistics cannot reconstruct.</text>
+</svg>
